@@ -224,7 +224,7 @@ A one-standard-deviation positive shock to the VIX (equity market fear) or to th
 
 {} Third, the safe-haven currency literature, surveyed by \textcite{habib2012getting} and \textcite{lee2017safe}, empirically identifies which currencies serve as stores of value during global crises. \textcite{habib2012getting} find that safe-haven status is associated with low interest rates, large net foreign asset positions, and deep financial markets --- all characteristics of the Japanese Yen. \textcite{lee2017safe} further documents that the yen's safe-haven property is most pronounced during moderate stress periods but may attenuate during tail-risk events, a nonlinearity our GPR-subsampled design is explicitly constructed to test \parencite{habib2012getting, lee2017safe}.
 
-{} While \textcite{guyot2026risk} construct a robust baseline, their sample terminates in December 2024, prior to the severe Middle East crisis of March 2026. This proposal extends their framework to the 2025--2026 period to capture how these channels behave under extreme geopolitical stress. Furthermore, we utilize the Bloomberg Terminal to acquire equivalent variables, verifying that these exact datasets can replicate and extend their findings.
+{} While \textcite{guyot2026risk} construct a robust baseline, their sample terminates in December 2024, prior to the severe Middle East crisis of March 2026. This proposal extends their framework to the 2025--2026 period to capture how these channels behave under extreme geopolitical stress. Furthermore, we utilize a hybrid data acquisition strategy. Most of our data is sourced directly from the Bloomberg Terminal (matching the original study), while remaining series such as the S\&P 500 and the Geopolitical Risk (GPR) index are sourced from public databases (Yahoo Finance and Iacoviello).
 
 \section{Methodology}
 
@@ -234,7 +234,7 @@ A one-standard-deviation positive shock to the VIX (equity market fear) or to th
 
 {} We construct a daily time-series dataset spanning January 1, 2018, through May 31, 2026, yielding approximately 2,100 trading days after alignment across markets. This extends the \textcite{guyot2026risk} sample by 17 months to capture the 2025--2026 Iran conflict period. Table~\ref{tab:datasources} details all variables, their source series, retrieval methods, and timestamps.
 
-{} Consistent with the original study, we source all financial data from the Bloomberg Terminal \parencite{guyot2026risk}. All data were retrieved on June~1,~2026.
+{} While the original study sourced all data from the Bloomberg Terminal \parencite{guyot2026risk}, we employ a hybrid approach. The majority of our series (exchange rates, interest rates, yields, oil, VIX, spreads, and risk reversals) are sourced from the Bloomberg Terminal. We supplement this with Yahoo Finance for the S\&P 500 and Iacoviello's website for the GPR index. All data were retrieved on June~1,~2026.
 
 \begin{landscape}
 \thispagestyle{empty}
@@ -250,20 +250,19 @@ A one-standard-deviation positive shock to the VIX (equity market fear) or to th
         \toprule
         Variable & Proxy / Series Code & Source & Retrieval Method \\
         \midrule
-        $\Delta JPY/USD$ & DEXJPUS (FRED), USDJPY=X (Yahoo spot) & Bloomberg & Bloomberg Terminal \\
-        $\Delta(i-i^*)$ & Japan 1Y JGB (MOF), DFF (US Fed Funds) & Bloomberg & Bloomberg Terminal \\
-        $\Delta YCurve^{Diff}$ & MOF JGB 10Y/2Y; DGS10, DGS2 (US 10Y/2Y) & Bloomberg & Bloomberg Terminal \\
-        $\Delta Brent$ & DCOILWTICO (WTI), BZ=F (Brent) & Bloomberg & Bloomberg Terminal \\
-        $VIX$ & CBOE Volatility Index (\texttt{\textasciicircum VIX}) & Bloomberg & Bloomberg Terminal \\
-        $Spread$ & JPY/USD Bid-Ask (OANDA); proxy $(H-L)/C$ (USDJPY=X) & Bloomberg & Bloomberg Terminal \\
-        $RiskReversal$ & 1-Month JPY/USD 25-$\Delta$ Risk Reversal & Bloomberg & Bloomberg Terminal \\
-        $EGAP$ & Nikkei 225 (\texttt{\textasciicircum N225}), S\&P 500 (\texttt{\textasciicircum GSPC}) & Bloomberg & Bloomberg Terminal \\
+        $\Delta JPY/USD$ & USDJPY BGN Curncy & Bloomberg & Bloomberg Terminal \\
+        $\Delta(i-i^*)$ & MUTSCALM Index (BOJ), FEDL01 Index (US) & Bloomberg & Bloomberg Terminal \\
+        $\Delta YCurve^{Diff}$ & GJGB10/GJGB2 (JP); USGG10YR/USGG2YR (US) & Bloomberg & Bloomberg Terminal \\
+        $\Delta Brent$ & CO1 Comdty (Brent), CL1 COMB Comdty (WTI) & Bloomberg & Bloomberg Terminal \\
+        $VIX$ & VIX Index & Bloomberg & Bloomberg Terminal \\
+        $Spread$ & JPY/USD Bid-Ask (USDJPY BGN Curncy) & Bloomberg & Bloomberg Terminal \\
+        $RiskReversal$ & 1-Month JPY/USD 25-\Delta Risk Reversal (USDJPY25R1M) & Bloomberg & Bloomberg Terminal \\
+        $EGAP$ & NKY Index (Nikkei), \texttt{\textasciicircum GSPC} (S\&P 500) & Bloomberg, Yahoo & Bloomberg Terminal, Yahoo API \\
         $GPR$ & Geopolitical Risk Index (daily) & Iacoviello (2026) & Iacoviello website \\
         \bottomrule
       \end{tabularx}
     \begin{tablenotes}
-      \item \footnotesize All series retrieved 2026-06-01, spanning 2018-01-01 through 2026-05-31 (GPR through 2026-05-26). FRED accessed via FRED API (\texttt{pandas\_datareader} CSV export endpoint) \parencite{fred2026}; Yahoo Finance via Yahoo API (\texttt{yfinance}) \parencite{yfinance2026}; MOF Japan JGB yields: \url{https://www.mof.go.jp/english/policy/jgbs/reference/interest_rate/}; BIS: \parencite{bis2026}; Iacoviello GPR: \url{https://www.matteoiacoviello.com/gpr.htm} \parencite{iacoviello2026gpr}.
-      \item[a] \footnotesize Data Substitution: The original Guyot (2026) study used the Japan Call Rate (BOJ uncollateralized overnight) and US Fed Funds Rate from Bloomberg. Daily Japanese short-term bank rates are unavailable from public APIs (FRED publishes them only at monthly frequency); we substitute the daily 1-Year JGB yield from MOF Japan. For the US, we use the Fed Funds Rate (DFF, available daily from FRED), which matches the instrument used by Guyot. For the spread, pending OANDA API access, we employ the intraday range proxy $(\text{High} - \text{Low}) / \text{Close}$ from USDJPY=X, a standard liquidity proxy in market microstructure literature \parencite{corwin2012simple, goyenko2009liquidity}.
+      \item \footnotesize All series retrieved 2026-06-01, spanning 2018-01-01 through 2026-05-31 (GPR through 2026-05-26). Bloomberg data retrieved via Bloomberg Terminal; Iacoviello GPR: \url{https://www.matteoiacoviello.com/gpr.htm} \parencite{iacoviello2026gpr}.
       \end{tablenotes}
   \end{threeparttable}
 \end{table}
@@ -279,7 +278,7 @@ A one-standard-deviation positive shock to the VIX (equity market fear) or to th
 {} Let $s_t$ be the JPY/USD noon buying rate (FRED series DEXJPUS). We compute the continuously compounded daily return as \begin{equation} \Delta \text{JPY/USD}_t = 100 \times \big[ \ln(s_t) - \ln(s_{t-1}) \big] \end{equation} following the convention in \textcite{guyot2026risk}. A negative value implies yen appreciation (fewer yen per dollar).
 
 \subsubsection{Interest Rate Differential ($\Delta(i_t - i_t^*)$)}
-{} Let $i_t^{JPN}$ be the yield on the 1-Year Japanese Government Bond (MOF Japan daily fixing) and $i_t^{USA}$ be the US Federal Funds Rate (FRED series DFF). The original study by \textcite{guyot2026risk} employed Japan's uncollateralized overnight call rate and the US Fed Funds Rate, both sourced from the Bloomberg Terminal. We similarly utilize the Mutan call rate (MUTSCALM Index) and the effective Federal Funds Rate (FEDL01 Index) sourced from Bloomberg. We compute \begin{equation} \Delta(i_t - i_t^*) = (i_t^{JPN} - i_t^{USA}) - (i_{t-1}^{JPN} - i_{t-1}^{USA}) \end{equation} as the first-difference of the interest rate differential \parencite{masujima2024drivers}. This transformation ensures stationarity and captures the \textquotedblleft surprise\textquotedblright{} component of monetary policy relevant for daily exchange rate dynamics.
+{} Let $i_t^{JPN}$ be the yield on the 1-Year Japanese Government Bond (MOF Japan daily fixing) and $i_t^{USA}$ be the US Federal Funds Rate (FRED series DFF). The original study by \textcite{guyot2026risk} employed Japan's uncollateralized overnight call rate and the US Fed Funds Rate, both sourced from the Bloomberg Terminal. We directly utilize the Japan Mutan call rate (MUTSCALM Index) and the effective Federal Funds Rate (FEDL01 Index) sourced from Bloomberg. We compute \begin{equation} \Delta(i_t - i_t^*) = (i_t^{JPN} - i_t^{USA}) - (i_{t-1}^{JPN} - i_{t-1}^{USA}) \end{equation} as the first-difference of the interest rate differential \parencite{masujima2024drivers}. This transformation ensures stationarity and captures the \textquotedblleft surprise\textquotedblright{} component of monetary policy relevant for daily exchange rate dynamics.
 
 \subsubsection{Yield Curve Differential ($\Delta YCurve^{Diff}_t$)}
 {} Let $YC_t^{JPN} = y_{10Y,t}^{JGB} - y_{2Y,t}^{JGB}$ be Japan's yield curve slope (10-year minus 2-year JGB yields, sourced from MOF Japan daily fixing data) and $YC_t^{US} = y_{10Y,t}^{TNOTE} - y_{2Y,t}^{TNOTE}$ be the US equivalent (FRED series DGS10 and DGS2). These bond yields are sourced directly from the Bloomberg Terminal at daily frequency. The relative term premium is \begin{equation} \Delta YCurve^{Diff}_t = \big[ YC_t^{JPN} - YC_t^{US} \big] - \big[ YC_{t-1}^{JPN} - YC_{t-1}^{US} \big] \end{equation} which captures shifts in the relative risk term structure between Japanese and US bond markets. A positive value indicates that the Japanese bond risk premium is accelerating relative to US bonds, signaling monetary policy divergence \parencite{guyot2026risk}.
@@ -291,7 +290,7 @@ A one-standard-deviation positive shock to the VIX (equity market fear) or to th
 {} The VIX index is taken as the daily closing level of the CBOE Volatility Index (Yahoo ticker \texttt{\textasciicircum VIX}). Following \textcite{guyot2026risk}, we use the level (not first-difference) because the ADF test confirms stationarity at conventional significance levels \parencite{brunnermeier2009carry}. The VIX measures the market's expectation of 30-day S\&P 500 volatility and serves as the primary proxy for global equity market fear.
 
 \subsubsection{FX Liquidity ($Spread_t$)}
-{} The original study \parencite{guyot2026risk} employs the daily JPY/USD bid-ask spread from the Bloomberg Terminal. We directly utilize the bid-ask spread extracted from Bloomberg (USDJPY BGN Curncy). Formally, \begin{equation} \text{Spread}_t = \text{High}_t^{\text{USDJPY}} - \text{Low}_t^{\text{USDJPY}} \end{equation} expressed in yen. A larger spread indicates lower FX market liquidity and higher transaction costs. Following \textcite{bollerslev1994bid}, wider spreads during volatile periods reflect market makers' compensation for heightened adverse selection risk. \textcite{gagnon2007carry} document that spreads widen precisely during carry trade unwinding episodes, making this proxy essential for our liquidity channel. A larger spread indicates lower FX market liquidity and higher transaction costs. Following \textcite{bollerslev1994bid}, wider spreads during volatile periods reflect market makers' compensation for heightened adverse selection risk. \textcite{gagnon2007carry} document that spreads widen precisely during carry trade unwinding episodes, making this proxy essential for our liquidity channel.
+{} The original study \parencite{guyot2026risk} employs the daily JPY/USD bid-ask spread from the Bloomberg Terminal. We directly utilize the bid-ask spread extracted from Bloomberg (USDJPY BGN Curncy). Formally, \begin{equation} \text{Spread}_t = \text{High}_t^{\text{USDJPY}} - \text{Low}_t^{\text{USDJPY}} \end{equation} expressed in yen. A larger spread indicates lower FX market liquidity and higher transaction costs. Following \textcite{bollerslev1994bid}, wider spreads during volatile periods reflect market makers' compensation for heightened adverse selection risk. \textcite{gagnon2007carry} document that spreads widen precisely during carry trade unwinding episodes, making this proxy essential for our liquidity channel.
 
 \subsubsection{FX Risk Reversal ($RiskReversal_t$)}
 {} The original study \parencite{guyot2026risk} employs the 1-month JPY/USD 25-delta risk reversal from the Bloomberg Terminal at daily frequency. We directly download the daily 1-month JPY/USD 25-delta risk reversal data (USDJPY25R1M BGN Curncy) from the Bloomberg Terminal. Formally, the 1-month JPY/USD 25-delta risk reversal is defined as \begin{equation} \text{RR}_t = \sigma_{t}^{25\Delta, \text{Call}} - \sigma_{t}^{25\Delta, \text{Put}} \end{equation} where $\sigma_{t}^{25\Delta}$ is the implied volatility of a 25-delta out-of-the-money option. A positive (negative) risk reversal signals that call (put) options command a higher premium, indicating market expectations of yen depreciation (appreciation). This can be interpreted as the hedging cost of directional yen exposure \parencite{guyot2026risk}. \textcite{brunnermeier2009carry} demonstrate that risk reversals predict carry trade returns because they capture the skewness (crash risk) embedded in currency option prices.
@@ -333,7 +332,7 @@ A one-standard-deviation positive shock to the VIX (equity market fear) or to th
   \end{safetable}
 \end{table}
 
-{} All series in the \textcite{guyot2026risk} sample are stationary at the 1\% significance level, satisfying the VAR stability condition. The $\Delta YCurve^{Diff}$ and $\Delta(i-i^*)$ series exhibit means near zero, confirming that first-differencing removed the unit root present in the raw interest rate levels. We will compute equivalent statistics for our extended sample (including the GPR index and the 2025--2026 period) after collecting the data via the Bloomberg Terminal as described in Table~\ref{tab:datasources}.
+{} All series in the \textcite{guyot2026risk} sample are stationary at the 1\% significance level, satisfying the VAR stability condition. The $\Delta YCurve^{Diff}$ and $\Delta(i-i^*)$ series exhibit means near zero, confirming that first-differencing removed the unit root present in the raw interest rate levels. We will compute equivalent statistics for our extended sample (including the GPR index and the 2025--2026 period) after collecting the data via our hybrid Bloomberg-public approach as described in Table~\ref{tab:datasources}.
 
 \subsection{Econometric Framework}
 
@@ -518,7 +517,7 @@ which reports the fraction of total forecast error variance of the exchange rate
 
 \textbf{Extension 2 -- GPR Regime Segmentation.} The original study uses VIX-quartile and pre-/post-2022 subsamples. We add a GPR-based segmentation that provides a geopolitical (rather than purely financial) classification of stress periods. This isolates the Iran war's effect from general financial volatility.
 
-\textbf{Modification 3 -- Extended Bloomberg Data.} The original study accesses all data via Bloomberg Terminal. Our replication extends their exact Bloomberg data retrieval process to the updated time period.
+\textbf{Modification 3 -- Hybrid Data Acquisition.} The original study accesses all data via Bloomberg Terminal. Our replication utilizes a hybrid approach, sourcing the majority of our data from Bloomberg Terminal to ensure exact matches with the original study's instruments, while supplementing with Yahoo Finance and Iacoviello for specific series like the S\&P 500 and GPR index.
 
 \subsection{Ideal Experiment vs. Empirical Research Design}
 
