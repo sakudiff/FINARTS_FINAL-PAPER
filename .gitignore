@@ -17,3 +17,11 @@
 
 # OS temp files
 .DS_Store
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Netlify deployment (old)
+deployment/
