@@ -285,7 +285,7 @@ All variables must be aligned to daily frequency before running the VAR:
 | 6     | Hypotheses H1-H3                                            | Derived from theory     | Raphael     |
 | 7     | Econometric model — VAR, Cholesky ordering                 | Paper Section 4         |             |
 | 8     | Variable definitions with sources                           | Paper Table 2           | Aimee       |
-| 9     | Data status — Collected vs pending                         | Progress tracking       |             |
+| 9     | Data status — Collected vs pending                         | Progress tracking       | Aaron       |
 | 10    | Descriptive statistics                                      | Computed from data      | Aaron       |
 | 11    | Challenges — Data gaps, frequency alignment                | Assessment              | Aaron       |
 | 12    | Next steps                                                  | Work plan               |             |
