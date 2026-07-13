@@ -30,7 +30,6 @@ deployment/
 # Generated outputs
 data/processed/
 data/tmp_quadratic/
-index.html
 
 # Quarto render artifacts
 data_pipeline_files/
