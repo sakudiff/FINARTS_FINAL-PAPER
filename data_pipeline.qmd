@@ -1,7 +1,9 @@
 ---
 title: "Data Pipeline — Beirne & Sugandi (2023) Replication (Japan)"
 author: "FINARTS Group 4"
-format: html
+format:
+  html:
+    self-contained: true
 output-file: index
 ---
 
