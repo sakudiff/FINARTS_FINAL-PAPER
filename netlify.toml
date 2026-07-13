@@ -1,0 +1,6 @@
+[build]
+  command = "quarto render data_pipeline.qmd"
+  publish = "."
+
+[build.environment]
+  R_VERSION = "4.6.1"
