@@ -1,0 +1,588 @@
+---
+title: "Data Pipeline — Beirne & Sugandi (2023) Replication (Japan)"
+author: "FINARTS Group 4"
+format: html
+output-file: index
+---
+
+```{r setup, include=FALSE}
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(readxl)
+library(zoo)
+library(lubridate)
+library(knitr)
+library(kableExtra)
+
+DATA_RAW <- file.path("data", "raw")
+DATA_OUT <- file.path("data", "processed")
+dir.create(DATA_OUT, showWarnings = FALSE, recursive = TRUE)
+
+# Paper uses 14 Jan 1999 as first working day with all financial data available
+START_DATE <- as.Date("1999-01-14")
+END_DATE   <- as.Date("2026-06-30")
+PAPER_END  <- as.Date("2021-03-31")
+
+# Japanese era -> Gregorian year offset
+# Heisei 1 = 1989, Reiwa 1 = 2019
+# Era year N = year_start + N - 1 => Heisei: 1988 + N, Reiwa: 2018 + N
+era_map <- tibble(
+  era_name    = c("平成", "令和"),
+  era_offset  = c(1988L, 2018L)
+)
+```
+
+```{r load-financials}
+#| message: false
+
+# All LSEG daily CSVs share the same 6-column format: Date,Close,High,Low,Open,Volume
+read_lseg_daily <- function(file, col_name) {
+  read_csv(file,
+           col_types = cols(Date = col_date(), Close = col_double(),
+                            High = col_double(), Low = col_double(),
+                            Open = col_double(), Volume = col_double()),
+           show_col_types = FALSE) %>%
+    select(date = Date, !!col_name := Close) %>%
+    filter(date >= START_DATE)
+}
+
+vix      <- read_lseg_daily(file.path(DATA_RAW, "VIX.csv"), "vix")
+nikkei   <- read_lseg_daily(file.path(DATA_RAW, "NIKKEI225.csv"), "nikkei225")
+sp500    <- read_lseg_daily(file.path(DATA_RAW, "SP500.csv"), "sp500")
+us10y    <- read_lseg_daily(file.path(DATA_RAW, "US10Y.csv"), "us10y")
+usdjpy   <- read_lseg_daily(file.path(DATA_RAW, "USDJPY.csv"), "usdjpy")
+
+# JGB yields: skip row 1 (title), row 2 is header
+# Date format YYYY/MM/DD, 10Y is column 11 (position 10, 0-indexed)
+# Filter to rows where 10Y has valid data (1986-07-05+)
+raw_jgb <- read_csv(file.path(DATA_RAW, "jgbcme_all.csv"),
+                    skip = 1, show_col_types = FALSE) %>%
+  rename(date = Date) %>%
+  mutate(date = ymd(date)) %>%
+  filter(date >= START_DATE)
+
+jgb_cols <- names(raw_jgb)
+# 10Y is at position 10 (0-indexed) = 11th column
+jgb10y <- raw_jgb %>%
+  select(date, jgb10y = all_of(jgb_cols[11])) %>%
+  mutate(jgb10y = as.numeric(na_if(jgb10y, "-")))
+```
+
+```{r load-macro}
+#| message: false
+
+# REER.xlsx — check sheet name dynamically
+reer_sheets <- excel_sheets(file.path(DATA_RAW, "REER.xlsx"))
+reer_raw <- read_excel(file.path(DATA_RAW, "REER.xlsx"),
+                       sheet = reer_sheets[1],
+                       col_types = "text")
+# First row is a sub-header with NA date and "Close" value; skip it
+reer <- reer_raw %>%
+  filter(!is.na(.data[[names(reer_raw)[1]]])) %>%
+  rename(date_raw = 1, reer = 2) %>%
+  mutate(date = as_date(ymd_hms(date_raw)),
+         reer = as.numeric(reer)) %>%
+  select(date, reer) %>%
+  arrange(date) %>%
+  filter(date >= START_DATE)
+
+# Japan RGDP (FRED, quarterly)
+rgdp <- read_csv(file.path(DATA_RAW, "JAPAN_RGDP.csv"),
+                 col_types = cols(Date = col_date(), Value = col_double()),
+                 show_col_types = FALSE) %>%
+  rename(date = Date, rgdp = Value) %>%
+  filter(date >= START_DATE)
+
+# Japan Nominal GDP (FRED, quarterly, millions of JPY)
+nominal_gdp <- read_csv(file.path(DATA_RAW, "JAPAN_NOMINAL_GDP.csv"),
+                        col_types = cols(Date = col_date(), Value = col_double()),
+                        show_col_types = FALSE) %>%
+  rename(date = Date, nominal_gdp = Value) %>%
+  filter(date >= START_DATE)
+
+# World Uncertainty Index (Japan, quarterly)
+wui <- read_csv(file.path(DATA_RAW, "WUI_JPN.csv"),
+                col_types = cols(observation_date = col_date(), WUIJPN = col_double()),
+                show_col_types = FALSE) %>%
+  rename(date = observation_date, wui = WUIJPN) %>%
+  filter(date >= START_DATE)
+```
+
+```{r parse-boj-6pi1}
+#| message: false
+
+# BOJ 6pi-1 CSV: Shift-JIS (CP932) encoded, mixed layout
+# Use base R's readLines with explicit encoding; readr's locale(encoding="Shift-JIS") crashes
+boj_con <- file(file.path(DATA_RAW, "BOJ_6pi-1_portfolio_summary.csv"),
+                encoding = "CP932")
+boj_lines <- readLines(boj_con, warn = FALSE)
+close(boj_con)
+
+# Find monthly figures section
+monthly_start <- grep("(Monthly figures)", boj_lines, fixed = TRUE)[1] + 1
+monthly_txt <- paste(boj_lines[monthly_start:length(boj_lines)], collapse = "\n")
+
+# Parse as CSV — 29 columns expected
+# Liabilities section: cols 15-28 (0-indexed 15-28), repeated layout per month
+monthly_raw <- read_csv(I(monthly_txt), col_names = FALSE,
+                        col_types = cols(.default = col_character()),
+                        guess_max = 500, show_col_types = FALSE)
+
+boj_monthly <- monthly_raw %>%
+  select(era_col = X1, month_col = X2,
+         equity_net = X22, lt_debt_net = X25, st_debt_net = X28) %>%
+  mutate(
+    era_col = na_if(era_col, ""),
+    month_col = na_if(month_col, "")
+  ) %>%
+  tidyr::fill(era_col, .direction = "down") %>%
+  filter(!is.na(month_col)) %>%
+  mutate(
+    month_num = as.integer(str_replace(month_col, "月", "")),
+    # Handle 元年 (first year) -> 1年
+    era_col_digit = str_replace(era_col, "元", "1"),
+    era_type = str_extract(era_col_digit, "^[平成令和]+"),
+    era_year = as.integer(str_extract(era_col_digit, "\\d+")),
+    year_greg = case_when(
+      era_type == "平成" ~ 1988L + era_year,
+      era_type == "令和" ~ 2018L + era_year,
+      TRUE ~ NA_integer_
+    ),
+    date = ymd(paste(year_greg, month_num, "01", sep = "-"))
+  )
+
+# Parse BOJ numeric values (comma-formatted, "--" = NA)
+parse_boj_val <- function(x) {
+  x <- str_replace_all(x, ",", "")
+  x <- na_if(x, "--")
+  as.numeric(x)
+}
+
+boj_monthly <- boj_monthly %>%
+  mutate(
+    equity_val = parse_boj_val(equity_net),
+    lt_debt    = parse_boj_val(lt_debt_net),
+    st_debt    = parse_boj_val(st_debt_net),
+    debtsec    = lt_debt + st_debt
+  ) %>%
+  filter(date <= as.Date("2013-12-01"))
+
+debtsec_pre2014 <- boj_monthly %>%
+  select(date, debtsec)
+equity_pre2014 <- boj_monthly %>%
+  select(date, equity = equity_val)
+```
+
+```{r load-boj-api}
+#| message: false
+
+# Post-2014 BOJ API flows: simple 2-col CSV (date, value), 100M JPY
+read_boj_api <- function(file, col_name) {
+  read_csv(file,
+           col_types = cols(Date = col_date(),
+                            .default = col_double()),
+           show_col_types = FALSE) %>%
+    rename(date = Date, !!col_name := 2) %>%
+    filter(date >= START_DATE)
+}
+
+boj_lt   <- read_boj_api(file.path(DATA_RAW, "BOJ_BPPI6E3N5.csv"), "lt_debt")
+boj_st   <- read_boj_api(file.path(DATA_RAW, "BOJ_BPPI6E4N5.csv"), "st_debt")
+boj_eq   <- read_boj_api(file.path(DATA_RAW, "BOJ_BPPI6E2N5.csv"), "equity")
+boj_oth  <- read_boj_api(file.path(DATA_RAW, "BOJ_BPBP6JYNFL3.csv"), "other")
+boj_dir  <- read_boj_api(file.path(DATA_RAW, "BOJ_BPBP6JYNFL13.csv"), "direct")
+```
+
+```{r merge-capital-flows}
+#| message: false
+
+# Post-2014 debtsec = long-term + short-term debt securities (sum per D-04)
+debtsec_post2014 <- boj_lt %>%
+  inner_join(boj_st, by = "date") %>%
+  mutate(debtsec = lt_debt + st_debt) %>%
+  select(date, debtsec)
+
+equity_post2014 <- boj_eq %>%
+  select(date, equity)
+
+# Bind pre-2014 and post-2014
+debtsec_all <- bind_rows(debtsec_pre2014, debtsec_post2014) %>%
+  arrange(date)
+equity_all <- bind_rows(equity_pre2014, equity_post2014) %>%
+  arrange(date)
+
+# Other and Direct are single-source, full range
+other_all <- boj_oth %>%
+  rename(value = other) %>%
+  select(date, value)
+direct_all <- boj_dir %>%
+  rename(value = direct) %>%
+  select(date, value)
+```
+
+```{r risk-off}
+#| message: false
+
+# VIX as anchor (trades every US market day). Left_join keeps dates where VIX
+# exists but JGB/Nikkei may not (e.g., Japanese holidays). This preserves risk-off
+# episode start dates that fall on Japanese non-trading days (audit C-3).
+daily_fin <- vix %>%
+  left_join(nikkei, by = "date") %>%
+  left_join(sp500, by = "date") %>%
+  left_join(us10y, by = "date") %>%
+  left_join(usdjpy, by = "date") %>%
+  left_join(jgb10y, by = "date") %>%
+  arrange(date)
+
+daily_fin <- daily_fin %>%
+  mutate(
+    vix_ma60 = rollmean(vix, k = 60, fill = NA, align = "right"),
+    risk_off = if_else(vix >= vix_ma60 + 10, 1L, 0L)
+  )
+```
+
+```{r spread}
+#| message: false
+
+daily_fin <- daily_fin %>%
+  mutate(spread = jgb10y - us10y)
+```
+
+```{r log-transforms}
+#| message: false
+
+daily_fin <- daily_fin %>%
+  mutate(log_nikkei = log(nikkei225))
+
+macro <- reer %>%
+  left_join(rgdp, by = "date") %>%
+  left_join(wui, by = "date")
+
+# WUI can be zero in early observations — log would produce -Inf
+# Filter to positive values before transform
+macro <- macro %>%
+  mutate(
+    log_reer = log(reer),
+    log_rgdp = log(rgdp),
+    log_wui  = if_else(wui > 0, log(wui), NA_real_)
+  )
+```
+
+```{r capital-flow-pct-gdp}
+#| message: false
+
+# End-of-month USD/JPY (last trading day of each month)
+usdjpy_eom <- daily_fin %>%
+  mutate(year_month = floor_date(date, "month")) %>%
+  group_by(year_month) %>%
+  filter(date == max(date, na.rm = TRUE)) %>%
+  ungroup() %>%
+  distinct(year_month, usdjpy_eom = usdjpy)
+
+# Prepare nominal GDP with year_month key for joining
+# GDP is quarterly — expand to full monthly sequence and carry forward
+# the quarterly value so months 2-3 of each quarter don't get NA (audit W-4)
+nominal_gdp_monthly <- nominal_gdp %>%
+  mutate(year_month = floor_date(date, "month")) %>%
+  complete(year_month = seq(min(year_month), max(year_month), by = "month")) %>%
+  fill(nominal_gdp, .direction = "down")
+
+# Helper: 100M JPY -> USD billion
+convert_100m_jpy_to_usd_bn <- function(v, rate) (v * 0.1) / rate
+
+# Helper: millions of JPY -> USD billion
+convert_jpy_mn_to_usd_bn <- function(v, rate) v / (rate * 1000)
+
+# Debtsec %GDP
+debtsec_pct <- debtsec_all %>%
+  mutate(year_month = floor_date(date, "month")) %>%
+  left_join(usdjpy_eom, by = "year_month") %>%
+  left_join(nominal_gdp_monthly, by = "year_month") %>%
+  mutate(
+    flow_usd_bn   = convert_100m_jpy_to_usd_bn(debtsec, usdjpy_eom),
+    gdp_usd_bn    = convert_jpy_mn_to_usd_bn(nominal_gdp, usdjpy_eom),
+    debtsec_pct   = (flow_usd_bn / gdp_usd_bn) * 100
+  ) %>%
+  select(date = year_month, debtsec_pct)
+
+# Equity %GDP
+equity_pct <- equity_all %>%
+  mutate(year_month = floor_date(date, "month")) %>%
+  left_join(usdjpy_eom, by = "year_month") %>%
+  left_join(nominal_gdp_monthly, by = "year_month") %>%
+  mutate(
+    flow_usd_bn  = convert_100m_jpy_to_usd_bn(equity, usdjpy_eom),
+    gdp_usd_bn   = convert_jpy_mn_to_usd_bn(nominal_gdp, usdjpy_eom),
+    equity_pct   = (flow_usd_bn / gdp_usd_bn) * 100
+  ) %>%
+  select(date = year_month, equity_pct)
+
+# Other %GDP
+other_pct <- other_all %>%
+  mutate(year_month = floor_date(date, "month")) %>%
+  left_join(usdjpy_eom, by = "year_month") %>%
+  left_join(nominal_gdp_monthly, by = "year_month") %>%
+  mutate(
+    flow_usd_bn = convert_100m_jpy_to_usd_bn(value, usdjpy_eom),
+    gdp_usd_bn  = convert_jpy_mn_to_usd_bn(nominal_gdp, usdjpy_eom),
+    other_pct   = (flow_usd_bn / gdp_usd_bn) * 100
+  ) %>%
+  select(date = year_month, other_pct)
+
+# Direct %GDP
+direct_pct <- direct_all %>%
+  mutate(year_month = floor_date(date, "month")) %>%
+  left_join(usdjpy_eom, by = "year_month") %>%
+  left_join(nominal_gdp_monthly, by = "year_month") %>%
+  mutate(
+    flow_usd_bn  = convert_100m_jpy_to_usd_bn(value, usdjpy_eom),
+    gdp_usd_bn   = convert_jpy_mn_to_usd_bn(nominal_gdp, usdjpy_eom),
+    direct_pct   = (flow_usd_bn / gdp_usd_bn) * 100
+  ) %>%
+  select(date = year_month, direct_pct)
+```
+
+```{r export-native-data}
+#| message: false
+
+# Export native-frequency data (unfiltered) for Python quadratic interpolation.
+# Python needs anchor points before 1999-01-14. We re-read raw files without
+# the START_DATE filter so the full available history feeds the interpolation.
+
+TMP_DIR <- file.path("data", "tmp_quadratic")
+dir.create(TMP_DIR, showWarnings = FALSE, recursive = TRUE)
+
+# Macro data: re-read raw files unfiltered, compute logs
+reer_full <- read_excel(file.path(DATA_RAW, "REER.xlsx"),
+  sheet = excel_sheets(file.path(DATA_RAW, "REER.xlsx"))[1],
+  col_types = "text") %>%
+  filter(!is.na(.data[[names(.)[1]]])) %>%
+  rename(date_raw = 1, reer = 2) %>%
+  mutate(date = as_date(ymd_hms(date_raw)), reer = as.numeric(reer)) %>%
+  select(date, reer) %>% arrange(date)
+
+rgdp_full <- read_csv(file.path(DATA_RAW, "JAPAN_RGDP.csv"),
+  col_types = cols(Date = col_date(), Value = col_double()),
+  show_col_types = FALSE) %>%
+  rename(date = Date, rgdp = Value)
+
+wui_full <- read_csv(file.path(DATA_RAW, "WUI_JPN.csv"),
+  col_types = cols(observation_date = col_date(), WUIJPN = col_double()),
+  show_col_types = FALSE) %>%
+  rename(date = observation_date, wui = WUIJPN)
+
+reer_full %>% mutate(log_reer = log(reer)) %>%
+  select(date, log_reer) %>%
+  write_csv(file.path(TMP_DIR, "log_reer_native.csv"))
+
+rgdp_full %>% mutate(log_rgdp = log(rgdp)) %>%
+  select(date, log_rgdp) %>%
+  write_csv(file.path(TMP_DIR, "log_rgdp_native.csv"))
+
+wui_full %>% filter(wui > 0) %>% mutate(log_wui = log(wui)) %>%
+  select(date, log_wui) %>%
+  write_csv(file.path(TMP_DIR, "log_wui_native.csv"))
+
+# Capital flow %GDP: re-read BOJ, USDJPY, and Nominal GDP raw files unfiltered
+usdjpy_full <- read_csv(file.path(DATA_RAW, "USDJPY.csv"),
+  col_types = cols(Date = col_date(), Close = col_double(),
+    High = col_double(), Low = col_double(),
+    Open = col_double(), Volume = col_double()),
+  show_col_types = FALSE) %>%
+  select(date = Date, usdjpy = Close) %>%
+  mutate(year_month = floor_date(date, "month")) %>%
+  group_by(year_month) %>%
+  filter(date == max(date, na.rm = TRUE)) %>%
+  ungroup() %>%
+  distinct(year_month, usdjpy_eom = usdjpy)
+
+ngdp_full <- read_csv(file.path(DATA_RAW, "JAPAN_NOMINAL_GDP.csv"),
+  col_types = cols(Date = col_date(), Value = col_double()),
+  show_col_types = FALSE) %>%
+  rename(date = Date, nominal_gdp = Value) %>%
+  mutate(year_month = floor_date(date, "month")) %>%
+  complete(year_month = seq(min(year_month), max(year_month), by = "month")) %>%
+  fill(nominal_gdp, .direction = "down")
+
+to_usd_bn       <- function(v, rate) (v * 0.1) / rate
+ngdp_to_usd_bn  <- function(v, rate) v / (rate * 1000)
+
+# Debtsec: combine pre-2014 6pi-1 with post-2014 BOJ API (long + short)
+boj_lt_full <- read_csv(file.path(DATA_RAW, "BOJ_BPPI6E3N5.csv"),
+  col_types = cols(Date = col_date(), .default = col_double()),
+  show_col_types = FALSE) %>% rename(date = Date, lt = 2)
+boj_st_full <- read_csv(file.path(DATA_RAW, "BOJ_BPPI6E4N5.csv"),
+  col_types = cols(Date = col_date(), .default = col_double()),
+  show_col_types = FALSE) %>% rename(date = Date, st = 2)
+
+debtsec_post_full <- boj_lt_full %>%
+  inner_join(boj_st_full, by = "date") %>%
+  mutate(value = lt + st) %>% select(date, value)
+
+debtsec_full <- bind_rows(
+  debtsec_pre2014 %>% rename(value = debtsec), debtsec_post_full
+) %>% arrange(date)
+
+equity_post_full <- read_csv(file.path(DATA_RAW, "BOJ_BPPI6E2N5.csv"),
+  col_types = cols(Date = col_date(), .default = col_double()),
+  show_col_types = FALSE) %>% rename(date = Date, value = 2)
+
+equity_full <- bind_rows(
+  equity_pre2014 %>% rename(value = equity), equity_post_full
+) %>% arrange(date)
+
+# Native-frequency %GDP exports
+debtsec_full %>%
+  mutate(year_month = floor_date(date, "month")) %>%
+  left_join(usdjpy_full, by = "year_month") %>%
+  left_join(ngdp_full, by = "year_month") %>%
+  mutate(debtsec_pct = (to_usd_bn(value, usdjpy_eom) / ngdp_to_usd_bn(nominal_gdp, usdjpy_eom)) * 100) %>%
+  select(date = year_month, debtsec_pct) %>%
+  write_csv(file.path(TMP_DIR, "debtsec_native.csv"))
+
+equity_full %>%
+  mutate(year_month = floor_date(date, "month")) %>%
+  left_join(usdjpy_full, by = "year_month") %>%
+  left_join(ngdp_full, by = "year_month") %>%
+  mutate(equity_pct = (to_usd_bn(value, usdjpy_eom) / ngdp_to_usd_bn(nominal_gdp, usdjpy_eom)) * 100) %>%
+  select(date = year_month, equity_pct) %>%
+  write_csv(file.path(TMP_DIR, "equity_native.csv"))
+
+read_csv(file.path(DATA_RAW, "BOJ_BPBP6JYNFL3.csv"),
+  col_types = cols(Date = col_date(), .default = col_double()),
+  show_col_types = FALSE) %>%
+  rename(date = Date, value = 2) %>%
+  mutate(year_month = floor_date(date, "month")) %>%
+  left_join(usdjpy_full, by = "year_month") %>%
+  left_join(ngdp_full, by = "year_month") %>%
+  mutate(other_pct = (to_usd_bn(value, usdjpy_eom) / ngdp_to_usd_bn(nominal_gdp, usdjpy_eom)) * 100) %>%
+  select(date = year_month, other_pct) %>%
+  write_csv(file.path(TMP_DIR, "other_native.csv"))
+
+read_csv(file.path(DATA_RAW, "BOJ_BPBP6JYNFL13.csv"),
+  col_types = cols(Date = col_date(), .default = col_double()),
+  show_col_types = FALSE) %>%
+  rename(date = Date, value = 2) %>%
+  mutate(year_month = floor_date(date, "month")) %>%
+  left_join(usdjpy_full, by = "year_month") %>%
+  left_join(ngdp_full, by = "year_month") %>%
+  mutate(direct_pct = (to_usd_bn(value, usdjpy_eom) / ngdp_to_usd_bn(nominal_gdp, usdjpy_eom)) * 100) %>%
+  select(date = year_month, direct_pct) %>%
+  write_csv(file.path(TMP_DIR, "direct_native.csv"))
+```
+
+```{r python-interpolation}
+#| message: false
+
+# True quadratic interpolation via Python pandas (matches paper Section 4 method).
+# R has no native quadratic spline; pandas provides it as a one-liner with
+# proper boundary behaviour (no extrapolation past anchor points).
+# Requires: Python 3.10+ with pandas>=2.0, numpy>=1.24 (managed by pyproject.toml)
+system2("python3", c("scripts/quadratic_interpolate.py"))
+```
+
+```{r import-daily}
+#| message: false
+
+# Full daily calendar (used by working-days filter below)
+all_dates <- tibble(date = seq(START_DATE, END_DATE, by = "day"))
+
+# Import quadratic-interpolated daily series from Python output
+import_daily <- function(name) {
+  read_csv(file.path("data", "tmp_quadratic", paste0(name, "_daily.csv")),
+    show_col_types = FALSE)
+}
+
+log_reer_daily <- import_daily("log_reer")
+log_rgdp_daily <- import_daily("log_rgdp")
+log_wui_daily  <- import_daily("log_wui")
+debtsec_daily  <- import_daily("debtsec")
+equity_daily   <- import_daily("equity")
+other_daily    <- import_daily("other")
+direct_daily   <- import_daily("direct")
+```
+
+```{r working-days}
+#| message: false
+
+# Remove weekends; keep Mon-Fri trading days
+is_working_day <- function(d) wday(d) %in% 2:6
+
+working_dates <- all_dates %>%
+  filter(is_working_day(date))
+
+filter_working <- function(df) {
+  df %>% filter(date %in% working_dates$date)
+}
+
+risk_off_daily   <- daily_fin %>% select(date, risk_off)
+spread_daily     <- daily_fin %>% select(date, spread)
+log_nikkei_daily <- daily_fin %>% select(date, log_nikkei)
+
+risk_off_wd   <- filter_working(risk_off_daily)
+spread_wd     <- filter_working(spread_daily)
+log_nikkei_wd <- filter_working(log_nikkei_daily)
+log_reer_wd   <- filter_working(log_reer_daily)
+log_rgdp_wd   <- filter_working(log_rgdp_daily)
+log_wui_wd    <- filter_working(log_wui_daily)
+debtsec_wd    <- filter_working(debtsec_daily)
+equity_wd     <- filter_working(equity_daily)
+other_wd      <- filter_working(other_daily)
+direct_wd     <- filter_working(direct_daily)
+```
+
+```{r merge-all}
+#| message: false
+
+final_dataset <- risk_off_wd %>%
+  full_join(log_wui_wd, by = "date") %>%
+  full_join(spread_wd, by = "date") %>%
+  full_join(log_rgdp_wd, by = "date") %>%
+  full_join(log_reer_wd, by = "date") %>%
+  full_join(log_nikkei_wd, by = "date") %>%
+  full_join(debtsec_wd, by = "date") %>%
+  full_join(equity_wd, by = "date") %>%
+  full_join(other_wd, by = "date") %>%
+  full_join(direct_wd, by = "date") %>%
+  arrange(date) %>%
+  mutate(
+    period = case_when(
+      date <= PAPER_END ~ "1999-2021",
+      TRUE               ~ "1999-2026"
+    )
+  )
+```
+
+```{r export-csv}
+#| message: false
+
+write_csv(final_dataset, file.path(DATA_OUT, "final_dataset.csv"))
+cat("final_dataset.csv written:", nrow(final_dataset), "rows x", ncol(final_dataset), "cols\n")
+```
+
+```{r descriptive-stats}
+#| message: false
+
+desc_stats <- final_dataset %>%
+  select(-date) %>%
+  pivot_longer(-period, names_to = "variable", values_to = "value") %>%
+  group_by(period, variable) %>%
+  summarise(
+    N    = sum(!is.na(value)),
+    Mean = mean(value, na.rm = TRUE),
+    SD   = sd(value, na.rm = TRUE),
+    Min  = min(value, na.rm = TRUE),
+    Max  = max(value, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+desc_stats %>%
+  mutate(across(where(is.numeric), ~ round(.x, 4))) %>%
+  kbl(caption = "Descriptive Statistics by Period") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+
+write_csv(desc_stats, file.path(DATA_OUT, "descriptive_stats.csv"))
+cat("descriptive_stats.csv written:", nrow(desc_stats), "rows\n")
+```

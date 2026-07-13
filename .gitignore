@@ -26,3 +26,26 @@ __pycache__/
 # Netlify deployment (old)
 deployment/
 ***REMOVED***
+
+# Generated outputs
+data/processed/
+data/tmp_quadratic/
+index.html
+
+# Quarto render artifacts
+data_pipeline_files/
+data_pipeline.knit.md
+
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***/
+
+***REMOVED***
+***REMOVED***
+
+# R environment
+.Rproj.user
+.Rhistory
+.Rdata
+.renv/
