@@ -49,7 +49,17 @@ Allowed options and applicability:
 | (iii) Modified model      | New control variable or different technique | Possible addition                                 |
 | (iv) Other modifications  | Subject to approval                         | —                                                |
 
-Replication plan: Modified sample. The paper's data period (1999–2021) will be extended to June 30, 2026. This captures the recent yen depreciation, BOJ policy normalization, and the Iran conflict risk-off episode. Focus on Japan only (not Switzerland/US).
+**Replication plan:**
+
+* Modified sample. The paper's data period (1999–2021) will be extended to June 30, 2026.
+  * This captures the recent yen depreciation, BOJ policy normalization, and the Iran conflict risk-off episode.
+* Focus on Japan only (not Switzerland/US)
+  * Our paper checks whether the "Safe Haven Yen" theory holds up when tested against modern macroeconomic anomalies.
+* Analyze 2 periods: 1999–2021 (original paper) and 1999–2026 (extended).
+* **Implementation language**: R. All data construction, VAR estimation, and visualization will be written in R.
+* **Data sources**: The paper uses Bloomberg (bond yields, stock indices) and IMF/CEIC (capital flows). Our repo substitutes:
+  - **Capital flows**: Bank of Japan API (monthly, 100M JPY) instead of IMF/CEIC (quarterly, USD bn). This gives higher frequency (monthly vs quarterly) and longer history (1996 vs ~1999) at the cost of additional FX conversion and %GDP computation.
+  - **Portfolio debt/equity (pre-2014)**: Requires parsing the Shift-JIS encoded BOJ 6pi-1 CSV to extend the 2014–2026 API data backward.
 
 ### 2.3 Theoretical Foundations
 
@@ -87,7 +97,7 @@ The paper uses Bloomberg for bond yields and stock indices. LSEG Workspace (form
 
 | Date           | Deliverable                                    | Days Left |
 | -------------- | ---------------------------------------------- | --------- |
-| July 17, 2026  | In-class progress update (15 min presentation) | 7 days    |
+| July 17, 2026  | In-class progress update (15 min presentation) | 4 days    |
 | August 7, 2026 | Written report submission                      | 28 days   |
 
 ---
@@ -177,12 +187,14 @@ No dedup needed since the ranges do not overlap (split at 2014-01).
 
 All variables must be aligned to daily frequency before running the VAR:
 
-| Native Freq | Variables                                         | Interpolation Method             |
-| ----------- | ------------------------------------------------- | -------------------------------- |
-| Daily       | VIX, Nikkei 225, S&P 500, US 10Y, JPY/USD         | Native - no transform            |
-| Monthly     | Japan 10Y, REER                                   | Quadratic interpolation to daily |
-| Quarterly   | RGDP, Nominal GDP, Debtsec, Equity, Other, Direct | Quadratic interpolation to daily |
-| Quarterly   | WUI                                               | Quadratic interpolation to daily |
+| Native Freq | Variables                                                     | Interpolation Method             |
+| ----------- | ------------------------------------------------------------- | -------------------------------- |
+| Daily       | VIX, Nikkei 225, S&P 500, US 10Y, JPY/USD, **Japan 10Y** | Native - no transform            |
+| Monthly     | REER                                                          | Quadratic interpolation to daily |
+| Quarterly   | RGDP, Nominal GDP, Debtsec, Equity, Other, Direct             | Quadratic interpolation to daily |
+| Quarterly   | WUI                                                           | Quadratic interpolation to daily |
+
+**Interpolation note (2026-07-13):** Migrated to true quadratic interpolation via `pandas.Series.interpolate(method='quadratic')` (`scripts/quadratic_interpolate.py`). R has no native quadratic spline; pandas provides it as a one-liner. Requires Python 3.10+ with `pandas>=2.0`, `numpy>=1.24` (managed by `pyproject.toml`). Intermediate files in `data/tmp_quadratic/` (gitignored).
 
 ### Unit Conversions
 

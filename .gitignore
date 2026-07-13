@@ -26,3 +26,26 @@ __pycache__/
 # Netlify deployment (old)
 deployment/
 .pi/tasks
+
+# Generated outputs
+data/processed/
+data/tmp_quadratic/
+index.html
+
+# Quarto render artifacts
+data_pipeline_files/
+data_pipeline.knit.md
+
+# Agent runtime artifacts (not source)
+context.md
+research_brief.md
+.pi-subagents/
+
+# Planning artifacts (grill-me specs)
+docs/grill-me-*/
+
+# R environment
+.Rproj.user
+.Rhistory
+.Rdata
+.renv/
