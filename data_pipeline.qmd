@@ -622,3 +622,8 @@ desc_stats |>
 write_csv(desc_stats, file.path(DATA_OUT, "descriptive_stats.csv"))
 cat("descriptive_stats.csv written:", nrow(desc_stats), "rows\n")
 ```
+
+```{r latex-table}
+#| message: false
+system2("Rscript", c("scripts/generate_descriptive_table.R"))
+```
