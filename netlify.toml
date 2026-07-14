@@ -1,2 +1,4 @@
 [build]
   publish = "."
+  # Production branch: main (set in Netlify dashboard at Site > Deploys > Continuous Deployment)
+  # Auto-deploys from main on every git push. index.html is the entry point.
