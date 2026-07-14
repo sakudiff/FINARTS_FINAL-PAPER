@@ -38,6 +38,21 @@ era_map <- tibble(
 )
 ```
 
+### Variable reference
+
+| Variable | Description | Frequency | Source |
+|----------|------------|-----------|--------|
+| `risk_off` | Risk-off event indicator: 1 when VIX is at least 10 points above its 60-day moving average | Daily | Authors' calculation from Bloomberg VIX data |
+| `spread` | Yield spread between 10-year JGB and 10-year US Treasury | Daily | Bloomberg |
+| `log_nikkei` | Log of Nikkei-225 stock index | Daily | Bloomberg |
+| `log_reer` | Log of real effective exchange rate, broad index (2010 = 100) | Monthly, quadratically interpolated to daily | BIS |
+| `log_rgdp` | Log of constant-price real GDP | Quarterly, quadratically interpolated to daily | IMF |
+| `log_wui` | Log of World Uncertainty Index for Japan | Quarterly, quadratically interpolated to daily | worlduncertaintyindex.com |
+| `debtsec_pct` | Net portfolio investment inflows to debt securities (% of nominal GDP) | Monthly, quadratically interpolated to daily | BOJ, IMF, Bloomberg |
+| `equity_pct` | Net portfolio investment inflows to equity (% of nominal GDP) | Monthly, quadratically interpolated to daily | BOJ, IMF |
+| `other_pct` | Net other investment inflows (% of nominal GDP) | Monthly, quadratically interpolated to daily | BOJ, IMF, Bloomberg |
+| `direct_pct` | Net direct investment inflows (% of nominal GDP) | Monthly, quadratically interpolated to daily | BOJ, IMF, Bloomberg |
+
 All six daily financial series share a consistent LSEG CSV format, so a single read function handles them.
 
 ```{r load-financials}
