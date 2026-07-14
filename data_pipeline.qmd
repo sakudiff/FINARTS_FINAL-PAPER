@@ -704,7 +704,8 @@ variance_tests <- map_dfr(vars_to_test, function(v) {
     variable = v,
     F_statistic = round(ft$statistic, 4),
     p_value = round(ft$p.value, 4),
-    significant_5pct = ifelse(ft$p.value < 0.05, "Yes", "No")
+    significant_5pct = ifelse(ft$p.value < 0.05, "Yes", "No"),
+    higher_variance = ifelse(ft$statistic > 1, "Paper Period", "Extended Period")
   )
 })
 
@@ -723,15 +724,13 @@ rolling_vol <- final_dataset |>
   pivot_longer(-date, names_to = "variable", values_to = "value") |>
   group_by(variable) |>
   mutate(
-    rolling_sd = rollapply(value, width = 260, FUN = sd, fill = NA, align = "right")
+    rolling_sd = rollapply(value, width = 260, FUN = sd, fill = NA, align = "right", na.rm = TRUE)
   ) |>
   ungroup()
 
 ggplot(rolling_vol, aes(x = date, y = rolling_sd, color = variable)) +
   geom_line(linewidth = 0.6) +
   geom_vline(xintercept = as.Date("2021-03-31"), linetype = "dashed", color = "gray50") +
-  annotate("text", x = as.Date("2021-03-31"), y = 0.02, label = "Paper Period End",
-           hjust = 1.1, size = 3, angle = 90, color = "gray50") +
   facet_wrap(~variable, scales = "free_y", ncol = 1) +
   scale_color_manual(values = c("log_reer" = "#2E45B8", "log_nikkei" = "#F97A1F", "spread" = "#595959")) +
   labs(x = "Year", y = "Rolling 1-Year Standard Deviation",
