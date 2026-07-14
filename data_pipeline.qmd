@@ -742,7 +742,7 @@ paper_end <- as.Date("2021-03-31")
 ggplot(ts_data, aes(x = date, y = value)) +
   geom_rect(aes(xmin = paper_end, xmax = max(date, na.rm = TRUE),
                 ymin = -Inf, ymax = Inf),
-            fill = "#F97A1F", alpha = 0.04, inherit.aes = FALSE) +
+            fill = "#F97A1F", alpha = 0.015, inherit.aes = FALSE) +
   geom_line(aes(color = period), linewidth = 0.25, alpha = 0.7) +
   geom_vline(xintercept = paper_end, linetype = "dashed",
              color = "#595959", linewidth = 0.3) +
