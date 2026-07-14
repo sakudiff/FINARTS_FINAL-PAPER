@@ -40,18 +40,18 @@ era_map <- tibble(
 
 ### Variable reference
 
-| Variable | Description | Frequency | Source |
-|----------|------------|-----------|--------|
-| `risk_off` | Risk-off event indicator: 1 when VIX is at least 10 points above its 60-day moving average | Daily | Authors' calculation from Bloomberg VIX data |
-| `spread` | Yield spread between 10-year JGB and 10-year US Treasury | Daily | Bloomberg |
-| `log_nikkei` | Log of Nikkei-225 stock index | Daily | Bloomberg |
-| `log_reer` | Log of real effective exchange rate, broad index (2010 = 100) | Monthly, quadratically interpolated to daily | BIS |
-| `log_rgdp` | Log of constant-price real GDP | Quarterly, quadratically interpolated to daily | IMF |
-| `log_wui` | Log of World Uncertainty Index for Japan | Quarterly, quadratically interpolated to daily | worlduncertaintyindex.com |
-| `debtsec_pct` | Net portfolio investment inflows to debt securities (% of nominal GDP) | Monthly, quadratically interpolated to daily | BOJ, IMF, Bloomberg |
-| `equity_pct` | Net portfolio investment inflows to equity (% of nominal GDP) | Monthly, quadratically interpolated to daily | BOJ, IMF |
-| `other_pct` | Net other investment inflows (% of nominal GDP) | Monthly, quadratically interpolated to daily | BOJ, IMF, Bloomberg |
-| `direct_pct` | Net direct investment inflows (% of nominal GDP) | Monthly, quadratically interpolated to daily | BOJ, IMF, Bloomberg |
+| Variable | Description | Frequency | Formula / Purpose | Source |
+|----------|------------|-----------|-------------------|--------|
+| `risk_off` | Risk-off event indicator: 1 when VIX is at least 10 points above its 60-day moving average | Daily | `VIX >= MA60(VIX) + 10` — identifies distress episodes as the VAR shock variable | Authors' calculation from Bloomberg VIX data |
+| `spread` | Yield spread between 10-year JGB and 10-year US Treasury | Daily | `JGB10Y - US10Y` — captures safe-haven bond market channel | Bloomberg |
+| `log_nikkei` | Log of Nikkei-225 stock index | Daily | Equity market response to risk-off, transmission to portfolio flows | Bloomberg |
+| `log_reer` | Log of real effective exchange rate, broad index (2010 = 100) | Monthly → daily (quadratic) | Exchange rate competitiveness channel, safe-haven appreciation | BIS |
+| `log_rgdp` | Log of constant-price real GDP | Quarterly → daily (quadratic) | Real spillover channel: output response to risk-off | IMF |
+| `log_wui` | Log of World Uncertainty Index for Japan | Quarterly → daily (quadratic) | Economic policy uncertainty transmission | worlduncertaintyindex.com |
+| `debtsec_pct` | Net portfolio investment inflows to debt securities (% of nominal GDP) | Monthly → daily (quadratic) | `(debt_flows_usd / GDP_usd) * 100` — portfolio debt channel | BOJ, IMF, Bloomberg |
+| `equity_pct` | Net portfolio investment inflows to equity (% of nominal GDP) | Monthly → daily (quadratic) | `(equity_flows_usd / GDP_usd) * 100` — portfolio equity channel | BOJ, IMF |
+| `other_pct` | Net other investment inflows (% of nominal GDP) | Monthly → daily (quadratic) | `(other_flows_usd / GDP_usd) * 100` — banking-flow channel | BOJ, IMF, Bloomberg |
+| `direct_pct` | Net direct investment inflows (% of nominal GDP) | Monthly → daily (quadratic) | `(direct_flows_usd / GDP_usd) * 100` — FDI channel | BOJ, IMF, Bloomberg |
 
 All six daily financial series share a consistent LSEG CSV format, so a single read function handles them.
 
