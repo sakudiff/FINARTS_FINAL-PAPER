@@ -645,3 +645,105 @@ desc_table |>
 write_csv(desc_table, file.path(DATA_OUT, "descriptive_stats.csv"))
 cat("descriptive_stats.csv written:", nrow(desc_table), "rows\n")
 ```
+
+## Visualizing the Descriptive Statistics
+
+Density plots overlay distribution shapes across the paper period, extended period, and full sample — making it easy to spot shifts in central tendency, spread, and multimodality.
+
+```{r viz-density}
+#| fig.height: 10
+#| fig.width: 10
+#| message: false
+
+plot_data <- final_dataset |>
+  select(-date) |>
+  pivot_longer(-period, names_to = "variable", values_to = "value") |>
+  filter(!is.na(value))
+
+# Reorder periods for legend
+plot_data$period <- factor(plot_data$period,
+  levels = c("1999–2021 (Paper Period)", "2021–2026 (Extended)", "Full Sample"))
+
+# Determine full-sample mean for each variable
+full_means <- plot_data |>
+  filter(period == "Full Sample") |>
+  group_by(variable) |>
+  summarise(full_mean = mean(value, na.rm = TRUE), .groups = "drop")
+
+plot_data <- plot_data |>
+  left_join(full_means, by = "variable")
+
+ggplot(plot_data, aes(x = value, fill = period, color = period)) +
+  geom_density(alpha = 0.25, linewidth = 0.6) +
+  geom_vline(aes(xintercept = full_mean),
+    color = "grey30", linewidth = 0.4, linetype = "dashed") +
+  facet_wrap(~variable, scales = "free", ncol = 3) +
+  scale_fill_manual(values = c("#1b5e9e", "#e35f21", "#444444")) +
+  scale_color_manual(values = c("#1b5e9e", "#e35f21", "#444444")) +
+  labs(x = NULL, y = NULL, fill = NULL, color = NULL,
+       caption = "Dashed vertical line: full-sample mean") +
+  theme_minimal(base_size = 10) +
+  theme(legend.position = "bottom",
+        strip.text = element_text(face = "bold"),
+        panel.grid.minor = element_blank())
+```
+
+Time series extend the paper\'s Appendix 1 figures to the full sample with period shading, making it easy to see structural shifts after 2021.
+
+```{r viz-timeseries}
+#| fig.height: 12
+#| fig.width: 10
+#| message: false
+
+ts_data <- final_dataset |>
+  select(date, period, risk_off, spread, log_nikkei, log_reer, log_rgdp,
+         log_wui, debtsec_pct, equity_pct, other_pct, direct_pct) |>
+  pivot_longer(-c(date, period), names_to = "variable", values_to = "value") |>
+  filter(!is.na(value))
+
+# Paper boundary line
+paper_end <- as.Date("2021-03-31")
+
+ggplot(ts_data, aes(x = date, y = value)) +
+  geom_rect(aes(xmin = paper_end, xmax = max(date),
+                ymin = -Inf, ymax = Inf),
+            fill = "#e35f21", alpha = 0.04, inherit.aes = FALSE) +
+  geom_line(aes(color = period), linewidth = 0.3, alpha = 0.7) +
+  geom_vline(xintercept = paper_end, linetype = "dashed",
+             color = "grey40", linewidth = 0.4) +
+  facet_wrap(~variable, scales = "free_y", ncol = 2) +
+  scale_color_manual(values = c("#1b5e9e", "#e35f21", "#444444")) +
+  labs(x = NULL, y = NULL, color = NULL) +
+  theme_minimal(base_size = 10) +
+  theme(legend.position = "bottom",
+        strip.text = element_text(face = "bold"),
+        panel.grid.minor = element_blank()) +
+  annotate("text", x = as.Date("2010-01-01"), y = Inf,
+    label = "Paper Period", hjust = 0, vjust = 1.5,
+    size = 3, color = "#1b5e9e", alpha = 0.6) +
+  annotate("text", x = as.Date("2023-10-01"), y = Inf,
+    label = "Extended", hjust = 0, vjust = 1.5,
+    size = 3, color = "#e35f21", alpha = 0.6)
+```
+
+A correlation heatmap summarizes pairwise relationships across all ten variables, useful for understanding the VAR ordering and checking for multicollinearity.
+
+```{r viz-correlation}
+#| fig.height: 7
+#| fig.width: 8
+#| message: false
+
+library(corrplot)
+
+cor_data <- final_dataset |>
+  select(-date, -period)
+
+cor_matrix <- cor(cor_data, use = "pairwise.complete.obs")
+
+corrplot(cor_matrix, method = "color", type = "upper",
+  tl.col = "black", tl.cex = 0.7,
+  col = colorRampPalette(c("#1b5e9e", "white", "#e35f21"))(200),
+  addCoef.col = "black", number.cex = 0.55,
+  cl.cex = 0.6, mar = c(0, 0, 1, 0),
+  title = "Correlation Matrix (Full Sample)")
+```
