@@ -740,9 +740,6 @@ ts_data <- final_dataset |>
 paper_end <- as.Date("2021-03-31")
 
 ggplot(ts_data, aes(x = date, y = value)) +
-  geom_rect(aes(xmin = paper_end, xmax = max(date, na.rm = TRUE),
-                ymin = -Inf, ymax = Inf),
-            fill = "#F97A1F", alpha = 0.015, inherit.aes = FALSE) +
   geom_line(aes(color = period), linewidth = 0.25, alpha = 0.7) +
   geom_vline(xintercept = paper_end, linetype = "dashed",
              color = "#595959", linewidth = 0.3) +
@@ -750,7 +747,7 @@ ggplot(ts_data, aes(x = date, y = value)) +
   scale_color_manual(values = period_colors) +
   labs(x = NULL, y = NULL, color = NULL,
        title = "Capital flow and macro series reveal regime changes after 2021",
-       caption = "Shaded region: extended sample (April 2021 onward). Vertical line: paper period end (31 March 2021). Source: Authors\' calculations.") +
+       caption = "Vertical line: paper period end (31 March 2021). Source: Authors\' calculations.") +
   theme_quant() + coord_cartesian(xlim = c(as.Date("1999-01-01"), as.Date("2026-06-30")))
 ```
 
