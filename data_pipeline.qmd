@@ -506,7 +506,7 @@ Quadratic interpolation runs in Python because R lacks a native quadratic spline
 # R has no native quadratic spline; pandas provides it as a one-liner with
 # proper boundary behaviour (no extrapolation past anchor points).
 # Requires: Python 3.10+ with pandas>=2.0, numpy>=1.24 (managed by pyproject.toml)
-system2("python3", c("scripts/quadratic_interpolate.py"))
+system2("uv", c("run", "python3", "scripts/quadratic_interpolate.py"))
 ```
 
 The daily calendar and interpolated series are imported back into R for the working-days filter.
@@ -581,8 +581,8 @@ final_dataset <- risk_off_wd |>
   arrange(date) |>
   mutate(
     period = case_when(
-      date <= PAPER_END ~ "1999-2021",
-      TRUE               ~ "1999-2026"
+      date <= PAPER_END ~ "1999–2021 (Paper Period)",
+      TRUE               ~ "2021–2026 (Extended)"
     )
   )
 ```
@@ -601,7 +601,7 @@ Descriptive statistics are computed per period and exported both as a rendered t
 ```{r descriptive-stats}
 #| message: false
 
-desc_stats <- final_dataset |>
+desc_period <- final_dataset |>
   select(-date) |>
   pivot_longer(-period, names_to = "variable", values_to = "value") |>
   group_by(period, variable) |>
@@ -614,11 +614,34 @@ desc_stats <- final_dataset |>
     .groups = "drop"
   )
 
-desc_stats |>
+desc_total <- final_dataset |>
+  select(-date, -period) |>
+  pivot_longer(everything(), names_to = "variable", values_to = "value") |>
+  group_by(variable) |>
+  summarise(
+    N    = sum(!is.na(value)),
+    Mean = mean(value, na.rm = TRUE),
+    SD   = sd(value, na.rm = TRUE),
+    Min  = min(value, na.rm = TRUE),
+    Max  = max(value, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+desc_table <- desc_period |>
+  pivot_longer(c(N, Mean, SD, Min, Max), names_to = "stat") |>
+  pivot_wider(names_from = period, values_from = value) |>
+  left_join(
+    desc_total |> pivot_longer(-variable, names_to = "stat"),
+    by = c("variable", "stat")
+  ) |>
+  rename(`Full Sample` = value) |>
+  arrange(variable, stat)
+
+desc_table |>
   mutate(across(where(is.numeric), ~ round(.x, 4))) |>
   kbl(caption = "Descriptive Statistics by Period") |>
   kable_styling(bootstrap_options = c("striped", "hover"))
 
-write_csv(desc_stats, file.path(DATA_OUT, "descriptive_stats.csv"))
-cat("descriptive_stats.csv written:", nrow(desc_stats), "rows\n")
+write_csv(desc_table, file.path(DATA_OUT, "descriptive_stats.csv"))
+cat("descriptive_stats.csv written:", nrow(desc_table), "rows\n")
 ```
