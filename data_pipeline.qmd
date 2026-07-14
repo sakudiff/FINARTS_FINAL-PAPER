@@ -722,6 +722,29 @@ ggplot(plot_data, aes(x = value, fill = period, color = period)) +
   theme_quant()
 ```
 
+### Full-sample distributions
+
+A single density curve for each variable pooling all observations from 1999 to 2026.
+
+```{r viz-density-total}
+#| fig.height: 10
+#| fig.width: 10
+#| message: false
+
+full_dens <- final_dataset |>
+  select(-date, -period) |>
+  pivot_longer(everything(), names_to = "variable", values_to = "value") |>
+  filter(!is.na(value))
+
+ggplot(full_dens, aes(x = value)) +
+  geom_density(fill = "#595959", color = "#0D0D0D", alpha = 0.4, linewidth = 0.5) +
+  facet_wrap(~variable, scales = "free", ncol = 3) +
+  labs(x = "Value", y = "Density",
+       title = "Full-sample distributions for all variables, 1999 to 2026",
+       caption = "Source: Authors\' calculations using Bloomberg, BOJ, BIS, FRED, IMF data.") +
+  theme_quant()
+```
+
 ### Structural breaks in the extended sample
 
 Each variable\'s daily series from 1999 to 2026, shaded where the extended period begins. The vertical line marks 31 March 2021, the end of the paper\'s estimation window.
