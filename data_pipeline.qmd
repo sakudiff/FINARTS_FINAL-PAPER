@@ -705,7 +705,7 @@ variance_tests <- map_dfr(vars_to_test, function(v) {
   tibble(
     variable = v,
     F_statistic = round(ft$statistic, 4),
-    p_value = round(ft$p.value, 4),
+    p_value = ifelse(ft$p.value < 0.0001, "< 0.0001", sprintf("%.4f", ft$p.value)),
     significant_5pct = ifelse(ft$p.value < 0.05, "Yes", "No"),
     higher_variance = ifelse(ft$statistic > 1, "Paper Period", "Extended Period")
   )
