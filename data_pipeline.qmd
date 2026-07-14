@@ -648,7 +648,38 @@ cat("descriptive_stats.csv written:", nrow(desc_table), "rows\n")
 
 ## Visualizing the Descriptive Statistics
 
-Density plots overlay distribution shapes across the paper period, extended period, and full sample — making it easy to spot shifts in central tendency, spread, and multimodality.
+Three figures help diagnose distributional shifts, structural breaks and cross-variable relationships in the extended sample.
+
+```{r viz-setup}
+#| message: false
+
+# QVRS-compliant theme for all ggplot2 figures
+theme_quant <- function(base_size = 10) {
+  theme_minimal(base_size = base_size) +
+    theme(
+      text = element_text(color = "#0D0D0D"),
+      plot.title = element_text(face = "bold", size = rel(1.3), margin = margin(b = 5)),
+      plot.subtitle = element_text(size = rel(1), color = "#333333", margin = margin(b = 8)),
+      plot.caption = element_text(size = rel(0.8), color = "#595959", hjust = 0, margin = margin(t = 8)),
+      axis.title = element_text(face = "bold", size = rel(0.9)),
+      axis.text = element_text(size = rel(0.85)),
+      axis.ticks = element_blank(),
+      panel.grid.minor = element_blank(),
+      panel.grid.major = element_line(color = "#F2F2F2", linewidth = 0.3),
+      strip.text = element_text(face = "bold", size = rel(0.9)),
+      legend.position = "bottom",
+      legend.text = element_text(size = rel(0.85))
+    )
+}
+
+# QVRS palette: Chicago 45 (paper), Singapore 55 (extended), London 35 (full sample)
+period_colors <- c("#2E45B8", "#F97A1F", "#595959")
+names(period_colors) <- c("1999–2021 (Paper Period)", "2021–2026 (Extended)", "Full Sample")
+```
+
+### Distributional shifts after 2021
+
+Overlaid densities show how each variable\'s distribution changed between the paper period and the extended sample. The vertical dashed line marks the full-sample mean.
 
 ```{r viz-density}
 #| fig.height: 10
@@ -660,35 +691,32 @@ plot_data <- final_dataset |>
   pivot_longer(-period, names_to = "variable", values_to = "value") |>
   filter(!is.na(value))
 
-# Reorder periods for legend
 plot_data$period <- factor(plot_data$period,
   levels = c("1999–2021 (Paper Period)", "2021–2026 (Extended)", "Full Sample"))
 
-# Determine full-sample mean for each variable
 full_means <- plot_data |>
   filter(period == "Full Sample") |>
   group_by(variable) |>
   summarise(full_mean = mean(value, na.rm = TRUE), .groups = "drop")
 
-plot_data <- plot_data |>
-  left_join(full_means, by = "variable")
+plot_data <- plot_data |> left_join(full_means, by = "variable")
 
 ggplot(plot_data, aes(x = value, fill = period, color = period)) +
-  geom_density(alpha = 0.25, linewidth = 0.6) +
+  geom_density(alpha = 0.25, linewidth = 0.5) +
   geom_vline(aes(xintercept = full_mean),
-    color = "grey30", linewidth = 0.4, linetype = "dashed") +
+    color = "#0D0D0D", linewidth = 0.3, linetype = "dashed") +
   facet_wrap(~variable, scales = "free", ncol = 3) +
-  scale_fill_manual(values = c("#1b5e9e", "#e35f21", "#444444")) +
-  scale_color_manual(values = c("#1b5e9e", "#e35f21", "#444444")) +
+  scale_fill_manual(values = period_colors) +
+  scale_color_manual(values = period_colors) +
   labs(x = NULL, y = NULL, fill = NULL, color = NULL,
-       caption = "Dashed vertical line: full-sample mean") +
-  theme_minimal(base_size = 10) +
-  theme(legend.position = "bottom",
-        strip.text = element_text(face = "bold"),
-        panel.grid.minor = element_blank())
+       title = "Japanese financial variables show wider dispersion after 2021",
+       caption = "Dashed line: full-sample mean. Source: Authors\' calculations using Bloomberg, BOJ, BIS, FRED, IMF data.") +
+  theme_quant()
 ```
 
-Time series extend the paper\'s Appendix 1 figures to the full sample with period shading, making it easy to see structural shifts after 2021.
+### Structural breaks in the extended sample
+
+Each variable\'s daily series from 1999 to 2026, shaded where the extended period begins. The vertical line marks 31 March 2021, the end of the paper\'s estimation window.
 
 ```{r viz-timeseries}
 #| fig.height: 12
@@ -701,32 +729,26 @@ ts_data <- final_dataset |>
   pivot_longer(-c(date, period), names_to = "variable", values_to = "value") |>
   filter(!is.na(value))
 
-# Paper boundary line
 paper_end <- as.Date("2021-03-31")
 
 ggplot(ts_data, aes(x = date, y = value)) +
-  geom_rect(aes(xmin = paper_end, xmax = max(date),
+  geom_rect(aes(xmin = paper_end, xmax = max(date, na.rm = TRUE),
                 ymin = -Inf, ymax = Inf),
-            fill = "#e35f21", alpha = 0.04, inherit.aes = FALSE) +
-  geom_line(aes(color = period), linewidth = 0.3, alpha = 0.7) +
+            fill = "#F97A1F", alpha = 0.04, inherit.aes = FALSE) +
+  geom_line(aes(color = period), linewidth = 0.25, alpha = 0.7) +
   geom_vline(xintercept = paper_end, linetype = "dashed",
-             color = "grey40", linewidth = 0.4) +
+             color = "#595959", linewidth = 0.3) +
   facet_wrap(~variable, scales = "free_y", ncol = 2) +
-  scale_color_manual(values = c("#1b5e9e", "#e35f21", "#444444")) +
-  labs(x = NULL, y = NULL, color = NULL) +
-  theme_minimal(base_size = 10) +
-  theme(legend.position = "bottom",
-        strip.text = element_text(face = "bold"),
-        panel.grid.minor = element_blank()) +
-  annotate("text", x = as.Date("2010-01-01"), y = Inf,
-    label = "Paper Period", hjust = 0, vjust = 1.5,
-    size = 3, color = "#1b5e9e", alpha = 0.6) +
-  annotate("text", x = as.Date("2023-10-01"), y = Inf,
-    label = "Extended", hjust = 0, vjust = 1.5,
-    size = 3, color = "#e35f21", alpha = 0.6)
+  scale_color_manual(values = period_colors) +
+  labs(x = NULL, y = NULL, color = NULL,
+       title = "Capital flow and macro series reveal regime changes after 2021",
+       caption = "Shaded region: extended sample (April 2021 onward). Vertical line: paper period end (31 March 2021). Source: Authors\' calculations.") +
+  theme_quant() + coord_cartesian(xlim = c(as.Date("1999-01-01"), as.Date("2026-06-30")))
 ```
 
-A correlation heatmap summarizes pairwise relationships across all ten variables, useful for understanding the VAR ordering and checking for multicollinearity.
+### Cross-variable correlations
+
+Pairwise correlations for the full sample, ordered by strength and direction. Positive correlations point toward the Chicago blue end of the scale and negative toward the Tokyo red end.
 
 ```{r viz-correlation}
 #| fig.height: 7
@@ -741,9 +763,9 @@ cor_data <- final_dataset |>
 cor_matrix <- cor(cor_data, use = "pairwise.complete.obs")
 
 corrplot(cor_matrix, method = "color", type = "upper",
-  tl.col = "black", tl.cex = 0.7,
-  col = colorRampPalette(c("#1b5e9e", "white", "#e35f21"))(200),
-  addCoef.col = "black", number.cex = 0.55,
-  cl.cex = 0.6, mar = c(0, 0, 1, 0),
-  title = "Correlation Matrix (Full Sample)")
+  tl.col = "#0D0D0D", tl.cex = 0.65,
+  col = colorRampPalette(c("#C91D42", "#FFFFFF", "#2E45B8"))(200),
+  addCoef.col = "#0D0D0D", number.cex = 0.5,
+  cl.cex = 0.55, mar = c(1, 0, 2, 0),
+  title = "Correlation matrix for the full sample, 1999 to 2026")
 ```
