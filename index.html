@@ -3529,6 +3529,7 @@ Caused by warning:
 </table>
 </div>
 </div>
+<p>The F-test results confirm that the variance differences observed in the descriptive statistics are statistically significant across all five variables tested. Real GDP volatility in the paper period exceeds that of the extended period by a factor of 31, reflecting the inclusion of the global financial crisis, the 2011 Tohoku earthquake, and the COVID-19 pandemic within the original sample window. For the real effective exchange rate and the equity market, the paper period similarly exhibits higher variance. Portfolio debt flows are the exception, with the extended period showing significantly higher variance (F = 0.50, p &lt; .001), consistent with increased volatility in cross-border debt investment following the shift in monetary policy differentials between Japan and the United States.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>rolling_vol <span class="ot">&lt;-</span> final_dataset <span class="sc">|&gt;</span></span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(date, log_reer, log_nikkei, spread) <span class="sc">|&gt;</span></span>
@@ -3559,6 +3560,7 @@ Caused by warning:
 </div>
 </div>
 </div>
+<p>The rolling standard deviation plots reveal a sharp increase in equity market volatility beginning in early 2022, coinciding with the onset of aggressive US monetary tightening and the subsequent yen depreciation. The 260-day rolling window captures the persistence of this elevated volatility regime rather than a transient spike. Spread volatility shows a more gradual increase beginning in late 2022, reflecting the growing divergence between US and Japanese monetary policy trajectories. REER volatility remains comparatively stable across the full sample, suggesting that the exchange rate channel, while moving to a new level, did not experience a structural increase in day-to-day variance.</p>
 </section>
 <section id="visualizing-the-descriptive-statistics" class="level2">
 <h2 class="anchored" data-anchor-id="visualizing-the-descriptive-statistics">Visualizing the Descriptive Statistics</h2>
@@ -3568,7 +3570,7 @@ Caused by warning:
 </div>
 <section id="distributional-shifts-after-2021" class="level3">
 <h3 class="anchored" data-anchor-id="distributional-shifts-after-2021">Distributional shifts after 2021</h3>
-<p>Overlaid densities show how each variable&#39;s distribution changed between the paper period and the extended sample. The vertical dashed line marks the full-sample mean.</p>
+<p>Overlaid densities show how each variable&#39;s distribution changed between the paper period and the extended sample. The vertical dashed line marks the full-sample mean. A rightward or leftward shift in the extended period&#39;s density relative to the paper period indicates a change in the central tendency of that variable, while a wider or narrower spread indicates a change in dispersion.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>plot_data <span class="ot">&lt;-</span> final_dataset <span class="sc">|&gt;</span></span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>date) <span class="sc">|&gt;</span></span>
@@ -3632,7 +3634,7 @@ Caused by warning:
 </section>
 <section id="structural-breaks-in-the-extended-sample" class="level3">
 <h3 class="anchored" data-anchor-id="structural-breaks-in-the-extended-sample">Structural breaks in the extended sample</h3>
-<p>Each variable&#39;s daily series from 1999 to 2026, shaded where the extended period begins. The vertical line marks 31 March 2021, the end of the paper&#39;s estimation window.</p>
+<p>The time-series plots provide a direct visual comparison of the paper period (blue) and the extended period (orange), separated by the vertical line marking 31 March 2021. A shaded region highlights the 2022 yen depreciation episode. Notable structural shifts include the widening of the yield spread as the Federal Reserve raised rates while the BOJ maintained its yield curve control framework, and the increased amplitude of portfolio debt and equity flows after 2021.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>ts_data <span class="ot">&lt;-</span> final_dataset <span class="sc">|&gt;</span></span>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(date, period, risk_off, spread, log_nikkei, log_reer, log_rgdp,</span>
@@ -3665,7 +3667,7 @@ Caused by warning:
 </section>
 <section id="cross-variable-correlations" class="level3">
 <h3 class="anchored" data-anchor-id="cross-variable-correlations">Cross-variable correlations</h3>
-<p>Pairwise correlations for the full sample, ordered by strength and direction. Positive correlations point toward the Chicago blue end of the scale and negative toward the Tokyo red end.</p>
+<p>The correlation matrix provides a diagnostic view of the relationships among the ten endogenous variables over the full sample. Of particular interest is the sign and magnitude of correlations involving the Risk-off indicator, which functions as the exogenous shock variable in the structural VAR.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(corrplot)</span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a></span>
