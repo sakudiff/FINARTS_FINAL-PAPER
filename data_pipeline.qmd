@@ -711,8 +711,8 @@ plot_data <- plot_data |> left_join(full_means, by = "variable")
 
 ggplot(plot_data, aes(x = value, fill = period, color = period)) +
   geom_density(alpha = 0.25, linewidth = 0.5) +
-  geom_vline(aes(xintercept = full_mean),
-    color = "#0D0D0D", linewidth = 0.3, linetype = "dashed") +
+  geom_vline(data = full_means, aes(xintercept = full_mean),
+    color = "#0D0D0D", linewidth = 0.7, linetype = "dashed") +
   facet_wrap(~variable, scales = "free", ncol = 3) +
   scale_fill_manual(values = period_colors) +
   scale_color_manual(values = period_colors) +
