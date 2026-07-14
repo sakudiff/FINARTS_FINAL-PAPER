@@ -639,13 +639,16 @@ desc_table <- desc_period |>
 
 desc_table |>
   mutate(across(where(is.numeric), ~ round(.x, 4))) |>
-  kbl(caption = "Descriptive Statistics by Period") |>
+  select(-variable) |>
+  kbl(caption = "Descriptive Statistics by Period", col.names = c("Stat",
+    "1999–2021 (Paper Period)", "2021–2026 (Extended)", "Full Sample")) |>
   kable_styling(bootstrap_options = c("hover"), font_size = 11) |>
-  column_spec(1, bold = TRUE, width = "5em") |>
-  column_spec(2, width = "4em") |>
-  column_spec(3, background = "#D6DBF5") |>
-  column_spec(4, background = "#FEE1CD") |>
-  column_spec(5, background = "#F2F2F2")
+  pack_rows(index = table(factor(desc_table$variable,
+    levels = unique(desc_table$variable)))) |>
+  column_spec(1, width = "4em") |>
+  column_spec(2, background = "#D6DBF5") |>
+  column_spec(3, background = "#FEE1CD") |>
+  column_spec(4, background = "#F2F2F2")
 
 write_csv(desc_table, file.path(DATA_OUT, "descriptive_stats.csv"))
 cat("descriptive_stats.csv written:", nrow(desc_table), "rows\n")

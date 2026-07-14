@@ -3004,372 +3004,354 @@ Caused by warning:
 <span id="cb19-36"><a href="#cb19-36" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb19-37"><a href="#cb19-37" aria-hidden="true" tabindex="-1"></a>desc_table <span class="sc">|&gt;</span></span>
 <span id="cb19-38"><a href="#cb19-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric), <span class="sc">~</span> <span class="fu">round</span>(.x, <span class="dv">4</span>))) <span class="sc">|&gt;</span></span>
-<span id="cb19-39"><a href="#cb19-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kbl</span>(<span class="at">caption =</span> <span class="st">&quot;Descriptive Statistics by Period&quot;</span>) <span class="sc">|&gt;</span></span>
-<span id="cb19-40"><a href="#cb19-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>(<span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">&quot;hover&quot;</span>), <span class="at">font_size =</span> <span class="dv">11</span>) <span class="sc">|&gt;</span></span>
-<span id="cb19-41"><a href="#cb19-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">column_spec</span>(<span class="dv">1</span>, <span class="at">bold =</span> <span class="cn">TRUE</span>, <span class="at">width =</span> <span class="st">&quot;5em&quot;</span>) <span class="sc">|&gt;</span></span>
-<span id="cb19-42"><a href="#cb19-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">column_spec</span>(<span class="dv">2</span>, <span class="at">width =</span> <span class="st">&quot;4em&quot;</span>) <span class="sc">|&gt;</span></span>
-<span id="cb19-43"><a href="#cb19-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">column_spec</span>(<span class="dv">3</span>, <span class="at">background =</span> <span class="st">&quot;#D6DBF5&quot;</span>) <span class="sc">|&gt;</span></span>
-<span id="cb19-44"><a href="#cb19-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">column_spec</span>(<span class="dv">4</span>, <span class="at">background =</span> <span class="st">&quot;#FEE1CD&quot;</span>) <span class="sc">|&gt;</span></span>
-<span id="cb19-45"><a href="#cb19-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">column_spec</span>(<span class="dv">5</span>, <span class="at">background =</span> <span class="st">&quot;#F2F2F2&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb19-39"><a href="#cb19-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>variable) <span class="sc">|&gt;</span></span>
+<span id="cb19-40"><a href="#cb19-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kbl</span>(<span class="at">caption =</span> <span class="st">&quot;Descriptive Statistics by Period&quot;</span>, <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">&quot;Stat&quot;</span>,</span>
+<span id="cb19-41"><a href="#cb19-41" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;1999–2021 (Paper Period)&quot;</span>, <span class="st">&quot;2021–2026 (Extended)&quot;</span>, <span class="st">&quot;Full Sample&quot;</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb19-42"><a href="#cb19-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>(<span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">&quot;hover&quot;</span>), <span class="at">font_size =</span> <span class="dv">11</span>) <span class="sc">|&gt;</span></span>
+<span id="cb19-43"><a href="#cb19-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pack_rows</span>(<span class="at">index =</span> <span class="fu">table</span>(<span class="fu">factor</span>(desc_table<span class="sc">$</span>variable,</span>
+<span id="cb19-44"><a href="#cb19-44" aria-hidden="true" tabindex="-1"></a>    <span class="at">levels =</span> <span class="fu">unique</span>(desc_table<span class="sc">$</span>variable)))) <span class="sc">|&gt;</span></span>
+<span id="cb19-45"><a href="#cb19-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">column_spec</span>(<span class="dv">1</span>, <span class="at">width =</span> <span class="st">&quot;4em&quot;</span>) <span class="sc">|&gt;</span></span>
+<span id="cb19-46"><a href="#cb19-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">column_spec</span>(<span class="dv">2</span>, <span class="at">background =</span> <span class="st">&quot;#D6DBF5&quot;</span>) <span class="sc">|&gt;</span></span>
+<span id="cb19-47"><a href="#cb19-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">column_spec</span>(<span class="dv">3</span>, <span class="at">background =</span> <span class="st">&quot;#FEE1CD&quot;</span>) <span class="sc">|&gt;</span></span>
+<span id="cb19-48"><a href="#cb19-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">column_spec</span>(<span class="dv">4</span>, <span class="at">background =</span> <span class="st">&quot;#F2F2F2&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <table class="table table-hover caption-top table-sm table-striped small">
 <caption>Descriptive Statistics by Period</caption>
 <thead>
 <tr class="header">
-<th style="text-align: left;" data-quarto-table-cell-role="th">variable</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">stat</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Stat</th>
 <th style="text-align: right;" data-quarto-table-cell-role="th">1999–2021 (Paper Period)</th>
 <th style="text-align: right;" data-quarto-table-cell-role="th">2021–2026 (Extended)</th>
 <th style="text-align: right;" data-quarto-table-cell-role="th">Full Sample</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td style="text-align: left; width: 5em; font-weight: bold;">debtsec_pct</td>
-<td style="text-align: left; width: 4em;">Max</td>
+<tr class="odd" data-grouplength="5">
+<td colspan="4" style="border-bottom: 1px solid"><strong>debtsec_pct</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Max</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">6.7079</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">7.0383</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">7.0383</td>
 </tr>
-<tr class="even">
-<td style="text-align: left; width: 5em; font-weight: bold;">debtsec_pct</td>
-<td style="text-align: left; width: 4em;">Mean</td>
+<tr class="odd">
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Mean</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">0.5164</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">0.1765</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">0.4564</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left; width: 5em; font-weight: bold;">debtsec_pct</td>
-<td style="text-align: left; width: 4em;">Min</td>
+<tr class="even">
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Min</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">-6.1373</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">-5.3554</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">-6.1373</td>
 </tr>
-<tr class="even">
-<td style="text-align: left; width: 5em; font-weight: bold;">debtsec_pct</td>
-<td style="text-align: left; width: 4em;">N</td>
+<tr class="odd">
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">N</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">5795.0000</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">1241.0000</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">7036.0000</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left; width: 5em; font-weight: bold;">debtsec_pct</td>
-<td style="text-align: left; width: 4em;">SD</td>
+<tr class="even">
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">SD</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">1.7154</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">2.4246</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">1.8645</td>
 </tr>
+<tr class="odd" data-grouplength="5">
+<td colspan="4" style="border-bottom: 1px solid"><strong>direct_pct</strong></td>
+</tr>
 <tr class="even">
-<td style="text-align: left; width: 5em; font-weight: bold;">direct_pct</td>
-<td style="text-align: left; width: 4em;">Max</td>
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Max</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">3.6918</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">1.8328</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">3.6918</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left; width: 5em; font-weight: bold;">direct_pct</td>
-<td style="text-align: left; width: 4em;">Mean</td>
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Mean</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">0.1085</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">0.2471</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">0.1329</td>
 </tr>
 <tr class="even">
-<td style="text-align: left; width: 5em; font-weight: bold;">direct_pct</td>
-<td style="text-align: left; width: 4em;">Min</td>
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Min</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">-1.2558</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">-1.3029</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">-1.3029</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left; width: 5em; font-weight: bold;">direct_pct</td>
-<td style="text-align: left; width: 4em;">N</td>
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">N</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">5795.0000</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">1241.0000</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">7036.0000</td>
 </tr>
 <tr class="even">
-<td style="text-align: left; width: 5em; font-weight: bold;">direct_pct</td>
-<td style="text-align: left; width: 4em;">SD</td>
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">SD</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">0.2921</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">0.4446</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">0.3285</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left; width: 5em; font-weight: bold;">equity_pct</td>
-<td style="text-align: left; width: 4em;">Max</td>
+<tr class="odd" data-grouplength="5">
+<td colspan="4" style="border-bottom: 1px solid"><strong>equity_pct</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Max</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">4.7229</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">3.8500</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">4.7229</td>
 </tr>
-<tr class="even">
-<td style="text-align: left; width: 5em; font-weight: bold;">equity_pct</td>
-<td style="text-align: left; width: 4em;">Mean</td>
+<tr class="odd">
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Mean</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">0.2174</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">0.1731</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">0.2096</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left; width: 5em; font-weight: bold;">equity_pct</td>
-<td style="text-align: left; width: 4em;">Min</td>
+<tr class="even">
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Min</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">-3.7484</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">-3.5553</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">-3.7484</td>
 </tr>
-<tr class="even">
-<td style="text-align: left; width: 5em; font-weight: bold;">equity_pct</td>
-<td style="text-align: left; width: 4em;">N</td>
+<tr class="odd">
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">N</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">5795.0000</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">1241.0000</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">7036.0000</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left; width: 5em; font-weight: bold;">equity_pct</td>
-<td style="text-align: left; width: 4em;">SD</td>
+<tr class="even">
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">SD</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">1.1626</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">1.3175</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">1.1914</td>
 </tr>
+<tr class="odd" data-grouplength="5">
+<td colspan="4" style="border-bottom: 1px solid"><strong>log_nikkei</strong></td>
+</tr>
 <tr class="even">
-<td style="text-align: left; width: 5em; font-weight: bold;">log_nikkei</td>
-<td style="text-align: left; width: 4em;">Max</td>
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Max</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">10.3244</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">11.1895</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">11.1895</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left; width: 5em; font-weight: bold;">log_nikkei</td>
-<td style="text-align: left; width: 4em;">Mean</td>
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Mean</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">9.5565</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">10.4582</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">9.7279</td>
 </tr>
 <tr class="even">
-<td style="text-align: left; width: 5em; font-weight: bold;">log_nikkei</td>
-<td style="text-align: left; width: 4em;">Min</td>
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Min</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">8.8615</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">10.1153</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">8.8615</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left; width: 5em; font-weight: bold;">log_nikkei</td>
-<td style="text-align: left; width: 4em;">N</td>
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">N</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">5260.0000</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">1235.0000</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">6495.0000</td>
 </tr>
 <tr class="even">
-<td style="text-align: left; width: 5em; font-weight: bold;">log_nikkei</td>
-<td style="text-align: left; width: 4em;">SD</td>
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">SD</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">0.3263</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">0.2404</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">0.4716</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left; width: 5em; font-weight: bold;">log_reer</td>
-<td style="text-align: left; width: 4em;">Max</td>
+<tr class="odd" data-grouplength="5">
+<td colspan="4" style="border-bottom: 1px solid"><strong>log_reer</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Max</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">4.8758</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">4.2659</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">4.8758</td>
 </tr>
-<tr class="even">
-<td style="text-align: left; width: 5em; font-weight: bold;">log_reer</td>
-<td style="text-align: left; width: 4em;">Mean</td>
+<tr class="odd">
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Mean</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">4.5157</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">4.0658</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">4.4319</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left; width: 5em; font-weight: bold;">log_reer</td>
-<td style="text-align: left; width: 4em;">Min</td>
+<tr class="even">
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Min</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">4.2050</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">3.9183</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">3.9183</td>
 </tr>
-<tr class="even">
-<td style="text-align: left; width: 5em; font-weight: bold;">log_reer</td>
-<td style="text-align: left; width: 4em;">N</td>
+<tr class="odd">
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">N</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">5795.0000</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">1327.0000</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">7122.0000</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left; width: 5em; font-weight: bold;">log_reer</td>
-<td style="text-align: left; width: 4em;">SD</td>
+<tr class="even">
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">SD</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">0.1711</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">0.0912</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">0.2368</td>
 </tr>
+<tr class="odd" data-grouplength="5">
+<td colspan="4" style="border-bottom: 1px solid"><strong>log_rgdp</strong></td>
+</tr>
 <tr class="even">
-<td style="text-align: left; width: 5em; font-weight: bold;">log_rgdp</td>
-<td style="text-align: left; width: 4em;">Max</td>
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Max</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">13.2810</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">13.2933</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">13.2933</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left; width: 5em; font-weight: bold;">log_rgdp</td>
-<td style="text-align: left; width: 4em;">Mean</td>
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Mean</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">13.1932</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">13.2789</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">13.2084</td>
 </tr>
 <tr class="even">
-<td style="text-align: left; width: 5em; font-weight: bold;">log_rgdp</td>
-<td style="text-align: left; width: 4em;">Min</td>
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Min</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">13.0888</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">13.2582</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">13.0888</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left; width: 5em; font-weight: bold;">log_rgdp</td>
-<td style="text-align: left; width: 4em;">N</td>
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">N</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">5795.0000</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">1241.0000</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">7036.0000</td>
 </tr>
 <tr class="even">
-<td style="text-align: left; width: 5em; font-weight: bold;">log_rgdp</td>
-<td style="text-align: left; width: 4em;">SD</td>
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">SD</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">0.0507</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">0.0091</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">0.0565</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left; width: 5em; font-weight: bold;">log_wui</td>
-<td style="text-align: left; width: 4em;">Max</td>
+<tr class="odd" data-grouplength="5">
+<td colspan="4" style="border-bottom: 1px solid"><strong>log_wui</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Max</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">-0.6186</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">0.1929</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">0.1929</td>
 </tr>
-<tr class="even">
-<td style="text-align: left; width: 5em; font-weight: bold;">log_wui</td>
-<td style="text-align: left; width: 4em;">Mean</td>
+<tr class="odd">
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Mean</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">-1.7987</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">-1.9813</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">-1.8309</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left; width: 5em; font-weight: bold;">log_wui</td>
-<td style="text-align: left; width: 4em;">Min</td>
+<tr class="even">
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Min</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">-3.0317</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">-3.9128</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">-3.9128</td>
 </tr>
-<tr class="even">
-<td style="text-align: left; width: 5em; font-weight: bold;">log_wui</td>
-<td style="text-align: left; width: 4em;">N</td>
+<tr class="odd">
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">N</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">5795.0000</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">1241.0000</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">7036.0000</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left; width: 5em; font-weight: bold;">log_wui</td>
-<td style="text-align: left; width: 4em;">SD</td>
+<tr class="even">
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">SD</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">0.5928</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">1.0812</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">0.7073</td>
 </tr>
+<tr class="odd" data-grouplength="5">
+<td colspan="4" style="border-bottom: 1px solid"><strong>other_pct</strong></td>
+</tr>
 <tr class="even">
-<td style="text-align: left; width: 5em; font-weight: bold;">other_pct</td>
-<td style="text-align: left; width: 4em;">Max</td>
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Max</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">28.5474</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">15.4066</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">28.5474</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left; width: 5em; font-weight: bold;">other_pct</td>
-<td style="text-align: left; width: 4em;">Mean</td>
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Mean</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">0.3918</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">1.1311</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">0.5222</td>
 </tr>
 <tr class="even">
-<td style="text-align: left; width: 5em; font-weight: bold;">other_pct</td>
-<td style="text-align: left; width: 4em;">Min</td>
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Min</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">-10.6442</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">-7.7495</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">-10.6442</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left; width: 5em; font-weight: bold;">other_pct</td>
-<td style="text-align: left; width: 4em;">N</td>
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">N</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">5795.0000</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">1241.0000</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">7036.0000</td>
 </tr>
 <tr class="even">
-<td style="text-align: left; width: 5em; font-weight: bold;">other_pct</td>
-<td style="text-align: left; width: 4em;">SD</td>
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">SD</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">3.1556</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">4.3991</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">3.4193</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left; width: 5em; font-weight: bold;">risk_off</td>
-<td style="text-align: left; width: 4em;">Max</td>
+<tr class="odd" data-grouplength="5">
+<td colspan="4" style="border-bottom: 1px solid"><strong>risk_off</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Max</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">1.0000</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">1.0000</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">1.0000</td>
 </tr>
-<tr class="even">
-<td style="text-align: left; width: 5em; font-weight: bold;">risk_off</td>
-<td style="text-align: left; width: 4em;">Mean</td>
+<tr class="odd">
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Mean</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">0.0318</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">0.0190</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">0.0294</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left; width: 5em; font-weight: bold;">risk_off</td>
-<td style="text-align: left; width: 4em;">Min</td>
+<tr class="even">
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Min</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">0.0000</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">0.0000</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">0.0000</td>
 </tr>
-<tr class="even">
-<td style="text-align: left; width: 5em; font-weight: bold;">risk_off</td>
-<td style="text-align: left; width: 4em;">N</td>
+<tr class="odd">
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">N</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">5530.0000</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">1317.0000</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">6847.0000</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left; width: 5em; font-weight: bold;">risk_off</td>
-<td style="text-align: left; width: 4em;">SD</td>
+<tr class="even">
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">SD</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">0.1756</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">0.1365</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">0.1688</td>
 </tr>
+<tr class="odd" data-grouplength="5">
+<td colspan="4" style="border-bottom: 1px solid"><strong>spread</strong></td>
+</tr>
 <tr class="even">
-<td style="text-align: left; width: 5em; font-weight: bold;">spread</td>
-<td style="text-align: left; width: 4em;">Max</td>
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Max</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">-0.4960</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">-1.1520</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">-0.4960</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left; width: 5em; font-weight: bold;">spread</td>
-<td style="text-align: left; width: 4em;">Mean</td>
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Mean</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">-2.4367</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">-2.7014</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">-2.4870</td>
 </tr>
 <tr class="even">
-<td style="text-align: left; width: 5em; font-weight: bold;">spread</td>
-<td style="text-align: left; width: 4em;">Min</td>
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">Min</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">-5.0590</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">-4.1430</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">-5.0590</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left; width: 5em; font-weight: bold;">spread</td>
-<td style="text-align: left; width: 4em;">N</td>
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">N</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">5259.0000</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">1234.0000</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">6493.0000</td>
 </tr>
 <tr class="even">
-<td style="text-align: left; width: 5em; font-weight: bold;">spread</td>
-<td style="text-align: left; width: 4em;">SD</td>
+<td style="text-align: left; padding-left: 2em; width: 4em;" data-indentlevel="1">SD</td>
 <td style="text-align: right; background-color: rgba(214, 219, 245, 255) !important;">0.9313</td>
 <td style="text-align: right; background-color: rgba(254, 225, 205, 255) !important;">0.7739</td>
 <td style="text-align: right; background-color: rgba(242, 242, 242, 255) !important;">0.9094</td>
