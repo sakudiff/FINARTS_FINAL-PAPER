@@ -171,13 +171,7 @@
 \draw[arrow] (native) -- (python);
 \draw[arrow] (python) -- (importd);
 
-% Annotation text (placed safely below importd)
-\node[below=of importd, yshift=-2mm,
-      font=\scriptsize\itshape, text width=5.2cm, align=left,
-      text=gray!60!black] {
-  Re-reads raw macro, BOJ API, and USDJPY files (no START\_DATE filter)\newline
-  plus uses already-parsed 6pi-1 dataframes from step above.
-};
+% Working-day -> final -> export
 
 % Financial outputs and interpolated series -> working-day filter
 \draw[arrow] (derivedfin) -- (workday);
