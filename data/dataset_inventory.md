@@ -17,11 +17,11 @@ Period: 1999-01-01 to 2026-06-30 (extended from paper's 1999–2021)
 | 7 | REER | LSEG Datastream `aJPIRECE/C` | `data/raw/REER.xlsx` | Monthly | 1996–2026 | BIS broad index, interpolate to daily | [x] |
 | 8 | Japan RGDP | FRED `JPNRGDPEXP` | `data/raw/JAPAN_RGDP.csv` | Quarterly | 1994–2026 | Constant prices, interpolate to daily | [x] |
 | 9 | WUI (Japan) | worlduncertaintyindex.com | `data/raw/WUI_JPN.csv` | Quarterly | 1952–2026 | Log transform | [x] |
-| 10 | Debtsec | Bloomberg Terminal | `data/raw/DEBTSEC_BB.csv` | Quarterly | 1999–2026 | Portfolio debt inflows (% GDP) | [ ] |
-| 11 | Equity | Bloomberg Terminal | `data/raw/EQUITY_BB.csv` | Quarterly | 1999–2026 | Portfolio equity inflows (% GDP) | [ ] |
-| 12 | Other | Bloomberg Terminal | `data/raw/OTHER_BB.csv` | Quarterly | 1999–2026 | Other investment inflows (% GDP) | [ ] |
-| 13 | Direct | Bloomberg Terminal | `data/raw/DIRECT_BB.csv` | Quarterly | 1999–2026 | FDI inflows (% GDP) | [ ] |
-| 14 | Japan Nominal GDP | Bloomberg Terminal | `data/raw/JPN_NOMINAL_GDP_BB.csv` | Quarterly | 1999–2026 | Denominator for %GDP ratios | [ ] |
+| 10 | Debtsec | BOJ API (2014+) + BOJ_6pi-1 merge | `data/raw/BOJ_BPPI6E3N5.csv`, `BOJ_BPPI6E4N5.csv`, `BOJ_6pi-1_*.csv` | Monthly | 1996–2026 | Net portfolio debt liabilities, 100M JPY. 2014+ from API, pre-2014 needs 6pi-1 parsing | [~] (pre-2014 merge pending) |
+| 11 | Equity | BOJ API (2014+) + BOJ_6pi-1 merge | `data/raw/BOJ_BPPI6E2N5.csv`, `BOJ_6pi-1_*.csv` | Monthly | 1996–2026 | Net portfolio equity liabilities, 100M JPY. Same pre-2014 merge needed | [~] (pre-2014 merge pending) |
+| 12 | Other | BOJ API `BPBP6JYNFL3` | `data/raw/BOJ_BPBP6JYNFL3.csv` | Monthly | 1996–2026 | Net other investment liabilities, 100M JPY. Full coverage | [x] |
+| 13 | Direct | BOJ API `BPBP6JYNFL13` | `data/raw/BOJ_BPBP6JYNFL13.csv` | Monthly | 1996–2026 | Net FDI liabilities, 100M JPY. Full coverage | [x] |
+| 14 | Japan Nominal GDP | FRED `NGDPSAXDCJPQ` | `data/raw/JAPAN_NOMINAL_GDP.csv` | Quarterly | 1994–2026 | GDP at current prices, millions of JPY | [x] |
 
 ---
 
@@ -79,5 +79,5 @@ Variable = (Net inflow in USD bn) / (Nominal GDP in USD bn) x 100
 
 | Status | Count | Variables |
 |--------|-------|-----------|
-| Acquired | 9 of 14 | VIX, Nikkei225, SP500, US10Y, JPY/USD, Japan10Y, REER, RGDP, WUI |
-| Pending | 5 of 14 | Debtsec, Equity, Other, Direct, Japan Nominal GDP |
+| Acquired | 12 of 14 | VIX, Nikkei225, SP500, US10Y, JPY/USD, Japan10Y, REER, RGDP, WUI, Other, Direct, Japan Nominal GDP |
+| Partial (pre-2014 merge pending) | 2 of 14 | Debtsec, Equity (2014+ present, pre-2014 needs BOJ 6pi-1 parsing) |
