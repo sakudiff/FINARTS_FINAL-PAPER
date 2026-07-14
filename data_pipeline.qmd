@@ -716,7 +716,7 @@ ggplot(plot_data, aes(x = value, fill = period, color = period)) +
   facet_wrap(~variable, scales = "free", ncol = 3) +
   scale_fill_manual(values = period_colors) +
   scale_color_manual(values = period_colors) +
-  labs(x = NULL, y = NULL, fill = NULL, color = NULL,
+  labs(x = "Value", y = "Density", fill = NULL, color = NULL,
        title = "Japanese financial variables show wider dispersion after 2021",
        caption = "Dashed line: full-sample mean. Source: Authors\' calculations using Bloomberg, BOJ, BIS, FRED, IMF data.") +
   theme_quant()
@@ -745,7 +745,7 @@ ggplot(ts_data, aes(x = date, y = value)) +
              color = "#595959", linewidth = 0.3) +
   facet_wrap(~variable, scales = "free_y", ncol = 2) +
   scale_color_manual(values = period_colors) +
-  labs(x = NULL, y = NULL, color = NULL,
+  labs(x = "Year", y = NULL, color = NULL,
        title = "Capital flow and macro series reveal regime changes after 2021",
        caption = "Vertical line: paper period end (31 March 2021). Source: Authors\' calculations.") +
   theme_quant() + coord_cartesian(xlim = c(as.Date("1999-01-01"), as.Date("2026-06-30")))
