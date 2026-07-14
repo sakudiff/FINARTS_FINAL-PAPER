@@ -3457,6 +3457,7 @@ Caused by warning:
 <pre><code>descriptive_stats.csv written: 50 rows</code></pre>
 </div>
 </div>
+<p>Across the full set of variables, the extended period exhibits wider dispersion in capital flow series and economic policy uncertainty, while financial market variables (REER, equity index, yield spread) show tighter dispersion after 2021. The means reveal substantial shifts in several series: portfolio debt inflows as a share of GDP declined by 66 percent, while other investment inflows nearly tripled, consistent with the changing composition of cross-border flows under a different monetary policy regime. The real effective exchange rate and the stock index show level shifts of approximately 10 percent in opposite directions, reflecting yen depreciation and equity market appreciation respectively.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>vars_to_test <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;log_reer&quot;</span>, <span class="st">&quot;log_nikkei&quot;</span>, <span class="st">&quot;spread&quot;</span>, <span class="st">&quot;debtsec_pct&quot;</span>, <span class="st">&quot;log_rgdp&quot;</span>)</span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -3560,7 +3561,7 @@ Caused by warning:
 </div>
 </div>
 </div>
-<p>The rolling standard deviation plots reveal a sharp increase in equity market volatility beginning in early 2022, coinciding with the onset of aggressive US monetary tightening and the subsequent yen depreciation. The 260-day rolling window captures the persistence of this elevated volatility regime rather than a transient spike. Spread volatility shows a more gradual increase beginning in late 2022, reflecting the growing divergence between US and Japanese monetary policy trajectories. REER volatility remains comparatively stable across the full sample, suggesting that the exchange rate channel, while moving to a new level, did not experience a structural increase in day-to-day variance.</p>
+<p>The rolling standard deviation plots confirm that the post-2021 environment produced divergent volatility patterns across financial variables. Equity market volatility, as measured by the 260-day rolling standard deviation of the Nikkei 225, was higher in absolute terms during the paper period, reflecting the inclusion of the global financial crisis and the COVID-19 pandemic within the original sample. Spread volatility increased notably after 2022, with the mean rolling SD rising from 0.26 to 0.46, coinciding with the widening gap between US interest rate increases and the BOJ&#39;s continued yield curve control framework. REER volatility remained comparatively stable across the full sample, suggesting that the exchange rate channel, while moving to a new level, did not experience a structural increase in day-to-day variance.</p>
 </section>
 <section id="visualizing-the-descriptive-statistics" class="level2">
 <h2 class="anchored" data-anchor-id="visualizing-the-descriptive-statistics">Visualizing the Descriptive Statistics</h2>
@@ -3634,7 +3635,7 @@ Caused by warning:
 </section>
 <section id="structural-breaks-in-the-extended-sample" class="level3">
 <h3 class="anchored" data-anchor-id="structural-breaks-in-the-extended-sample">Structural breaks in the extended sample</h3>
-<p>The time-series plots provide a direct visual comparison of the paper period (blue) and the extended period (orange), separated by the vertical line marking 31 March 2021. A shaded region highlights the 2022 yen depreciation episode. Notable structural shifts include the widening of the yield spread as the Federal Reserve raised rates while the BOJ maintained its yield curve control framework, and the increased amplitude of portfolio debt and equity flows after 2021.</p>
+<p>The time-series plots provide a direct visual comparison of the paper period (blue) and the extended period (orange), separated by the vertical line marking 31 March 2021. A shaded region highlights the 2022 yen depreciation episode. Notable structural shifts include the increasing negativity of the yield spread as the Federal Reserve raised rates while the BOJ maintained its yield curve control framework, moving the mean spread from -2.44 to -2.70. Portfolio debt flows show increased dispersion in the extended period (SD: 1.72 to 2.42), while equity flow dispersion remained broadly comparable across the two periods.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>ts_data <span class="ot">&lt;-</span> final_dataset <span class="sc">|&gt;</span></span>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(date, period, risk_off, spread, log_nikkei, log_reer, log_rgdp,</span>
