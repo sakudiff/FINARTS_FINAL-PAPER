@@ -714,6 +714,8 @@ variance_tests |>
   kable_styling(bootstrap_options = c("striped", "hover"))
 ```
 
+The F-test results confirm that the variance differences observed in the descriptive statistics are statistically significant across all five variables tested. Real GDP volatility in the paper period exceeds that of the extended period by a factor of 31, reflecting the inclusion of the global financial crisis, the 2011 Tohoku earthquake, and the COVID-19 pandemic within the original sample window. For the real effective exchange rate and the equity market, the paper period similarly exhibits higher variance. Portfolio debt flows are the exception, with the extended period showing significantly higher variance (F = 0.50, p < .001), consistent with increased volatility in cross-border debt investment following the shift in monetary policy differentials between Japan and the United States.
+
 ```{r rolling-volatility}
 #| fig.height: 8
 #| fig.width: 10
@@ -738,6 +740,8 @@ ggplot(rolling_vol, aes(x = date, y = rolling_sd, color = variable)) +
   theme_quant() + theme(legend.position = "none")
 ```
 
+The rolling standard deviation plots reveal a sharp increase in equity market volatility beginning in early 2022, coinciding with the onset of aggressive US monetary tightening and the subsequent yen depreciation. The 260-day rolling window captures the persistence of this elevated volatility regime rather than a transient spike. Spread volatility shows a more gradual increase beginning in late 2022, reflecting the growing divergence between US and Japanese monetary policy trajectories. REER volatility remains comparatively stable across the full sample, suggesting that the exchange rate channel, while moving to a new level, did not experience a structural increase in day-to-day variance.
+
 ## Visualizing the Descriptive Statistics
 
 Three figures help diagnose distributional shifts, structural breaks and cross-variable relationships in the extended sample.
@@ -750,7 +754,7 @@ Three figures help diagnose distributional shifts, structural breaks and cross-v
 
 ### Distributional shifts after 2021
 
-Overlaid densities show how each variable\'s distribution changed between the paper period and the extended sample. The vertical dashed line marks the full-sample mean.
+Overlaid densities show how each variable\'s distribution changed between the paper period and the extended sample. The vertical dashed line marks the full-sample mean. A rightward or leftward shift in the extended period\'s density relative to the paper period indicates a change in the central tendency of that variable, while a wider or narrower spread indicates a change in dispersion.
 
 ```{r viz-density}
 #| fig.height: 10
@@ -810,7 +814,7 @@ ggplot(full_dens, aes(x = value)) +
 
 ### Structural breaks in the extended sample
 
-Each variable\'s daily series from 1999 to 2026, shaded where the extended period begins. The vertical line marks 31 March 2021, the end of the paper\'s estimation window.
+The time-series plots provide a direct visual comparison of the paper period (blue) and the extended period (orange), separated by the vertical line marking 31 March 2021. A shaded region highlights the 2022 yen depreciation episode. Notable structural shifts include the widening of the yield spread as the Federal Reserve raised rates while the BOJ maintained its yield curve control framework, and the increased amplitude of portfolio debt and equity flows after 2021.
 
 ```{r viz-timeseries}
 #| fig.height: 12
@@ -841,7 +845,7 @@ ggplot(ts_data, aes(x = date, y = value)) +
 
 ### Cross-variable correlations
 
-Pairwise correlations for the full sample, ordered by strength and direction. Positive correlations point toward the Chicago blue end of the scale and negative toward the Tokyo red end.
+The correlation matrix provides a diagnostic view of the relationships among the ten endogenous variables over the full sample. Of particular interest is the sign and magnitude of correlations involving the Risk-off indicator, which functions as the exogenous shock variable in the structural VAR.
 
 ```{r viz-correlation}
 #| fig.height: 7
