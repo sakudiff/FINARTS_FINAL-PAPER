@@ -3469,7 +3469,7 @@ Caused by warning:
 <span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(</span>
 <span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">variable =</span> v,</span>
 <span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">F_statistic =</span> <span class="fu">round</span>(ft<span class="sc">$</span>statistic, <span class="dv">4</span>),</span>
-<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">p_value =</span> <span class="fu">round</span>(ft<span class="sc">$</span>p.value, <span class="dv">4</span>),</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">p_value =</span> <span class="fu">ifelse</span>(ft<span class="sc">$</span>p.value <span class="sc">&lt;</span> <span class="fl">0.0001</span>, <span class="st">&quot;&lt; 0.0001&quot;</span>, <span class="fu">sprintf</span>(<span class="st">&quot;%.4f&quot;</span>, ft<span class="sc">$</span>p.value)),</span>
 <span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">significant_5pct =</span> <span class="fu">ifelse</span>(ft<span class="sc">$</span>p.value <span class="sc">&lt;</span> <span class="fl">0.05</span>, <span class="st">&quot;Yes&quot;</span>, <span class="st">&quot;No&quot;</span>),</span>
 <span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">higher_variance =</span> <span class="fu">ifelse</span>(ft<span class="sc">$</span>statistic <span class="sc">&gt;</span> <span class="dv">1</span>, <span class="st">&quot;Paper Period&quot;</span>, <span class="st">&quot;Extended Period&quot;</span>)</span>
 <span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>  )</span>
@@ -3485,7 +3485,7 @@ Caused by warning:
 <tr class="header">
 <th style="text-align: left;" data-quarto-table-cell-role="th">variable</th>
 <th style="text-align: right;" data-quarto-table-cell-role="th">F_statistic</th>
-<th style="text-align: right;" data-quarto-table-cell-role="th">p_value</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">p_value</th>
 <th style="text-align: left;" data-quarto-table-cell-role="th">significant_5pct</th>
 <th style="text-align: left;" data-quarto-table-cell-role="th">higher_variance</th>
 </tr>
@@ -3494,35 +3494,35 @@ Caused by warning:
 <tr class="odd">
 <td style="text-align: left;">log_reer</td>
 <td style="text-align: right;">3.5201</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: left;">&lt; 0.0001</td>
 <td style="text-align: left;">Yes</td>
 <td style="text-align: left;">Paper Period</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">log_nikkei</td>
 <td style="text-align: right;">1.8425</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: left;">&lt; 0.0001</td>
 <td style="text-align: left;">Yes</td>
 <td style="text-align: left;">Paper Period</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">spread</td>
 <td style="text-align: right;">1.4481</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: left;">&lt; 0.0001</td>
 <td style="text-align: left;">Yes</td>
 <td style="text-align: left;">Paper Period</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">debtsec_pct</td>
 <td style="text-align: right;">0.5006</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: left;">&lt; 0.0001</td>
 <td style="text-align: left;">Yes</td>
 <td style="text-align: left;">Extended Period</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">log_rgdp</td>
 <td style="text-align: right;">31.1378</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: left;">&lt; 0.0001</td>
 <td style="text-align: left;">Yes</td>
 <td style="text-align: left;">Paper Period</td>
 </tr>
