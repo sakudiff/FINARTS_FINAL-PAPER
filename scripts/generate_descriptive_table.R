@@ -36,6 +36,8 @@ rows <- desc_wide |>
   ))
 
 bs <- "\\"
+nl <- paste0(bs, bs)
+
 preamble <- c(
   paste0(bs, "documentclass[10pt]{article}"),
   paste0(bs, "usepackage[utf8]{inputenc}"),
@@ -49,17 +51,17 @@ preamble <- c(
   paste0(bs, "renewcommand{", bs, "arraystretch}{0.85}"),
   "",
   paste0(bs, "begin{longtable}{l l r r r}"),
-  paste0("  ", bs, "caption*{Descriptive Statistics by Period} ", bs, "\\\\"),
+  paste0("  ", bs, "caption*{Descriptive Statistics by Period} ", nl),
   paste0("  ", bs, "toprule"),
   paste0("  ", bs, "textbf{Variable} & ", bs, "textbf{Stat} & ",
     bs, "textbf{", pn[1], "} & ", bs, "textbf{", pn[2], "} & ",
-    bs, "textbf{Full Sample} ", bs, "\\\\"),
+    bs, "textbf{Full Sample} ", nl),
   paste0("  ", bs, "midrule"),
   paste0("  ", bs, "endfirsthead"),
   paste0("  ", bs, "toprule"),
   paste0("  ", bs, "textbf{Variable} & ", bs, "textbf{Stat} & ",
     bs, "textbf{", pn[1], "} & ", bs, "textbf{", pn[2], "} & ",
-    bs, "textbf{Full Sample} ", bs, "\\\\"),
+    bs, "textbf{Full Sample} ", nl),
   paste0("  ", bs, "midrule"),
   paste0("  ", bs, "endhead"),
   paste0("  ", bs, "bottomrule"),
