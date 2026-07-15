@@ -56,7 +56,7 @@ theme_quant <- function(base_size = 10) {
 }
 
 period_colors <- c("#2E45B8", "#F97A1F", "#595959")
-names(period_colors) <- c("1999\u20132021 (Paper Period)", "2021\u20132026 (Extended)", "Full Sample")
+names(period_colors) <- c("1999-2021", "2021-2026", "Full Sample")
 
 ```
 ### Variable reference
@@ -736,10 +736,12 @@ plot_data <- final_dataset |>
   filter(!is.na(value))
 
 plot_data$period <- factor(plot_data$period,
-  levels = c("1999–2021 (Paper Period)", "2021–2026 (Extended)", "Full Sample"))
+  levels = c("1999-2021", "2021-2026", "Full Sample"))
 
-full_means <- plot_data |>
-  filter(period == "Full Sample") |>
+full_means <- final_dataset |>
+  select(-date, -period) |>
+  pivot_longer(everything(), names_to = "variable", values_to = "value") |>
+  filter(!is.na(value)) |>
   group_by(variable) |>
   summarise(full_mean = mean(value, na.rm = TRUE), .groups = "drop")
 
@@ -783,7 +785,7 @@ ggplot(full_dens, aes(x = value)) +
 
 ### Structural breaks in the extended sample
 
-The time-series plots provide a direct visual comparison of the paper period (blue) and the extended period (orange), separated by the vertical line marking 31 March 2021. A shaded region highlights the 2022 yen depreciation episode. Notable structural shifts include the increasing negativity of the yield spread as the Federal Reserve raised rates while the BOJ maintained its yield curve control framework, moving the mean spread from -2.44 to -2.70. Portfolio debt flows show increased dispersion in the extended period (SD: 1.72 to 2.42), while equity flow dispersion remained broadly comparable across the two periods.
+The time-series plots provide a direct visual comparison of the paper period (1999-2021, blue) and the extended period (2021-2026, orange), separated by the vertical line marking 31 March 2021. A shaded region highlights the 2022 yen depreciation episode. Notable structural shifts include the increasing negativity of the yield spread as the Federal Reserve raised rates while the BOJ maintained its yield curve control framework, moving the mean spread from -2.44 to -2.70. Portfolio debt flows show increased dispersion in the extended period (SD: 1.72 to 2.42), while equity flow dispersion remained broadly comparable across the two periods.
 
 ```{r viz-timeseries}
 #| fig.height: 12
