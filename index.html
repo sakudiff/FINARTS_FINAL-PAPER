@@ -2456,6 +2456,98 @@ border: 0;
 
 
 <p>The pipeline initialises with project paths and era map before loading any data.</p>
+<section id="variable-reference" class="level3">
+<h3 class="anchored" data-anchor-id="variable-reference">Variable reference</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 20%">
+<col style="width: 18%">
+<col style="width: 31%">
+<col style="width: 13%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Description</th>
+<th>Frequency</th>
+<th>Formula / Purpose</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>risk_off</code></td>
+<td>Risk-off event indicator: 1 when VIX is at least 10 points above its 60-day moving average</td>
+<td>Daily</td>
+<td><code>VIX &gt;= MA60(VIX) + 10</code> — identifies distress episodes as the VAR shock variable</td>
+<td>Authors’ calculation from Bloomberg VIX data</td>
+</tr>
+<tr class="even">
+<td><code>spread</code></td>
+<td>Yield spread between 10-year JGB and 10-year US Treasury</td>
+<td>Daily</td>
+<td><code>JGB10Y - US10Y</code> — captures safe-haven bond market channel</td>
+<td>Bloomberg</td>
+</tr>
+<tr class="odd">
+<td><code>log_nikkei</code></td>
+<td>Log of Nikkei-225 stock index</td>
+<td>Daily</td>
+<td>Equity market response to risk-off, transmission to portfolio flows</td>
+<td>Bloomberg</td>
+</tr>
+<tr class="even">
+<td><code>log_reer</code></td>
+<td>Log of real effective exchange rate, broad index (2010 = 100)</td>
+<td>Monthly → daily (quadratic)</td>
+<td>Exchange rate competitiveness channel, safe-haven appreciation</td>
+<td>BIS</td>
+</tr>
+<tr class="odd">
+<td><code>log_rgdp</code></td>
+<td>Log of constant-price real GDP</td>
+<td>Quarterly → daily (quadratic)</td>
+<td>Real spillover channel: output response to risk-off</td>
+<td>IMF</td>
+</tr>
+<tr class="even">
+<td><code>log_wui</code></td>
+<td>Log of World Uncertainty Index for Japan</td>
+<td>Quarterly → daily (quadratic)</td>
+<td>Economic policy uncertainty transmission</td>
+<td>worlduncertaintyindex.com</td>
+</tr>
+<tr class="odd">
+<td><code>debtsec_pct</code></td>
+<td>Net portfolio investment inflows to debt securities (% of nominal GDP)</td>
+<td>Monthly → daily (quadratic)</td>
+<td><code>(debt_flows_usd / GDP_usd) * 100</code> — portfolio debt channel</td>
+<td>BOJ, IMF, Bloomberg</td>
+</tr>
+<tr class="even">
+<td><code>equity_pct</code></td>
+<td>Net portfolio investment inflows to equity (% of nominal GDP)</td>
+<td>Monthly → daily (quadratic)</td>
+<td><code>(equity_flows_usd / GDP_usd) * 100</code> — portfolio equity channel</td>
+<td>BOJ, IMF</td>
+</tr>
+<tr class="odd">
+<td><code>other_pct</code></td>
+<td>Net other investment inflows (% of nominal GDP)</td>
+<td>Monthly → daily (quadratic)</td>
+<td><code>(other_flows_usd / GDP_usd) * 100</code> — banking-flow channel</td>
+<td>BOJ, IMF, Bloomberg</td>
+</tr>
+<tr class="even">
+<td><code>direct_pct</code></td>
+<td>Net direct investment inflows (% of nominal GDP)</td>
+<td>Monthly → daily (quadratic)</td>
+<td><code>(direct_flows_usd / GDP_usd) * 100</code> — FDI channel</td>
+<td>BOJ, IMF, Bloomberg</td>
+</tr>
+</tbody>
+</table>
 <p>All six daily financial series share a consistent LSEG CSV format, so a single read function handles them.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># All LSEG daily CSVs share the same 6-column format: Date,Close,High,Low,Open,Volume</span></span>
@@ -3291,6 +3383,7 @@ Caused by warning:
 </div>
 </div>
 <p>The rolling standard deviation plots confirm that the post-2021 environment produced divergent volatility patterns across financial variables. Equity market volatility, as measured by the 260-day rolling standard deviation of the Nikkei 225, was higher in absolute terms during the paper period, reflecting the inclusion of the global financial crisis and the COVID-19 pandemic within the original sample. Spread volatility increased notably after 2022, with the mean rolling SD rising from 0.26 to 0.46, coinciding with the widening gap between US interest rate increases and the BOJ&#39;s continued yield curve control framework. REER volatility remained comparatively stable across the full sample, suggesting that the exchange rate channel, while moving to a new level, did not experience a structural increase in day-to-day variance.</p>
+</section>
 <section id="visualizing-the-descriptive-statistics" class="level2">
 <h2 class="anchored" data-anchor-id="visualizing-the-descriptive-statistics">Visualizing the Descriptive Statistics</h2>
 <p>Three figures help diagnose distributional shifts, structural breaks and cross-variable relationships in the extended sample.</p>
