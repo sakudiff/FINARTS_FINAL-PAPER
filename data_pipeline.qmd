@@ -74,8 +74,8 @@ names(period_colors) <- c("1999-2021", "2021-2026", "Full Sample")
 ```
 ### Variable reference
 
-| Variable | Description | Frequency | Formula / Purpose | Source |
-|----------|------------|-----------|-------------------|--------|
+| Variable | Description | Frequency | Source |
+|----------|-------------|-----------|--------|
 | `risk_off` | Risk-off event indicator: 1 when VIX is at least 10 points above its 60-day moving average | Daily | Bloomberg, LSEG |
 | `spread` | Yield spread between 10-year JGB and 10-year US Treasury | Daily | Bloomberg, LSEG |
 | `log_nikkei` | Log of Nikkei-225 stock index | Daily | Bloomberg, LSEG |
