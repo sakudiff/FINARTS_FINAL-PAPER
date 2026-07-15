@@ -651,7 +651,7 @@ Descriptive statistics are computed per period and exported both as a rendered t
 ```{r descriptive-stats}
 #| message: false
 
-desc_stats <- final_dataset |>
+desc_period <- final_dataset |>
   select(-date) |>
   pivot_longer(-period, names_to = "variable", values_to = "value") |>
   group_by(period, variable) |>
@@ -664,13 +664,47 @@ desc_stats <- final_dataset |>
     .groups = "drop"
   )
 
-desc_stats |>
-  mutate(across(where(is.numeric), ~ round(.x, 4))) |>
-  kbl(caption = "Descriptive Statistics by Period") |>
-  kable_styling(bootstrap_options = c("striped", "hover"))
+desc_total <- final_dataset |>
+  select(-date, -period) |>
+  pivot_longer(everything(), names_to = "variable", values_to = "value") |>
+  group_by(variable) |>
+  summarise(
+    N    = sum(!is.na(value)),
+    Mean = mean(value, na.rm = TRUE),
+    SD   = sd(value, na.rm = TRUE),
+    Min  = min(value, na.rm = TRUE),
+    Max  = max(value, na.rm = TRUE),
+    .groups = "drop"
+  )
 
-write_csv(desc_stats, file.path(DATA_OUT, "descriptive_stats.csv"))
-cat("descriptive_stats.csv written:", nrow(desc_stats), "rows\n")
+desc_table <- desc_period |>
+  pivot_longer(c(N, Mean, SD, Min, Max), names_to = "stat") |>
+  pivot_wider(names_from = period, values_from = value) |>
+  left_join(
+    desc_total |> pivot_longer(-variable, names_to = "stat"),
+    by = c("variable", "stat")
+  ) |>
+  rename(`Full Sample` = value) |>
+  arrange(variable, stat)
+
+desc_table |>
+  mutate(across(where(is.numeric), ~ round(.x, 4))) |>
+  select(-variable) |>
+  kbl(caption = "Descriptive Statistics by Period",
+    col.names = c("Stat", "1999-2021", "2021-2026", "Full Sample")) |>
+  kable_styling(bootstrap_options = c("hover"), font_size = 11) |>
+  pack_rows(index = table(factor(desc_table$variable,
+    levels = unique(desc_table$variable)))) |>
+  column_spec(1, width = "4em") |>
+  column_spec(2, background = "#D6DBF5") |>
+  column_spec(3, background = "#FEE1CD") |>
+  column_spec(4, background = "#F2F2F2")
+
+# Write period-level stats for LaTeX table script compatibility
+desc_period |>
+  mutate(across(where(is.numeric), ~ round(.x, 4))) |>
+  write_csv(file.path(DATA_OUT, "descriptive_stats.csv"))
+cat("descriptive_stats.csv written:", nrow(desc_period), "rows\n")
 ```
 ```{r variance-test}
 #| message: false
