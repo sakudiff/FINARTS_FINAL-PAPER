@@ -887,5 +887,6 @@ corrplot(cor_matrix, method = "color", type = "upper",
 ```{r latex-table}
 #| message: false
 system2("Rscript", c("scripts/generate_descriptive_table.R"))
+system2("Rscript", c("scripts/generate_risk_off_table.R"))
 ```
 
