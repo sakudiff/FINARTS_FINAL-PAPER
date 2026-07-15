@@ -568,9 +568,13 @@ The daily calendar and interpolated series are imported back into R for the work
 all_dates <- tibble(date = seq(START_DATE, END_DATE, by = "day"))
 
 # Import quadratic-interpolated daily series from Python output
+# Forward-fill trailing NAs so quarterly series (RGDP, WUI, GDP) extend
+# through end-of-sample. Quadratic interpolation can only fill interior gaps;
+# it cannot extrapolate past the last known observation.
 import_daily <- function(name) {
   read_csv(file.path("data", "tmp_quadratic", paste0(name, "_daily.csv")),
-    show_col_types = FALSE)
+    show_col_types = FALSE) |>
+    tidyr::fill(-date, .direction = "down")
 }
 
 log_reer_daily <- import_daily("log_reer")
@@ -761,12 +765,6 @@ The rolling standard deviation plots confirm that the post-2021 environment prod
 ## Visualizing the Descriptive Statistics
 
 Three figures help diagnose distributional shifts, structural breaks and cross-variable relationships in the extended sample.
-
-```{r viz-setup}
-#| message: false
-
-# theme_quant() and period_colors defined in setup chunk
-```
 
 ### Distributional shifts after 2021
 
