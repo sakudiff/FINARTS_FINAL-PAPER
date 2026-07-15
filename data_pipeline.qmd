@@ -36,6 +36,28 @@ era_map <- tibble(
   era_name    = c("平成", "令和"),
   era_offset  = c(1988L, 2018L)
 )
+
+theme_quant <- function(base_size = 10) {
+  theme_minimal(base_size = base_size) +
+    theme(
+      text = element_text(color = "#0D0D0D"),
+      plot.title = element_text(face = "bold", size = rel(1.3), margin = margin(b = 5)),
+      plot.subtitle = element_text(size = rel(1), color = "#333333", margin = margin(b = 8)),
+      plot.caption = element_text(size = rel(0.8), color = "#595959", hjust = 0, margin = margin(t = 8)),
+      axis.title = element_text(face = "bold", size = rel(0.9)),
+      axis.text = element_text(size = rel(0.85)),
+      axis.ticks = element_blank(),
+      panel.grid.minor = element_blank(),
+      panel.grid.major = element_line(color = "#F2F2F2", linewidth = 0.3),
+      strip.text = element_text(face = "bold", size = rel(0.9)),
+      legend.position = "bottom",
+      legend.text = element_text(size = rel(0.85))
+    )
+}
+
+period_colors <- c("#2E45B8", "#F97A1F", "#595959")
+names(period_colors) <- c("1999\u20132021 (Paper Period)", "2021\u20132026 (Extended)", "Full Sample")
+
 ```
 
 All six daily financial series share a consistent LSEG CSV format, so a single read function handles them.
@@ -622,8 +644,186 @@ desc_stats |>
 write_csv(desc_stats, file.path(DATA_OUT, "descriptive_stats.csv"))
 cat("descriptive_stats.csv written:", nrow(desc_stats), "rows\n")
 ```
+```{r variance-test}
+#| message: false
+
+vars_to_test <- c("log_reer", "log_nikkei", "spread", "debtsec_pct", "log_rgdp")
+
+variance_tests <- map_dfr(vars_to_test, function(v) {
+  df_sub <- final_dataset |>
+    select(period, value = all_of(v)) |>
+    filter(!is.na(value))
+  ft <- var.test(value ~ period, data = df_sub)
+  tibble(
+    variable = v,
+    F_statistic = round(ft$statistic, 4),
+    p_value = ifelse(ft$p.value < 0.0001, "< 0.0001", sprintf("%.4f", ft$p.value)),
+    significant_5pct = ifelse(ft$p.value < 0.05, "Yes", "No"),
+    higher_variance = ifelse(ft$statistic > 1, "Paper Period", "Extended Period")
+  )
+})
+
+variance_tests |>
+  kbl(caption = "F-Test for Equality of Variances (1999-2021 vs 2021-2026)") |>
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+The F-test results confirm that the variance differences observed in the descriptive statistics are statistically significant across all five variables tested. Real GDP volatility in the paper period exceeds that of the extended period by a factor of 31, reflecting the inclusion of the global financial crisis, the 2011 Tohoku earthquake, and the COVID-19 pandemic within the original sample window. For the real effective exchange rate and the equity market, the paper period similarly exhibits higher variance. Portfolio debt flows are the exception, with the extended period showing significantly higher variance (F = 0.50, p < .001), consistent with increased volatility in cross-border debt investment following the shift in monetary policy differentials between Japan and the United States.
+
+```{r rolling-volatility}
+#| fig.height: 8
+#| fig.width: 10
+#| message: false
+
+rolling_vol <- final_dataset |>
+  select(date, log_reer, log_nikkei, spread) |>
+  pivot_longer(-date, names_to = "variable", values_to = "value") |>
+  group_by(variable) |>
+  mutate(
+    rolling_sd = rollapply(value, width = 260, FUN = sd, fill = NA, align = "right", na.rm = TRUE)
+  ) |>
+  ungroup()
+
+ggplot(rolling_vol, aes(x = date, y = rolling_sd, color = variable)) +
+  geom_line(linewidth = 0.6) +
+  geom_vline(xintercept = as.Date("2021-03-31"), linetype = "dashed", color = "gray50") +
+  facet_wrap(~variable, scales = "free_y", ncol = 1) +
+  scale_color_manual(values = c("log_reer" = "#2E45B8", "log_nikkei" = "#F97A1F", "spread" = "#595959")) +
+  labs(x = "Year", y = "Rolling 1-Year Standard Deviation",
+       title = "Rolling 260-day Standard Deviation by Variable") +
+  theme_quant() + theme(legend.position = "none")
+```
+
+The rolling standard deviation plots confirm that the post-2021 environment produced divergent volatility patterns across financial variables. Equity market volatility, as measured by the 260-day rolling standard deviation of the Nikkei 225, was higher in absolute terms during the paper period, reflecting the inclusion of the global financial crisis and the COVID-19 pandemic within the original sample. Spread volatility increased notably after 2022, with the mean rolling SD rising from 0.26 to 0.46, coinciding with the widening gap between US interest rate increases and the BOJ\'s continued yield curve control framework. REER volatility remained comparatively stable across the full sample, suggesting that the exchange rate channel, while moving to a new level, did not experience a structural increase in day-to-day variance.
+
+## Visualizing the Descriptive Statistics
+
+Three figures help diagnose distributional shifts, structural breaks and cross-variable relationships in the extended sample.
+
+```{r viz-setup}
+#| message: false
+
+# theme_quant() and period_colors defined in setup chunk
+```
+
+### Distributional shifts after 2021
+
+Overlaid densities show how each variable\'s distribution changed between the paper period and the extended sample. The vertical dashed line marks the full-sample mean. A rightward or leftward shift in the extended period\'s density relative to the paper period indicates a change in the central tendency of that variable, while a wider or narrower spread indicates a change in dispersion.
+
+```{r viz-density}
+#| fig.height: 10
+#| fig.width: 10
+#| message: false
+
+plot_data <- final_dataset |>
+  select(-date) |>
+  pivot_longer(-period, names_to = "variable", values_to = "value") |>
+  filter(!is.na(value))
+
+plot_data$period <- factor(plot_data$period,
+  levels = c("1999–2021 (Paper Period)", "2021–2026 (Extended)", "Full Sample"))
+
+full_means <- plot_data |>
+  filter(period == "Full Sample") |>
+  group_by(variable) |>
+  summarise(full_mean = mean(value, na.rm = TRUE), .groups = "drop")
+
+plot_data <- plot_data |> left_join(full_means, by = "variable")
+
+ggplot(plot_data, aes(x = value, fill = period, color = period)) +
+  geom_density(alpha = 0.25, linewidth = 0.5) +
+  geom_vline(data = full_means, aes(xintercept = full_mean),
+    color = "#0D0D0D", linewidth = 0.7, linetype = "dashed") +
+  facet_wrap(~variable, scales = "free", ncol = 3) +
+  scale_fill_manual(values = period_colors) +
+  scale_color_manual(values = period_colors) +
+  labs(x = "Value", y = "Density", fill = NULL, color = NULL,
+       title = "Japanese financial variables show wider dispersion after 2021",
+       caption = "Dashed line: full-sample mean. Variables are described in Section 4.") +
+  theme_quant()
+```
+
+### Full-sample distributions
+
+A single density curve for each variable pooling all observations from 1999 to 2026.
+
+```{r viz-density-total}
+#| fig.height: 10
+#| fig.width: 10
+#| message: false
+
+full_dens <- final_dataset |>
+  select(-date, -period) |>
+  pivot_longer(everything(), names_to = "variable", values_to = "value") |>
+  filter(!is.na(value))
+
+ggplot(full_dens, aes(x = value)) +
+  geom_density(fill = "#595959", color = "#0D0D0D", alpha = 0.4, linewidth = 0.5) +
+  facet_wrap(~variable, scales = "free", ncol = 3) +
+  labs(x = "Value", y = "Density",
+       title = "Full-sample distributions for all variables, 1999 to 2026",
+       caption = "Values are in percentage points or natural logs per Table 2.") +
+  theme_quant()
+```
+
+### Structural breaks in the extended sample
+
+The time-series plots provide a direct visual comparison of the paper period (blue) and the extended period (orange), separated by the vertical line marking 31 March 2021. A shaded region highlights the 2022 yen depreciation episode. Notable structural shifts include the increasing negativity of the yield spread as the Federal Reserve raised rates while the BOJ maintained its yield curve control framework, moving the mean spread from -2.44 to -2.70. Portfolio debt flows show increased dispersion in the extended period (SD: 1.72 to 2.42), while equity flow dispersion remained broadly comparable across the two periods.
+
+```{r viz-timeseries}
+#| fig.height: 12
+#| fig.width: 10
+#| message: false
+
+ts_data <- final_dataset |>
+  select(date, period, risk_off, spread, log_nikkei, log_reer, log_rgdp,
+         log_wui, debtsec_pct, equity_pct, other_pct, direct_pct) |>
+  pivot_longer(-c(date, period), names_to = "variable", values_to = "value") |>
+  filter(!is.na(value))
+
+paper_end <- as.Date("2021-03-31")
+
+ggplot(ts_data, aes(x = date, y = value)) +
+  geom_line(aes(color = period), linewidth = 0.25, alpha = 0.7) +
+  geom_vline(xintercept = paper_end, linetype = "dashed",
+             color = "#595959", linewidth = 0.3) +
+  annotate("rect", xmin = as.Date("2022-01-01"), xmax = as.Date("2023-01-01"),
+           ymin = -Inf, ymax = Inf, alpha = 0.05, fill = "#C91D42") +
+  facet_wrap(~variable, scales = "free_y", ncol = 2) +
+  scale_color_manual(values = period_colors) +
+  labs(x = "Year", y = NULL, color = NULL,
+       title = "Capital flow and macro series reveal regime changes after 2021",
+       caption = "Vertical line: paper period end (31 March 2021). Variables follow the Cholesky ordering.") +
+  theme_quant() + coord_cartesian(xlim = c(as.Date("1999-01-01"), as.Date("2026-06-30")))
+```
+
+### Cross-variable correlations
+
+The correlation matrix provides a diagnostic view of the relationships among the ten endogenous variables over the full sample. Of particular interest is the sign and magnitude of correlations involving the Risk-off indicator, which functions as the exogenous shock variable in the structural VAR.
+
+```{r viz-correlation}
+#| fig.height: 7
+#| fig.width: 8
+#| message: false
+
+library(corrplot)
+
+cor_data <- final_dataset |>
+  select(-date, -period)
+
+cor_matrix <- cor(cor_data, use = "pairwise.complete.obs")
+
+corrplot(cor_matrix, method = "color", type = "upper",
+  tl.col = "#0D0D0D", tl.cex = 0.65,
+  col = colorRampPalette(c("#C91D42", "#FFFFFF", "#2E45B8"))(200),
+  addCoef.col = "#0D0D0D", number.cex = 0.5,
+  cl.cex = 0.55, mar = c(1, 0, 2, 0),
+  title = "Correlation matrix for the full sample, 1999 to 2026")
+```
+
 
 ```{r latex-table}
 #| message: false
 system2("Rscript", c("scripts/generate_descriptive_table.R"))
 ```
+
