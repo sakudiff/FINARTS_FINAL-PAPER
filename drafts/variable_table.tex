@@ -14,78 +14,68 @@
 \renewcommand{\arraystretch}{1.0}
 
 \resizebox{\textwidth}{!}{%
-\begin{tabular}{l p{4.5cm} c p{5.5cm} l}
+\begin{tabular}{l p{5.5cm} c l}
   \toprule
-  \textbf{Variable} & \textbf{Description} & \textbf{Freq.} & \textbf{Formula / Purpose} & \textbf{Source} \\
+  \textbf{Variable} & \textbf{Description} & \textbf{Freq.} & \textbf{Source} \\
   \midrule
 
   \texttt{risk\_off}
   & Risk-off indicator: 1 when VIX is at least 10 points above its 60-day MA
   & Daily
-  & \texttt{VIX >= MA60(VIX) + 10} -- identifies distress episodes as VAR shock variable
   & Bloomberg, LSEG \\
   \addlinespace
 
   \texttt{spread}
   & Yield spread between 10-year JGB and 10-year US Treasury
   & Daily
-  & \texttt{JGB10Y - US10Y} -- safe-haven bond market channel
   & Bloomberg, LSEG \\
   \addlinespace
 
   \texttt{log\_nikkei}
   & Log of Nikkei-225 stock index
   & Daily
-  & Equity market response to risk-off, transmission to portfolio flows
   & Bloomberg, LSEG \\
   \addlinespace
 
   \texttt{log\_reer}
   & Log of real effective exchange rate, broad index (2010 = 100)
   & Monthly $\to$ daily
-  & Exchange rate competitiveness channel, safe-haven appreciation
   & BIS \\
   \addlinespace
 
   \texttt{log\_rgdp}
   & Log of constant-price real GDP
   & Quarterly $\to$ daily
-  & Real spillover channel: output response to risk-off
   & IMF \\
   \addlinespace
 
   \texttt{log\_wui}
   & Log of World Uncertainty Index for Japan
   & Quarterly $\to$ daily
-  & Economic policy uncertainty transmission
   & worlduncertaintyindex.com \\
   \addlinespace
 
   \texttt{debtsec\_pct}
   & Net portfolio debt securities inflows (\% of nominal GDP)
   & Monthly $\to$ daily
-  & \texttt{(debt\_flows\_usd / GDP\_usd) $\times$ 100} -- portfolio debt channel
   & BOJ, IMF, Bloomberg, LSEG \\
   \addlinespace
 
   \texttt{equity\_pct}
   & Net portfolio equity inflows (\% of nominal GDP)
   & Monthly $\to$ daily
-  & \texttt{(equity\_flows\_usd / GDP\_usd) $\times$ 100} -- portfolio equity channel
   & BOJ, IMF, Bloomberg, LSEG \\
   \addlinespace
 
   \texttt{other\_pct}
   & Net other investment inflows (\% of nominal GDP)
   & Monthly $\to$ daily
-  & \texttt{(other\_flows\_usd / GDP\_usd) $\times$ 100} -- banking-flow channel
   & BOJ, IMF, Bloomberg, LSEG \\
   \addlinespace
 
   \texttt{direct\_pct}
   & Net direct investment inflows (\% of nominal GDP)
   & Monthly $\to$ daily
-  & \texttt{(direct\_flows\_usd / GDP\_usd) $\times$ 100} -- FDI channel
   & BOJ, IMF, Bloomberg, LSEG \\
 
   \bottomrule
