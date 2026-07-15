@@ -7,7 +7,8 @@ author:
   - "Opiana, Aimee Lorynne A."
   - "Patajo, Juliana"
   - "Sison, Aaron Joshua E."
-department: "FINARTS Section C01"
+department: "Department of Financial Management"
+course: "FINARTS Section C01"
 format:
   html:
     self-contained: true
