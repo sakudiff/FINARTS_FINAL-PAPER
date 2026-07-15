@@ -756,7 +756,7 @@ ggplot(plot_data, aes(x = value, fill = period, color = period)) +
   scale_color_manual(values = period_colors) +
   labs(x = "Value", y = "Density", fill = NULL, color = NULL,
        title = "Japanese financial variables show wider dispersion after 2021",
-       caption = "Dashed line: full-sample mean. Variables are described in Section 4.") +
+       caption = "Dashed line: full-sample mean. Variables defined in the reference table above.") +
   theme_quant()
 ```
 
@@ -779,7 +779,7 @@ ggplot(full_dens, aes(x = value)) +
   facet_wrap(~variable, scales = "free", ncol = 3) +
   labs(x = "Value", y = "Density",
        title = "Full-sample distributions for all variables, 1999 to 2026",
-       caption = "Values are in percentage points or natural logs per Table 2.") +
+       caption = "Values are in percentage points or natural logs. Variables defined in the reference table above.") +
   theme_quant()
 ```
 
@@ -810,7 +810,7 @@ ggplot(ts_data, aes(x = date, y = value)) +
   scale_color_manual(values = period_colors) +
   labs(x = "Year", y = NULL, color = NULL,
        title = "Capital flow and macro series reveal regime changes after 2021",
-       caption = "Vertical line: paper period end (31 March 2021). Variables follow the Cholesky ordering.") +
+       caption = "Vertical line: paper period end (31 March 2021). Variables defined in the reference table above.") +
   theme_quant() + coord_cartesian(xlim = c(as.Date("1999-01-01"), as.Date("2026-06-30")))
 ```
 
