@@ -2,19 +2,19 @@
 \usepackage[utf8]{inputenc}
 \usepackage[margin=0.3in,landscape]{geometry}
 \usepackage{booktabs}
-\usepackage{tabularx}
 \usepackage{ragged2e}
-
-\newcolumntype{L}{>{\RaggedRight\arraybackslash}X}
-\newcolumntype{P}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+\usepackage{graphicx}
 
 \begin{document}
 \pagestyle{empty}
-\footnotesize
-\setlength{\tabcolsep}{2.5pt}
-\renewcommand{\arraystretch}{1.05}
 
-\begin{tabularx}{\textwidth}{P{2.8cm} L c L P{3cm}}
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.0}
+
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l p{4.5cm} c p{5.5cm} l}
   \toprule
   \textbf{Variable} & \textbf{Description} & \textbf{Freq.} & \textbf{Formula / Purpose} & \textbf{Source} \\
   \midrule
@@ -89,6 +89,7 @@
   & BOJ, IMF, Bloomberg, LSEG \\
 
   \bottomrule
-\end{tabularx}
+\end{tabular}%
+}
 
 \end{document}
