@@ -2,16 +2,28 @@ library(tidyverse, warn.conflicts = FALSE)
 
 desc <- read_csv("data/processed/descriptive_stats.csv", show_col_types = FALSE)
 
+# Full-sample stats computed directly from raw data, not from period averages
+raw <- read_csv("data/processed/final_dataset.csv", show_col_types = FALSE, progress = FALSE)
+full_sample <- raw |>
+  select(-date, -period) |>
+  pivot_longer(everything(), names_to = "variable", values_to = "value") |>
+  filter(!is.na(value)) |>
+  group_by(variable) |>
+  summarise(
+    N    = n(),
+    Mean = mean(value, na.rm = TRUE),
+    SD   = sd(value, na.rm = TRUE),
+    Min  = min(value, na.rm = TRUE),
+    Max  = max(value, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  pivot_longer(-variable, names_to = "stat", values_to = "full")
+
 desc_wide <- desc |>
   pivot_longer(c(N, Mean, SD, Min, Max), names_to = "stat", values_to = "value") |>
   pivot_wider(names_from = period, values_from = value)
 
 pn <- setdiff(names(desc_wide), c("variable", "stat"))
-
-full_sample <- desc |>
-  pivot_longer(c(N, Mean, SD, Min, Max), names_to = "stat", values_to = "value") |>
-  group_by(variable, stat) |>
-  summarise(full = mean(value, na.rm = TRUE), .groups = "drop")
 
 rows <- desc_wide |>
   left_join(full_sample, by = c("variable", "stat")) |>
