@@ -2,36 +2,28 @@
 \usepackage[utf8]{inputenc}
 \usepackage[margin=0.3in,landscape]{geometry}
 \usepackage{booktabs}
-\usepackage{longtable}
+\usepackage{tabularx}
 \usepackage{ragged2e}
+
+\newcolumntype{L}{>{\RaggedRight\arraybackslash}X}
+\newcolumntype{P}[1]{>{\RaggedRight\arraybackslash}p{#1}}
 
 \begin{document}
 \pagestyle{empty}
 \footnotesize
-\setlength{\tabcolsep}{3pt}
-\renewcommand{\arraystretch}{1.1}
+\setlength{\tabcolsep}{2.5pt}
+\renewcommand{\arraystretch}{1.05}
 
-\begin{longtable}{l p{4.5cm} c p{5.5cm} l}
-  \caption*{Variable Definitions and Data Sources} \\
+\begin{tabularx}{\textwidth}{P{2.8cm} L c L P{3cm}}
   \toprule
   \textbf{Variable} & \textbf{Description} & \textbf{Freq.} & \textbf{Formula / Purpose} & \textbf{Source} \\
   \midrule
-  \endfirsthead
-  \toprule
-  \textbf{Variable} & \textbf{Description} & \textbf{Freq.} & \textbf{Formula / Purpose} & \textbf{Source} \\
-  \midrule
-  \endhead
-  \bottomrule
-  \endfoot
-  \bottomrule
-  \endlastfoot
 
   \texttt{risk\_off}
   & Risk-off indicator: 1 when VIX is at least 10 points above its 60-day MA
   & Daily
   & \texttt{VIX >= MA60(VIX) + 10} -- identifies distress episodes as VAR shock variable
   & Bloomberg, LSEG \\
-
   \addlinespace
 
   \texttt{spread}
@@ -39,7 +31,6 @@
   & Daily
   & \texttt{JGB10Y - US10Y} -- safe-haven bond market channel
   & Bloomberg, LSEG \\
-
   \addlinespace
 
   \texttt{log\_nikkei}
@@ -47,7 +38,6 @@
   & Daily
   & Equity market response to risk-off, transmission to portfolio flows
   & Bloomberg, LSEG \\
-
   \addlinespace
 
   \texttt{log\_reer}
@@ -55,7 +45,6 @@
   & Monthly $\to$ daily
   & Exchange rate competitiveness channel, safe-haven appreciation
   & BIS \\
-
   \addlinespace
 
   \texttt{log\_rgdp}
@@ -63,7 +52,6 @@
   & Quarterly $\to$ daily
   & Real spillover channel: output response to risk-off
   & IMF \\
-
   \addlinespace
 
   \texttt{log\_wui}
@@ -71,7 +59,6 @@
   & Quarterly $\to$ daily
   & Economic policy uncertainty transmission
   & worlduncertaintyindex.com \\
-
   \addlinespace
 
   \texttt{debtsec\_pct}
@@ -79,7 +66,6 @@
   & Monthly $\to$ daily
   & \texttt{(debt\_flows\_usd / GDP\_usd) $\times$ 100} -- portfolio debt channel
   & BOJ, IMF, Bloomberg, LSEG \\
-
   \addlinespace
 
   \texttt{equity\_pct}
@@ -87,7 +73,6 @@
   & Monthly $\to$ daily
   & \texttt{(equity\_flows\_usd / GDP\_usd) $\times$ 100} -- portfolio equity channel
   & BOJ, IMF, Bloomberg, LSEG \\
-
   \addlinespace
 
   \texttt{other\_pct}
@@ -95,7 +80,6 @@
   & Monthly $\to$ daily
   & \texttt{(other\_flows\_usd / GDP\_usd) $\times$ 100} -- banking-flow channel
   & BOJ, IMF, Bloomberg, LSEG \\
-
   \addlinespace
 
   \texttt{direct\_pct}
@@ -104,6 +88,7 @@
   & \texttt{(direct\_flows\_usd / GDP\_usd) $\times$ 100} -- FDI channel
   & BOJ, IMF, Bloomberg, LSEG \\
 
-\end{longtable}
+  \bottomrule
+\end{tabularx}
 
 \end{document}
