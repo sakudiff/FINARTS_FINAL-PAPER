@@ -1,6 +1,13 @@
 ---
 title: "Data Pipeline — Beirne & Sugandi (2023) Replication (Japan)"
-author: "FINARTS Group 4"
+author:
+  - "Cuenca, Raphael"
+  - "Galedo, Enrique Lorenzo"
+  - "Go, Keira"
+  - "Opiana, Aimee Lorynne A."
+  - "Patajo, Juliana"
+  - "Sison, Aaron Joshua E."
+department: "FINARTS Section C01"
 format:
   html:
     self-contained: true
