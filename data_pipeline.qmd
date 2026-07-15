@@ -12,6 +12,11 @@ course: "FINARTS Section C01"
 format:
   html:
     self-contained: true
+    page-layout: full
+    css: |2-
+      .main-container { max-width: 1400px !important; }
+      table { width: 100% !important; }
+    toc: true
 output-file: index
 ---
 
