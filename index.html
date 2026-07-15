@@ -2507,71 +2507,71 @@ table { width: 100% !important; }">
 <td><code>risk_off</code></td>
 <td>Risk-off event indicator: 1 when VIX is at least 10 points above its 60-day moving average</td>
 <td>Daily</td>
-<td><code>VIX &gt;= MA60(VIX) + 10</code> — identifies distress episodes as the VAR shock variable</td>
 <td>Bloomberg, LSEG</td>
+<td></td>
 </tr>
 <tr class="even">
 <td><code>spread</code></td>
 <td>Yield spread between 10-year JGB and 10-year US Treasury</td>
 <td>Daily</td>
-<td><code>JGB10Y - US10Y</code> — captures safe-haven bond market channel</td>
 <td>Bloomberg, LSEG</td>
+<td></td>
 </tr>
 <tr class="odd">
 <td><code>log_nikkei</code></td>
 <td>Log of Nikkei-225 stock index</td>
 <td>Daily</td>
-<td>Equity market response to risk-off, transmission to portfolio flows</td>
 <td>Bloomberg, LSEG</td>
+<td></td>
 </tr>
 <tr class="even">
 <td><code>log_reer</code></td>
 <td>Log of real effective exchange rate, broad index (2010 = 100)</td>
 <td>Monthly → daily (quadratic)</td>
-<td>Exchange rate competitiveness channel, safe-haven appreciation</td>
 <td>BIS</td>
+<td></td>
 </tr>
 <tr class="odd">
 <td><code>log_rgdp</code></td>
 <td>Log of constant-price real GDP</td>
 <td>Quarterly → daily (quadratic)</td>
-<td>Real spillover channel: output response to risk-off</td>
 <td>IMF</td>
+<td></td>
 </tr>
 <tr class="even">
 <td><code>log_wui</code></td>
 <td>Log of World Uncertainty Index for Japan</td>
 <td>Quarterly → daily (quadratic)</td>
-<td>Economic policy uncertainty transmission</td>
 <td>worlduncertaintyindex.com</td>
+<td></td>
 </tr>
 <tr class="odd">
 <td><code>debtsec_pct</code></td>
 <td>Net portfolio investment inflows to debt securities (% of nominal GDP)</td>
 <td>Monthly → daily (quadratic)</td>
-<td><code>(debt_flows_usd / GDP_usd) * 100</code> — portfolio debt channel</td>
 <td>BOJ, IMF, Bloomberg, LSEG</td>
+<td></td>
 </tr>
 <tr class="even">
 <td><code>equity_pct</code></td>
 <td>Net portfolio investment inflows to equity (% of nominal GDP)</td>
 <td>Monthly → daily (quadratic)</td>
-<td><code>(equity_flows_usd / GDP_usd) * 100</code> — portfolio equity channel</td>
 <td>BOJ, IMF, Bloomberg, LSEG</td>
+<td></td>
 </tr>
 <tr class="odd">
 <td><code>other_pct</code></td>
 <td>Net other investment inflows (% of nominal GDP)</td>
 <td>Monthly → daily (quadratic)</td>
-<td><code>(other_flows_usd / GDP_usd) * 100</code> — banking-flow channel</td>
 <td>BOJ, IMF, Bloomberg, LSEG</td>
+<td></td>
 </tr>
 <tr class="even">
 <td><code>direct_pct</code></td>
 <td>Net direct investment inflows (% of nominal GDP)</td>
 <td>Monthly → daily (quadratic)</td>
-<td><code>(direct_flows_usd / GDP_usd) * 100</code> — FDI channel</td>
 <td>BOJ, IMF, Bloomberg, LSEG</td>
+<td></td>
 </tr>
 </tbody>
 </table>
