@@ -80,8 +80,38 @@ COLORS = {
     "extended": "#F97A1F",
     "shock": "#C91D42",
     "ci_fill": "#D6DBF5",
+    "ci_boot": "#F9D2DB",
     "zero": "#595959",
+    "bg": "#F5F4EF",
+    "grid": "#D9D9D9",
+    "text": "#0D0D0D",
+    "muted": "#595959",
 }
+
+
+def set_quant_style():
+    plt.rcParams.update({
+        "axes.grid": True,
+        "grid.color": COLORS["grid"],
+        "grid.linewidth": 0.3,
+        "axes.spines.top": False,
+        "axes.spines.right": False,
+        "axes.spines.left": False,
+        "axes.spines.bottom": True,
+        "axes.titleweight": "bold",
+        "axes.titlesize": 10,
+        "axes.labelsize": 8,
+        "axes.labelcolor": COLORS["muted"],
+        "xtick.major.size": 0,
+        "ytick.major.size": 0,
+        "xtick.color": COLORS["muted"],
+        "ytick.color": COLORS["muted"],
+        "legend.fontsize": 7,
+        "legend.frameon": False,
+        "text.color": COLORS["text"],
+        "figure.facecolor": COLORS["bg"],
+        "axes.facecolor": COLORS["bg"],
+    })
 
 
 def load_data():
@@ -437,6 +467,7 @@ def main():
             upper_anal = irf_values + z * se[np.newaxis, np.newaxis, :]
 
             def _make_irf_plot(irf_vals, lower, upper, ci_label, suffix):
+                set_quant_style()
                 fig, axes = plt.subplots(nrows=3, ncols=4, figsize=(16, 10))
                 axes_flat = axes.flatten()
                 for v_idx, v_name in enumerate(VAR_ORDER):
@@ -444,23 +475,30 @@ def main():
                         response = irf_vals[:, 0, v_idx]
                         steps = np.arange(len(response))
                         axes_flat[v_idx].plot(steps, response,
-                                              color=COLORS["paper"], linewidth=0.8)
+                                              color=COLORS["paper"], linewidth=0.8,
+                                              label="Point estimate")
                         if lower is not None:
                             axes_flat[v_idx].fill_between(
                                 steps, lower[:, v_idx], upper[:, v_idx],
-                                color=COLORS["paper"], alpha=0.15)
+                                color=COLORS["paper"], alpha=0.15,
+                                label=f"{ci_label}")
                         axes_flat[v_idx].axhline(y=0, color=COLORS["zero"],
                                                  linewidth=0.4, linestyle="--")
-                        axes_flat[v_idx].set_title(f"Response: {v_name}", fontsize=9)
+                        axes_flat[v_idx].set_title(v_name, fontsize=9, fontweight="bold")
                         axes_flat[v_idx].set_xlabel("Days", fontsize=8)
                         if v_idx % 4 == 0:
                             axes_flat[v_idx].set_ylabel("Percentage points", fontsize=8)
+                        if v_idx == 0:
+                            axes_flat[v_idx].legend(loc="upper right", fontsize=6)
                 for v_idx in range(len(VAR_ORDER), len(axes_flat)):
                     axes_flat[v_idx].set_visible(False)
-                fig.suptitle(f"{spec_label.title()} VAR — {period_label} — "
-                             f"IRF to Risk-off Shock ({ci_label})",
-                             fontsize=12, fontweight="bold")
-                plt.tight_layout(rect=[0, 0, 1, 0.96])
+                fig.suptitle(f"Response of each variable to a Risk-off shock: "
+                             f"{spec_label.title()} VAR, {period_label}",
+                             fontsize=12, fontweight="bold", color=COLORS["text"],
+                             y=0.98)
+                fig.text(0.5, 0.01, f"Shaded band: {ci_label}",
+                         ha="center", fontsize=8, color=COLORS["muted"])
+                plt.tight_layout(rect=[0, 0.02, 1, 0.95])
                 fname = f"irf_{spec_label}_{period_label.replace('-', '_')}_{suffix}.png"
                 fig.savefig(FIG_DIR / fname, dpi=DPI, bbox_inches="tight")
                 plt.close(fig)
@@ -476,6 +514,7 @@ def main():
                 _make_irf_plot(irf_values, lower_boot, upper_boot,
                               f"Bootstrap 95% CI, B={N_BOOTSTRAP}", "bootstrap")
 
+                set_quant_style()
                 fig, axes = plt.subplots(nrows=3, ncols=4, figsize=(16, 10))
                 axes_flat = axes.flatten()
                 for v_idx, v_name in enumerate(VAR_ORDER):
@@ -490,20 +529,21 @@ def main():
                             color=COLORS["paper"], alpha=0.15, label="Analytic 95% CI")
                         axes_flat[v_idx].fill_between(
                             steps, lower_boot[:, v_idx], upper_boot[:, v_idx],
-                            color=COLORS["ci_fill"], alpha=0.3, label="Bootstrap 95% CI")
+                            color=COLORS["ci_boot"], alpha=0.4, label="Bootstrap 95% CI")
                         axes_flat[v_idx].axhline(y=0, color=COLORS["zero"],
                                                  linewidth=0.4, linestyle="--")
-                        axes_flat[v_idx].set_title(f"Response: {v_name}", fontsize=9)
+                        axes_flat[v_idx].set_title(v_name, fontsize=9, fontweight="bold")
                         axes_flat[v_idx].set_xlabel("Days", fontsize=8)
                         if v_idx % 4 == 0:
                             axes_flat[v_idx].set_ylabel("Percentage points", fontsize=8)
-                axes_flat[0].legend(fontsize=7, loc="upper right")
+                axes_flat[0].legend(fontsize=6, loc="upper right")
                 for v_idx in range(len(VAR_ORDER), len(axes_flat)):
                     axes_flat[v_idx].set_visible(False)
-                fig.suptitle(f"{spec_label.title()} VAR — {period_label} — "
-                             f"Analytical vs Bootstrap 95% CI Comparison",
-                             fontsize=12, fontweight="bold")
-                plt.tight_layout(rect=[0, 0, 1, 0.96])
+                fig.suptitle(f"Analytical versus bootstrap confidence intervals: "
+                             f"{spec_label.title()} VAR, {period_label}",
+                             fontsize=12, fontweight="bold", color=COLORS["text"],
+                             y=0.98)
+                plt.tight_layout(rect=[0, 0, 1, 0.95])
                 fname = f"irf_{spec_label}_{period_label.replace('-', '_')}_ci_comparison.png"
                 fig.savefig(FIG_DIR / fname, dpi=DPI, bbox_inches="tight")
                 plt.close(fig)
@@ -561,6 +601,7 @@ def main():
         lower2 = irf_p2.irfs - z * se_p2[np.newaxis, np.newaxis, :]
         upper2 = irf_p2.irfs + z * se_p2[np.newaxis, np.newaxis, :]
 
+        set_quant_style()
         fig, axes = plt.subplots(nrows=3, ncols=4, figsize=(16, 10))
         axes_flat = axes.flatten()
         for v_idx, v_name in enumerate(VAR_ORDER):
@@ -580,19 +621,23 @@ def main():
                                               color=COLORS["extended"], alpha=0.08)
                 axes_flat[v_idx].axhline(y=0, color=COLORS["zero"],
                                          linewidth=0.4, linestyle="--")
-                axes_flat[v_idx].set_title(f"Response: {v_name}", fontsize=9)
+                axes_flat[v_idx].set_title(v_name, fontsize=9, fontweight="bold")
                 axes_flat[v_idx].set_xlabel("Days", fontsize=8)
                 if v_idx % 4 == 0:
                     axes_flat[v_idx].set_ylabel("Percentage points", fontsize=8)
 
-        axes_flat[0].legend(fontsize=8, loc="upper right")
+        axes_flat[0].legend(fontsize=7, loc="upper right")
         for v_idx in range(len(VAR_ORDER), len(axes_flat)):
             axes_flat[v_idx].set_visible(False)
 
-        fig.suptitle("Restricted VAR — Period Comparison: 1999-2021 vs 1999-2026\n"
-                     "IRF to Risk-off Shock (Analytical 95% CI)",
-                     fontsize=12, fontweight="bold")
-        plt.tight_layout(rect=[0, 0, 1, 0.95])
+        fig.suptitle("Response to a Risk-off shock: restricted VAR, "
+                     "1999-2021 versus 1999-2026",
+                     fontsize=12, fontweight="bold", color=COLORS["text"],
+                     y=0.98)
+        fig.text(0.5, 0.01, "Solid line: 1999-2021. Dashed line: 1999-2026. "
+                 "Shaded bands are analytical 95% confidence intervals.",
+                 ha="center", fontsize=8, color=COLORS["muted"])
+        plt.tight_layout(rect=[0, 0.02, 1, 0.95])
         fig.savefig(FIG_DIR / "irf_period_comparison_restricted.png",
                     dpi=DPI, bbox_inches="tight")
         plt.close(fig)
