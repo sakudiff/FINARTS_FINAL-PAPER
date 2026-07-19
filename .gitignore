@@ -28,7 +28,9 @@ deployment/
 ***REMOVED***
 
 # Generated outputs
-data/processed/
+data/processed/*
+!data/processed/var_results
+!data/processed/var_results/**
 data/tmp_quadratic/
 
 # Quarto render artifacts
