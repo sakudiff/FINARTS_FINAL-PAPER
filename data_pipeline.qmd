@@ -976,18 +976,85 @@ if (!file.exists("data/processed/var_results/fevd_unrestricted_1999_2026.csv")) 
 
 ### What the Script Produces
 
-| Output | Description | File Location |
-|--------|-------------|---------------|
-| ADF tests | Stationarity test results for all 10 variables | `data/processed/var_results/adf_tests_*.csv` |
-| Lag selection | AIC values for lags 1 through 20 | `data/processed/var_results/lag_selection_*.csv` |
-| IRF figures | Impulse response to a one-standard-deviation Risk-off shock over 125 days, with analytical and bootstrap 95% CIs | `data/processed/var_results/figures/irf_*.png` |
-| FEVD tables | Forecast error variance decomposition at 1, 5, 20, 60, and 125 days | `data/processed/var_results/fevd_*.csv` |
-| IRF peak tables | Peak response magnitude and day for each variable | `data/processed/var_results/irf_peak_*.csv` |
-| Period comparison | Overlay of restricted IRFs for 1999-2021 versus 1999-2026 | `data/processed/var_results/figures/irf_period_comparison_restricted.png` |
-
 All outputs cover both the paper replication period (1999 to 2021) and the
 extended period (1999 to 2026) for both the restricted and unrestricted VAR
 specifications.
+
+### Implementation Note
+
+The VAR estimation runs in Python through a standalone script called by R via
+`system2()`. Python code blocks embedded directly in the QMD would require the
+reticulate R package, which is not installed in this environment. The existing
+pipeline already uses this pattern for the quadratic interpolation step.
+
+Keeping the computation in a separate script also avoids re-running the full
+SVAR (2 to 12 minutes depending on hardware) on every render. A cache check
+skips execution when output files already exist.
+
+The full Python source is shown in a collapsible section at the bottom of this
+document for readers who prefer to inspect the implementation directly.
+
+### ADF Stationarity Tests
+
+```{r adf-table}
+#| message: false
+#| echo: false
+adf1 <- read.csv("data/processed/var_results/adf_tests_1999_2021.csv", row.names = 1)
+adf2 <- read.csv("data/processed/var_results/adf_tests_1999_2026.csv", row.names = 1)
+adf1$period <- "1999-2021"
+adf2$period <- "1999-2026"
+adf_both <- rbind(adf1, adf2)
+adf_both |>
+  knitr::kable(caption = "Augmented Dickey-Fuller Tests at 5% Significance",
+               col.names = c("Variable", "ADF Statistic", "P-value",
+                             "5% Critical Value", "Stationary", "Period"))
+```
+
+### Lag Selection
+
+```{r lag-table}
+#| message: false
+#| echo: false
+lag1 <- read.csv("data/processed/var_results/lag_selection_1999_2021.csv")
+lag2 <- read.csv("data/processed/var_results/lag_selection_1999_2026.csv")
+lag1$period <- "1999-2021"
+lag2$period <- "1999-2026"
+lag_both <- rbind(lag1, lag2)
+lag_both |>
+  knitr::kable(caption = "AIC Values by Lag for Periods 1999-2021 and 1999-2026",
+               col.names = c("Lag", "AIC", "Period"))
+```
+
+### Forecast Error Variance Decomposition
+
+```{r fevd-table}
+#| message: false
+#| echo: false
+fevd_files <- list.files("data/processed/var_results", pattern = "fevd_.*csv", full.names = TRUE)
+for (f in fevd_files) {
+  cat("\n\nFile:", basename(f), "\n\n")
+  df <- read.csv(f, check.names = FALSE)
+  if (ncol(df) > 6) {
+    short <- df[, 1:6]
+  } else {
+    short <- df
+  }
+  print(knitr::kable(short, caption = basename(f), row.names = FALSE))
+}
+```
+
+### IRF Peak Magnitudes
+
+```{r irf-peak-table}
+#| message: false
+#| echo: false
+peak_files <- list.files("data/processed/var_results", pattern = "irf_peak_.*csv", full.names = TRUE)
+for (f in peak_files) {
+  cat("\n\n", basename(f), "\n\n")
+  df <- read.csv(f)
+  print(knitr::kable(df, caption = basename(f), row.names = FALSE))
+}
+```
 
 ### Impulse Response Functions
 
@@ -1051,5 +1118,17 @@ knitr::include_graphics("data/processed/var_results/figures/irf_restricted_1999_
 #| echo: false
 #| message: false
 knitr::include_graphics("data/processed/var_results/figures/irf_restricted_1999_2021_me.png")
+```
+
+### Python Source Code
+
+The full VAR estimation script is shown below. It is called by the
+`svar-analysis` chunk above via `system2("uv", c("run", "scripts/var_analysis.py"))`.
+
+```{r python-source}
+#| echo: false
+#| message: false
+#| comment: ""
+cat(readLines("scripts/var_analysis.py"), sep = "\n")
 ```
 
