@@ -26,7 +26,7 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 
 sys.path.insert(0, str(Path(__file__).parent))
 from var_analysis import (
-    VAR_ORDER, build_exog, run_var, _bootstrap_irf_ci,
+    VAR_ORDER, build_exog, run_var, _bootstrap_irf_ci, set_quant_style,
     IRF_HORIZON, MAX_LAG, ALPHA, OUT_DIR, FIG_DIR, DPI, N_BOOTSTRAP, COLORS,
 )
 
@@ -79,6 +79,7 @@ def main():
             lower = irf_values - z * se[np.newaxis, np.newaxis, :]
             upper = irf_values + z * se[np.newaxis, np.newaxis, :]
 
+            set_quant_style()
             fig, axes = plt.subplots(nrows=3, ncols=4, figsize=(16, 10))
             axes_flat = axes.flatten()
             n_periods = irf_values.shape[0]
@@ -86,24 +87,30 @@ def main():
                 if v_idx < len(axes_flat):
                     steps = np.arange(n_periods)
                     axes_flat[v_idx].plot(steps, irf_values[:, 0, v_idx],
-                                          color=COLORS["paper"], linewidth=0.8)
+                                          color=COLORS["paper"], linewidth=0.8,
+                                          label="Point estimate")
                     axes_flat[v_idx].fill_between(
                         steps, lower[:, 0, v_idx], upper[:, 0, v_idx],
-                        color=COLORS["paper"], alpha=0.15)
+                        color=COLORS["paper"], alpha=0.15, label="95% CI")
                     axes_flat[v_idx].axhline(y=0, color=COLORS["zero"],
                                              linewidth=0.4, linestyle="--")
-                    axes_flat[v_idx].set_title(f"Response: {v_name}", fontsize=9)
+                    axes_flat[v_idx].set_title(v_name, fontsize=9, fontweight="bold")
                     axes_flat[v_idx].set_xlabel(f"{'Weeks' if freq == 'W' else 'Months'}", fontsize=8)
                     if v_idx % 4 == 0:
                         axes_flat[v_idx].set_ylabel("Percentage points", fontsize=8)
+                    if v_idx == 0:
+                        axes_flat[v_idx].legend(loc="upper right", fontsize=6)
 
             for v_idx in range(len(VAR_ORDER), len(axes_flat)):
                 axes_flat[v_idx].set_visible(False)
 
-            fig.suptitle(f"Restricted VAR — {period_label} — {freq_label} Frequency\n"
-                         f"IRF to Risk-off Shock (Analytical 95% CI, lags={k_ar})",
-                         fontsize=12, fontweight="bold")
-            plt.tight_layout(rect=[0, 0, 1, 0.95])
+            fig.suptitle(f"Response to a Risk-off shock at {freq_label} frequency: "
+                         f"restricted VAR, {period_label}",
+                         fontsize=12, fontweight="bold", color=COLORS["text"],
+                         y=0.98)
+            fig.text(0.5, 0.01, f"Shaded band: analytical 95% CI. Lags: {k_ar}.",
+                     ha="center", fontsize=8, color=COLORS["muted"])
+            plt.tight_layout(rect=[0, 0.02, 1, 0.95])
             fname = f"irf_restricted_{period_label.replace('-', '_')}_{freq.lower()}.png"
             fig.savefig(FIG_DIR / fname, dpi=DPI, bbox_inches="tight")
             plt.close(fig)
