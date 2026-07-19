@@ -1139,6 +1139,8 @@ The full VAR estimation script is shown below. It is called by the
 #| echo: false
 #| message: false
 #| comment: ""
-cat(readLines("scripts/var_analysis.py"), sep = "\n")
+cat("```python\n",
+    paste(readLines("scripts/var_analysis.py"), collapse = "\n"),
+    "\n```\n", sep = "")
 ```
 
