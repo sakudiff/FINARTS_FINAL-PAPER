@@ -730,8 +730,16 @@ print(p2)
 #| echo: false
 #| message: false
 
-ro_reer <- reer |>
-  left_join(daily_fin |> select(date, risk_off), by = "date") |>
+# REER is monthly; join with risk_off via year-month to handle frequency mismatch
+reer_with_ro <- reer |>
+  mutate(ym = floor_date(date, "month")) |>
+  left_join(daily_fin |>
+              mutate(ym = floor_date(date, "month")) |>
+              group_by(ym) |>
+              summarise(risk_off = max(risk_off, na.rm = TRUE), .groups = "drop"),
+            by = "ym")
+
+ro_reer <- reer_with_ro |>
   filter(risk_off == 1) |>
   mutate(ep = cumsum(c(1, diff(date) > 10))) |>
   group_by(ep) |>
