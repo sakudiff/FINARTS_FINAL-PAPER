@@ -964,8 +964,14 @@ If any variable tests as non-stationary we report the discrepancy.
 
 ```{r svar-analysis}
 #| message: false
+#| cache: true
 # Output: data/processed/var_results/ (figures, CSV tables)
-system2("uv", c("run", "scripts/var_analysis.py"))
+# Skip if outputs already exist from a prior run
+if (!file.exists("data/processed/var_results/fevd_unrestricted_1999_2026.csv")) {
+  system2("uv", c("run", "scripts/var_analysis.py"))
+} else {
+  message("SVAR outputs found, skipping re-run. Delete data/processed/var_results/ to force.")
+}
 ```
 
 ### What the Script Produces
@@ -982,4 +988,68 @@ system2("uv", c("run", "scripts/var_analysis.py"))
 All outputs cover both the paper replication period (1999 to 2021) and the
 extended period (1999 to 2026) for both the restricted and unrestricted VAR
 specifications.
+
+### Impulse Response Functions
+
+The figure below overlays the restricted VAR impulse responses for the paper
+replication period (1999 to 2021, blue) and the extended period (1999 to 2026,
+orange). Each panel shows the response of one endogenous variable to a
+one-standard-deviation structural shock on the Risk-off indicator over 125
+working days. The shaded bands represent 95 percent confidence intervals.
+
+```{r irf-period-comparison}
+#| fig-height: 10
+#| fig-width: 16
+#| echo: false
+#| message: false
+knitr::include_graphics("data/processed/var_results/figures/irf_period_comparison_restricted.png")
+```
+
+### Restricted VAR IRFs (Analytical CIs)
+
+The restricted VAR with analytical confidence intervals for the paper
+replication period.
+
+```{r irf-restricted-analytical}
+#| fig-height: 10
+#| fig-width: 16
+#| echo: false
+#| message: false
+knitr::include_graphics("data/processed/var_results/figures/irf_restricted_1999_2021_analytical.png")
+```
+
+### Analytical vs Bootstrap CI Comparison
+
+The restricted VAR IRFs with both analytical (darker band) and bootstrap
+(lighter band) 95 percent confidence intervals for the paper replication
+period.
+
+```{r irf-ci-comparison}
+#| fig-height: 10
+#| fig-width: 16
+#| echo: false
+#| message: false
+knitr::include_graphics("data/processed/var_results/figures/irf_restricted_1999_2021_ci_comparison.png")
+```
+
+### Frequency Robustness
+
+The restricted VAR re-estimated on weekly and monthly aggregated data
+(Beirne and Sugandi 2023, Appendix 4).
+
+```{r irf-weekly}
+#| fig-height: 10
+#| fig-width: 16
+#| echo: false
+#| message: false
+knitr::include_graphics("data/processed/var_results/figures/irf_restricted_1999_2021_w.png")
+```
+
+```{r irf-monthly}
+#| fig-height: 10
+#| fig-width: 16
+#| echo: false
+#| message: false
+knitr::include_graphics("data/processed/var_results/figures/irf_restricted_1999_2021_me.png")
+```
 
