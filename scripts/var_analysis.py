@@ -525,11 +525,11 @@ def main():
                                               color=COLORS["paper"], linewidth=0.8,
                                               label="Point estimate")
                         axes_flat[v_idx].fill_between(
-                            steps, lower_anal[:, 0, v_idx], upper_anal[:, 0, v_idx],
-                            color=COLORS["paper"], alpha=0.15, label="Analytic 95% CI")
-                        axes_flat[v_idx].fill_between(
                             steps, lower_boot[:, v_idx], upper_boot[:, v_idx],
-                            color=COLORS["ci_boot"], alpha=0.4, label="Bootstrap 95% CI")
+                            color=COLORS["ci_boot"], alpha=0.25, label="Bootstrap 95% CI")
+                        axes_flat[v_idx].fill_between(
+                            steps, lower_anal[:, 0, v_idx], upper_anal[:, 0, v_idx],
+                            color=COLORS["paper"], alpha=0.25, label="Analytic 95% CI")
                         axes_flat[v_idx].axhline(y=0, color=COLORS["zero"],
                                                  linewidth=0.4, linestyle="--")
                         axes_flat[v_idx].set_title(v_name, fontsize=9, fontweight="bold")

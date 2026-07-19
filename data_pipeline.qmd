@@ -663,6 +663,42 @@ write_csv(final_dataset, file.path(DATA_OUT, "final_dataset.csv"))
 cat("final_dataset.csv written:", nrow(final_dataset), "rows x", ncol(final_dataset), "cols\n")
 ```
 
+### Stylized Facts on Risk-off Episodes
+
+The figures below replicate Figures 1 through 3 of Beirne and Sugandi (2023).
+The shaded vertical bands mark periods where the VIX exceeds its 60-day moving
+average by at least 10 percentage points, following De Bock and De Carvalho
+Filho (2013). These episodes align with major global financial stress events.
+
+```{r risk-off-charts}
+#| message: false
+system2("Rscript", c("scripts/generate_risk_off_charts.R"))
+```
+
+```{r fig1-vix}
+#| fig-height: 4
+#| fig-width: 10
+#| echo: false
+#| message: false
+knitr::include_graphics("data/processed/var_results/figures/fig1_vix_risk_off.png")
+```
+
+```{r fig2-usdjpy}
+#| fig-height: 4
+#| fig-width: 10
+#| echo: false
+#| message: false
+knitr::include_graphics("data/processed/var_results/figures/fig2_usdjpy_risk_off.png")
+```
+
+```{r fig3-reer}
+#| fig-height: 4
+#| fig-width: 10
+#| echo: false
+#| message: false
+knitr::include_graphics("data/processed/var_results/figures/fig3_reer_risk_off.png")
+```
+
 Descriptive statistics are computed per period and exported both as a rendered table and a CSV file.
 
 ```{r descriptive-stats}
@@ -1178,6 +1214,67 @@ knitr::include_graphics("data/processed/var_results/figures/irf_restricted_1999_
 #| echo: false
 #| message: false
 knitr::include_graphics("data/processed/var_results/figures/irf_restricted_1999_2026_me.png")
+```
+
+### Appendix: Financial Markets and Risk-off Events in Japan
+
+The figures below replicate Appendix Figures A1.1 through A1.7 of Beirne and
+Sugandi (2023). Each panel shows the time series with risk-off episode shading.
+
+```{r figA1-1}
+#| fig-height: 4
+#| fig-width: 10
+#| echo: false
+#| message: false
+knitr::include_graphics("data/processed/var_results/figures/figA1_1_jgb_risk_off.png")
+```
+
+```{r figA1-2}
+#| fig-height: 4
+#| fig-width: 10
+#| echo: false
+#| message: false
+knitr::include_graphics("data/processed/var_results/figures/figA1_2_nikkei_risk_off.png")
+```
+
+```{r figA1-3}
+#| fig-height: 4
+#| fig-width: 10
+#| echo: false
+#| message: false
+knitr::include_graphics("data/processed/var_results/figures/figA1_3_debtsec_risk_off.png")
+```
+
+```{r figA1-4}
+#| fig-height: 4
+#| fig-width: 10
+#| echo: false
+#| message: false
+knitr::include_graphics("data/processed/var_results/figures/figA1_4_equity_risk_off.png")
+```
+
+```{r figA1-5}
+#| fig-height: 4
+#| fig-width: 10
+#| echo: false
+#| message: false
+knitr::include_graphics("data/processed/var_results/figures/figA1_5_other_risk_off.png")
+```
+
+```{r figA1-6}
+#| fig-height: 4
+#| fig-width: 10
+#| echo: false
+#| message: false
+knitr::include_graphics("data/processed/var_results/figures/figA1_6_direct_risk_off.png")
+```
+
+```{r figA1-7}
+#| fig-height: 4
+#| fig-width: 10
+#| echo: false
+#| message: false
+knitr::include_graphics("data/processed/var_results/figures/figA1_7_spread_risk_off.png")
 ```
 
 ### Python Source Code
