@@ -672,15 +672,34 @@ Filho (2013). These episodes align with major global financial stress events.
 
 ```{r risk-off-charts}
 #| message: false
-system2("Rscript", c("scripts/generate_risk_off_charts.R"))
-```
-
-```{r fig1-vix}
 #| fig-height: 4
 #| fig-width: 10
-#| echo: false
-#| message: false
-knitr::include_graphics("data/processed/var_results/figures/fig1_vix_risk_off.png")
+
+# Build risk-off episode bands from the daily_fin data (already in environment)
+make_ro_bands <- function(df) {
+  df |> filter(risk_off == 1) |>
+    mutate(ep = cumsum(c(1, diff(date) > 10))) |>
+    group_by(ep) |>
+    summarise(start = min(date), end = max(date), .groups = "drop")
+}
+
+ro_vix <- make_ro_bands(daily_fin)
+
+p1 <- ggplot() +
+  geom_rect(data = ro_vix,
+            aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf,
+                fill = "Risk-off episode"), alpha = 0.12) +
+  geom_line(data = daily_fin, aes(x = date, y = vix, color = "VIX"),
+            linewidth = 0.4) +
+  geom_line(data = daily_fin, aes(x = date, y = vix_ma60, color = "60-day MA"),
+            linewidth = 0.4, alpha = 0.8) +
+  scale_color_manual(values = c("VIX" = "#2E45B8", "60-day MA" = "#F97A1F")) +
+  scale_fill_manual(values = c("Risk-off episode" = "#C91D42")) +
+  labs(x = NULL, y = "VIX index",
+       title = "VIX, 60-day moving average, and risk-off episodes") +
+  theme_quant() + theme(legend.position = "bottom", legend.title = element_blank())
+
+print(p1)
 ```
 
 ```{r fig2-usdjpy}
@@ -688,7 +707,21 @@ knitr::include_graphics("data/processed/var_results/figures/fig1_vix_risk_off.pn
 #| fig-width: 10
 #| echo: false
 #| message: false
-knitr::include_graphics("data/processed/var_results/figures/fig2_usdjpy_risk_off.png")
+
+ro_fx <- make_ro_bands(daily_fin)
+
+p2 <- ggplot() +
+  geom_rect(data = ro_fx,
+            aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf,
+                fill = "Risk-off episode"), alpha = 0.12) +
+  geom_line(data = daily_fin, aes(x = date, y = usdjpy),
+            color = "#2E45B8", linewidth = 0.4) +
+  scale_fill_manual(values = c("Risk-off episode" = "#C91D42")) +
+  labs(x = NULL, y = "JPY per USD",
+       title = "Bilateral nominal USD/JPY exchange rate and risk-off episodes") +
+  theme_quant() + theme(legend.position = "bottom", legend.title = element_blank())
+
+print(p2)
 ```
 
 ```{r fig3-reer}
@@ -696,7 +729,26 @@ knitr::include_graphics("data/processed/var_results/figures/fig2_usdjpy_risk_off
 #| fig-width: 10
 #| echo: false
 #| message: false
-knitr::include_graphics("data/processed/var_results/figures/fig3_reer_risk_off.png")
+
+ro_reer <- reer |>
+  left_join(daily_fin |> select(date, risk_off), by = "date") |>
+  filter(risk_off == 1) |>
+  mutate(ep = cumsum(c(1, diff(date) > 10))) |>
+  group_by(ep) |>
+  summarise(start = min(date), end = max(date), .groups = "drop")
+
+p3 <- ggplot() +
+  geom_rect(data = ro_reer,
+            aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf,
+                fill = "Risk-off episode"), alpha = 0.12) +
+  geom_line(data = reer, aes(x = date, y = reer),
+            color = "#2E45B8", linewidth = 0.4) +
+  scale_fill_manual(values = c("Risk-off episode" = "#C91D42")) +
+  labs(x = NULL, y = "REER (2010 = 100)",
+       title = "Japan's real effective exchange rate and risk-off episodes") +
+  theme_quant() + theme(legend.position = "bottom", legend.title = element_blank())
+
+print(p3)
 ```
 
 Descriptive statistics are computed per period and exported both as a rendered table and a CSV file.
@@ -1220,6 +1272,11 @@ knitr::include_graphics("data/processed/var_results/figures/irf_restricted_1999_
 
 The figures below replicate Appendix Figures A1.1 through A1.7 of Beirne and
 Sugandi (2023). Each panel shows the time series with risk-off episode shading.
+
+```{r risk-off-appendix}
+#| message: false
+system2("Rscript", c("scripts/generate_risk_off_charts.R"))
+```
 
 ```{r figA1-1}
 #| fig-height: 4
