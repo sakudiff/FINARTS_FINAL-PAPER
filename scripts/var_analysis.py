@@ -295,6 +295,94 @@ def plot_irf(irf, ax, label, color, ci_method="analytic", B=1000):
             ax[v_idx].set_title(f"Response of {VAR_ORDER[v_idx]}", fontsize=9)
 
 
+def _delta_irf_ci(irf_obj, B=1000, alpha=0.05):
+    """Monte Carlo delta method for IRF confidence bands.
+
+    Draws shocks from N(0, Sigma_u), generates synthetic data from the
+    estimated coefficients, re-estimates the VAR, and computes IRFs for
+    each replication. This is the standard parametric approach that matches
+    the asymptotic delta method in large samples.
+    Handles both RestrictedVARResults and statsmodels VARResults.
+    """
+    results = irf_obj.model
+    resid = results.resid
+    T_eff, K = resid.shape
+    k_ar = results.k_ar
+    coefs = results.coefs
+    is_statsmodels = type(results).__module__.startswith("statsmodels")
+
+    if is_statsmodels:
+        full_endog = results.endog
+        exog_full = results.exog
+        exog_k = exog_full.shape[1] if exog_full is not None else 0
+        n_totobs = full_endog.shape[0]
+        exog = exog_full[k_ar:] if exog_k > 0 else np.empty((T_eff, 0))
+        if exog_k > 0:
+            params_t = results.params.T
+            exog_coef = params_t[:, K * k_ar:]
+        else:
+            exog_coef = np.zeros((K, 0))
+    else:
+        exog_raw = results.exog
+        exog_k = exog_raw.shape[1] if exog_raw is not None else 0
+        n_totobs = results.n_totobs if hasattr(results, "n_totobs") else (T_eff + k_ar)
+        exog = exog_raw if exog_k == 0 else exog_raw
+        exog_coef = results.params_exog if hasattr(results, "params_exog") else np.zeros((K, exog_k))
+        full_endog = results.endog
+
+    n_steps = irf_obj.irfs.shape[0]
+    shock_idx = 0
+    irf_samples = np.full((B, n_steps, K), np.nan)
+    from statsmodels.regression.linear_model import OLS
+    chol_sigma = np.linalg.cholesky(results.sigma_u)
+
+    for b in range(B):
+        try:
+            shocks = np.random.normal(0, 1, size=(n_totobs, K)) @ chol_sigma.T
+            boot_data = np.zeros((n_totobs, K))
+            boot_data[:k_ar] = full_endog[:k_ar]
+            for t in range(k_ar, n_totobs):
+                pred = np.zeros(K)
+                for lag in range(1, k_ar + 1):
+                    pred += coefs[lag - 1].T @ boot_data[t - lag]
+                exog_idx = t - k_ar
+                if exog_k > 0 and exog_idx < len(exog):
+                    pred += exog_coef @ exog[exog_idx]
+                boot_data[t] = pred + shocks[t]
+
+            boot_y = boot_data[k_ar:]
+            lagged = np.column_stack([
+                boot_data[k_ar - lag - 1:n_totobs - lag - 1, :]
+                for lag in range(k_ar)
+            ])
+            K_boot = boot_y.shape[1]
+            boot_irf = np.zeros((n_steps, K_boot, K_boot))
+            boot_irf[0] = np.eye(K_boot)
+            boot_coefs = np.zeros((k_ar, K_boot, K_boot))
+            for eq in range(K_boot):
+                X_boot = np.column_stack([lagged, exog]) if exog_k > 0 else lagged
+                ols_r = OLS(boot_y[:, eq], X_boot).fit()
+                all_params = ols_r.params
+                boot_coefs[:, eq, :] = all_params[:k_ar * K_boot].reshape(k_ar, K_boot)
+
+            sigma_boot = np.zeros((K_boot, K_boot))
+            for i in range(n_steps):
+                for j in range(1, min(i, k_ar) + 1):
+                    boot_irf[i] += boot_irf[i - j] @ boot_coefs[j - 1]
+            chol_s = np.linalg.cholesky(results.sigma_u)
+            for i in range(n_steps):
+                irf_samples[b, i, :] = (boot_irf[i] @ chol_s)[:, shock_idx]
+        except Exception:
+            continue
+
+    valid = ~np.isnan(irf_samples[:, 0, 0])
+    if valid.sum() < 100:
+        print(f"  Warning: Only {valid.sum()} valid Monte Carlo replications out of {B}.")
+    lower = np.nanpercentile(irf_samples, alpha / 2 * 100, axis=0) if valid.sum() > 0 else np.zeros((n_steps, K))
+    upper = np.nanpercentile(irf_samples, (1 - alpha / 2) * 100, axis=0) if valid.sum() > 0 else np.zeros((n_steps, K))
+    return lower, upper
+
+
 def _bootstrap_irf_ci(irf_obj, B=1000, alpha=0.05):
     """Manual residual-based bootstrap for IRF confidence bands.
     Handles both RestrictedVARResults and statsmodels VARResults."""
@@ -458,55 +546,49 @@ def main():
             print(f"    Estimated. LLF={var_results.llf:.2f}, df_resid={var_results.df_resid}")
 
             irf = var_results.irf(periods=IRF_HORIZON)
-            sigma_u = var_results.sigma_u
-            nobs = var_results.nobs
-            se = np.sqrt(np.diag(sigma_u) / nobs)
-            z = 1.96
             irf_values = irf.irfs
-            lower_anal = irf_values - z * se[np.newaxis, np.newaxis, :]
-            upper_anal = irf_values + z * se[np.newaxis, np.newaxis, :]
+
+            print(f"    Computing Monte Carlo delta method CIs (B=500)...")
+            lower_mc, upper_mc = _delta_irf_ci(irf, B=500)
 
             def _make_irf_plot(irf_vals, lower, upper, ci_label, suffix):
                 set_quant_style()
-                fig, axes = plt.subplots(nrows=3, ncols=4, figsize=(16, 10))
+                fig, axes = plt.subplots(nrows=5, ncols=2, figsize=(12, 16),
+                                          sharex=False, sharey=False)
                 axes_flat = axes.flatten()
                 for v_idx, v_name in enumerate(VAR_ORDER):
-                    if v_idx < len(axes_flat):
-                        response = irf_vals[:, 0, v_idx]
-                        steps = np.arange(len(response))
-                        axes_flat[v_idx].plot(steps, response,
-                                              color=COLORS["paper"], linewidth=0.8,
-                                              label="Point estimate")
-                        if lower is not None:
-                            axes_flat[v_idx].fill_between(
-                                steps, lower[:, v_idx], upper[:, v_idx],
-                                color=COLORS["paper"], alpha=0.15,
-                                label=f"{ci_label}")
-                        axes_flat[v_idx].axhline(y=0, color=COLORS["zero"],
-                                                 linewidth=0.4, linestyle="--")
-                        axes_flat[v_idx].set_title(v_name, fontsize=9, fontweight="bold")
-                        axes_flat[v_idx].set_xlabel("Days", fontsize=8)
-                        if v_idx % 4 == 0:
-                            axes_flat[v_idx].set_ylabel("Percentage points", fontsize=8)
-                        if v_idx == 0:
-                            axes_flat[v_idx].legend(loc="upper right", fontsize=6)
-                for v_idx in range(len(VAR_ORDER), len(axes_flat)):
-                    axes_flat[v_idx].set_visible(False)
+                    ax = axes_flat[v_idx]
+                    response = irf_vals[:, 0, v_idx]
+                    steps = np.arange(len(response))
+                    ax.plot(steps, response, color=COLORS["paper"],
+                            linewidth=0.8, label="Point estimate")
+                    if lower is not None:
+                        ax.fill_between(steps, lower[:, v_idx], upper[:, v_idx],
+                            color=COLORS["paper"], alpha=0.15, label=f"{ci_label}")
+                    ax.axhline(y=0, color=COLORS["zero"], linewidth=0.4,
+                               linestyle="--")
+                    ax.set_title(v_name, fontsize=10, fontweight="bold")
+                    ax.set_xlabel("Days", fontsize=8)
+                    if v_idx % 2 == 0:
+                        ax.set_ylabel("Percentage points", fontsize=8)
+                    if v_idx == 0:
+                        ax.legend(loc="upper right", fontsize=7)
                 fig.suptitle(f"Response of each variable to a Risk-off shock: "
                              f"{spec_label.title()} VAR, {period_label}",
-                             fontsize=12, fontweight="bold", color=COLORS["text"],
+                             fontsize=13, fontweight="bold", color=COLORS["text"],
                              y=0.98)
-                fig.text(0.5, 0.01, f"Shaded band: {ci_label}",
+                fig.text(0.5, 0.01, f"Shaded band: {ci_label}. "
+                         f"Each panel has its own y-axis scale.",
                          ha="center", fontsize=8, color=COLORS["muted"])
-                plt.tight_layout(rect=[0, 0.02, 1, 0.95])
+                plt.tight_layout(rect=[0, 0.03, 1, 0.96])
                 fname = f"irf_{spec_label}_{period_label.replace('-', '_')}_{suffix}.png"
                 fig.savefig(FIG_DIR / fname, dpi=DPI, bbox_inches="tight")
                 plt.close(fig)
                 print(f"    Saved: {fname}")
 
-            print(f"    Computing IRF (analytical CI)...")
-            _make_irf_plot(irf_values, lower_anal[:, 0, :], upper_anal[:, 0, :],
-                          "Analytical 95% CI", "analytical")
+            print(f"    Saving IRF (Monte Carlo delta method CIs)...")
+            _make_irf_plot(irf_values, lower_mc, upper_mc,
+                          "Monte Carlo 95% CI", "analytical")
 
             print(f"    Computing IRF (bootstrap CI, B={N_BOOTSTRAP})...")
             try:
@@ -515,7 +597,8 @@ def main():
                               f"Bootstrap 95% CI, B={N_BOOTSTRAP}", "bootstrap")
 
                 set_quant_style()
-                fig, axes = plt.subplots(nrows=3, ncols=4, figsize=(16, 10))
+                fig, axes = plt.subplots(nrows=5, ncols=2, figsize=(12, 16),
+                                          sharex=False, sharey=False)
                 axes_flat = axes.flatten()
                 for v_idx, v_name in enumerate(VAR_ORDER):
                     if v_idx < len(axes_flat):
@@ -528,22 +611,24 @@ def main():
                             steps, lower_boot[:, v_idx], upper_boot[:, v_idx],
                             color=COLORS["ci_boot"], alpha=0.25, label="Bootstrap 95% CI")
                         axes_flat[v_idx].fill_between(
-                            steps, lower_anal[:, 0, v_idx], upper_anal[:, 0, v_idx],
-                            color=COLORS["paper"], alpha=0.25, label="Analytic 95% CI")
+                            steps, lower_mc[:, v_idx], upper_mc[:, v_idx],
+                            color=COLORS["paper"], alpha=0.3, label="Monte Carlo 95% CI")
                         axes_flat[v_idx].axhline(y=0, color=COLORS["zero"],
                                                  linewidth=0.4, linestyle="--")
-                        axes_flat[v_idx].set_title(v_name, fontsize=9, fontweight="bold")
+                        axes_flat[v_idx].set_title(v_name, fontsize=10, fontweight="bold")
                         axes_flat[v_idx].set_xlabel("Days", fontsize=8)
-                        if v_idx % 4 == 0:
+                        if v_idx % 2 == 0:
                             axes_flat[v_idx].set_ylabel("Percentage points", fontsize=8)
-                axes_flat[0].legend(fontsize=6, loc="upper right")
+                axes_flat[0].legend(fontsize=7, loc="upper right")
                 for v_idx in range(len(VAR_ORDER), len(axes_flat)):
                     axes_flat[v_idx].set_visible(False)
-                fig.suptitle(f"Analytical versus bootstrap confidence intervals: "
+                fig.suptitle(f"Monte Carlo versus bootstrap confidence intervals: "
                              f"{spec_label.title()} VAR, {period_label}",
-                             fontsize=12, fontweight="bold", color=COLORS["text"],
+                             fontsize=13, fontweight="bold", color=COLORS["text"],
                              y=0.98)
-                plt.tight_layout(rect=[0, 0, 1, 0.95])
+                fig.text(0.5, 0.01, "Each panel has its own y-axis scale.",
+                         ha="center", fontsize=8, color=COLORS["muted"])
+                plt.tight_layout(rect=[0, 0.03, 1, 0.96])
                 fname = f"irf_{spec_label}_{period_label.replace('-', '_')}_ci_comparison.png"
                 fig.savefig(FIG_DIR / fname, dpi=DPI, bbox_inches="tight")
                 plt.close(fig)
