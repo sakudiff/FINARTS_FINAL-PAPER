@@ -1097,8 +1097,7 @@ knitr::include_graphics("data/processed/var_results/figures/irf_period_compariso
 
 ### Restricted VAR IRFs (Analytical CIs)
 
-The restricted VAR with analytical confidence intervals for the paper
-replication period.
+#### Paper Replication Period: 1999 to 2021
 
 ```{r irf-restricted-analytical}
 #| fig-height: 10
@@ -1108,11 +1107,19 @@ replication period.
 knitr::include_graphics("data/processed/var_results/figures/irf_restricted_1999_2021_analytical.png")
 ```
 
+#### Extended Period: 1999 to 2026
+
+```{r irf-restricted-analytical-ext}
+#| fig-height: 10
+#| fig-width: 16
+#| echo: false
+#| message: false
+knitr::include_graphics("data/processed/var_results/figures/irf_restricted_1999_2026_analytical.png")
+```
+
 ### Analytical vs Bootstrap CI Comparison
 
-The restricted VAR IRFs with both analytical (darker band) and bootstrap
-(lighter band) 95 percent confidence intervals for the paper replication
-period.
+#### Paper Replication Period: 1999 to 2021
 
 ```{r irf-ci-comparison}
 #| fig-height: 10
@@ -1122,10 +1129,22 @@ period.
 knitr::include_graphics("data/processed/var_results/figures/irf_restricted_1999_2021_ci_comparison.png")
 ```
 
+#### Extended Period: 1999 to 2026
+
+```{r irf-ci-comparison-ext}
+#| fig-height: 10
+#| fig-width: 16
+#| echo: false
+#| message: false
+knitr::include_graphics("data/processed/var_results/figures/irf_restricted_1999_2026_ci_comparison.png")
+```
+
 ### Frequency Robustness
 
 The restricted VAR re-estimated on weekly and monthly aggregated data
 (Beirne and Sugandi 2023, Appendix 4).
+
+#### Paper Replication Period: 1999 to 2021
 
 ```{r irf-weekly}
 #| fig-height: 10
@@ -1141,6 +1160,24 @@ knitr::include_graphics("data/processed/var_results/figures/irf_restricted_1999_
 #| echo: false
 #| message: false
 knitr::include_graphics("data/processed/var_results/figures/irf_restricted_1999_2021_me.png")
+```
+
+#### Extended Period: 1999 to 2026
+
+```{r irf-weekly-ext}
+#| fig-height: 10
+#| fig-width: 16
+#| echo: false
+#| message: false
+knitr::include_graphics("data/processed/var_results/figures/irf_restricted_1999_2026_w.png")
+```
+
+```{r irf-monthly-ext}
+#| fig-height: 10
+#| fig-width: 16
+#| echo: false
+#| message: false
+knitr::include_graphics("data/processed/var_results/figures/irf_restricted_1999_2026_me.png")
 ```
 
 ### Python Source Code
