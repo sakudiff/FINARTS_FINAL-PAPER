@@ -890,3 +890,96 @@ system2("Rscript", c("scripts/generate_descriptive_table.R"))
 system2("Rscript", c("scripts/generate_risk_off_table.R"))
 ```
 
+## SVAR Estimation
+
+The remaining code implements the structural VAR from Section 4 of Beirne and
+Sugandi (2023). The data pipeline above already produces the ten endogenous
+variables in the correct Cholesky ordering. What follows is the model estimation.
+
+### Disclosure of Replication Decisions
+
+The paper specifies a recursively restricted VAR with a Cholesky identification
+scheme, where the Risk-off variable is affected only by its own lagged values
+and the other nine variables are unrestricted. Seasonal dummies and a time
+dummy enter as exogenous regressors. The paper states that AIC determines the
+optimal lag and that 95 percent confidence intervals are provided. The paper
+does not disclose the following details.
+
+**Seasonal dummy structure.** The paper says seasonal dummies without specifying
+monthly or quarterly periodicity. We use eleven monthly indicator variables with
+January as the reference month. Monthly dummies are the natural reading for a
+daily-frequency VAR where the lower-frequency series (WUI, REER, RGDP, capital
+flows) enter through quadratic interpolation. The interpolation injects
+artificial intra-period variation that monthly indicators absorb, preventing
+the seasonal pattern in the source data from biasing coefficient estimates.
+
+**Time dummy definition.** The paper says a time dummy without specifying a
+linear trend, a break dummy, or an intercept shift. We use a linear time trend
+indexed from 1 to T, which is the simplest specification that satisfies the
+stated requirement.
+
+**Maximum lag search range.** The paper says AIC selects the lag but does not
+state the maximum searched. We search lags 1 through 20. At lag 20 each
+equation estimates 200 endogenous coefficients plus 12 exogenous coefficients.
+With 5,199 complete observations in the replication period the observation to
+parameter ratio exceeds 24 to 1, which is adequate for AIC to discriminate
+without overfitting. If AIC selects lag 20, we flag this as a potential
+boundary effect.
+
+**Confidence interval method.** The paper says 95 percent confidence intervals
+are provided by the dotted lines but does not specify whether they are
+analytical or bootstrap. We produce both. The analytical method (asymptotic
+normal approximation) is the default in every major VAR package and is the
+most likely method the paper used. The bootstrap method (residual-based, 100
+replications) is added as a robustness check. The capital flow variables in
+our dataset exhibit non-normal distributions. `other_pct` has a mean of 0.39
+and a maximum of 28.55 with a standard deviation of 3.16, and the binary
+`risk_off` variable cannot produce normally distributed residuals by
+construction. Bootstrap confidence intervals make no distributional assumption
+and provide a more honest assessment of sampling variability when normality
+fails.
+
+**Restricted VAR implementation.** The paper describes the block exogeneity
+constraint as setting the coefficients of non-Risk-off variables to zero in the
+Risk-off equation. The paper does not disclose the software package. We
+implement the restriction via equation-by-equation OLS: the Risk-off equation
+is estimated on its own lags and the exogenous variables, and the other nine
+equations are estimated with all variables. This matches the paper's stated
+mathematical specification exactly.
+
+**Forecast error variance decomposition.** The working paper version (ADBI
+Working Paper 1345) does not mention FEVD. We include it as a standard VAR
+diagnostic because it answers a question the IRFs leave open: how much of the
+Risk-off shock's total effect on each variable is attributable to the shock
+itself versus propagation through the system. The decomposition uses the same
+Cholesky ordering, so the variance allocation inherits the same identification
+assumptions.
+
+**Stationarity tests.** The paper states that all endogenous variables are
+stationary but does not report the test statistic, lag specification, or
+significance threshold. We apply the Augmented Dickey-Fuller test with AIC lag
+selection and a maximum of 20 lags at the 5 percent significance level,
+consistent with the 95 percent confidence intervals used throughout the paper.
+If any variable tests as non-stationary we report the discrepancy.
+
+```{r svar-analysis}
+#| message: false
+# Output: data/processed/var_results/ (figures, CSV tables)
+system2("uv", c("run", "scripts/var_analysis.py"))
+```
+
+### What the Script Produces
+
+| Output | Description | File Location |
+|--------|-------------|---------------|
+| ADF tests | Stationarity test results for all 10 variables | `data/processed/var_results/adf_tests_*.csv` |
+| Lag selection | AIC values for lags 1 through 20 | `data/processed/var_results/lag_selection_*.csv` |
+| IRF figures | Impulse response to a one-standard-deviation Risk-off shock over 125 days, with analytical and bootstrap 95% CIs | `data/processed/var_results/figures/irf_*.png` |
+| FEVD tables | Forecast error variance decomposition at 1, 5, 20, 60, and 125 days | `data/processed/var_results/fevd_*.csv` |
+| IRF peak tables | Peak response magnitude and day for each variable | `data/processed/var_results/irf_peak_*.csv` |
+| Period comparison | Overlay of restricted IRFs for 1999-2021 versus 1999-2026 | `data/processed/var_results/figures/irf_period_comparison_restricted.png` |
+
+All outputs cover both the paper replication period (1999 to 2021) and the
+extended period (1999 to 2026) for both the restricted and unrestricted VAR
+specifications.
+
