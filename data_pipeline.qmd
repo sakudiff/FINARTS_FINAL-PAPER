@@ -1035,9 +1035,17 @@ lag 20, we flag this as a potential boundary effect.
 
 The paper says 95 percent confidence intervals are provided by the dotted
 lines but does not specify whether they are analytical or bootstrap. We
-produce both. The analytical method (asymptotic normal approximation) is the
-default in every major VAR package and is the most likely method the paper
-used. The bootstrap method (residual-based, 100 replications) is added as a
+produce both. The standard asymptotic delta method for VAR impulse response
+confidence intervals propagates the coefficient covariance through the IRF
+recursion via Monte Carlo simulation. This is the default in every major VAR
+package (EViews, Stata, R vars) and is the most likely method the paper used.
+We implement this via Monte Carlo integration: draw shocks from N(0, Sigma_u),
+generate synthetic data, re-estimate the VAR, and compute IRFs for each of
+500 replications. The 2.5th and 97.5th percentiles across replications form
+the 95 percent band. These bands widen with the forecast horizon, reflecting
+the increasing uncertainty of longer-horizon impulse responses.
+
+The bootstrap method (residual-based, 100 replications) is added as a
 robustness check. The capital flow variables in our dataset exhibit non-normal
 distributions. `other_pct` has a mean of 0.39 and a maximum of 28.55 with a
 standard deviation of 3.16, and the binary `risk_off` variable cannot produce
