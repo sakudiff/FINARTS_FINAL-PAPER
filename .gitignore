@@ -27,11 +27,6 @@ __pycache__/
 deployment/
 ***REMOVED***
 
-# Generated outputs
-data/processed/*
-!data/processed/var_results
-!data/processed/var_results/**
-data/tmp_quadratic/
 
 # Quarto render artifacts
 data_pipeline_files/
