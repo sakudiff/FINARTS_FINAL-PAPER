@@ -27,11 +27,6 @@ __pycache__/
 deployment/
 .pi/tasks
 
-# Generated outputs
-data/processed/*
-!data/processed/var_results
-!data/processed/var_results/**
-data/tmp_quadratic/
 
 # Quarto render artifacts
 data_pipeline_files/
