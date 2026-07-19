@@ -16,6 +16,19 @@ format:
     css: |2-
       .main-container { max-width: 1400px !important; }
       table { width: 100% !important; }
+      .sourceCode .kw { color: #0066bb; font-weight: bold; }
+      .sourceCode .dt { color: #902000; }
+      .sourceCode .dv { color: #0000dd; }
+      .sourceCode .bn { color: #0000dd; }
+      .sourceCode .fl { color: #0000dd; }
+      .sourceCode .ch { color: #008800; }
+      .sourceCode .st { color: #008800; }
+      .sourceCode .co { color: #008800; font-style: italic; }
+      .sourceCode .ot { color: #0066bb; }
+      .sourceCode .al { color: #ff0000; }
+      .sourceCode .fu { color: #0066bb; }
+      .sourceCode .re { }
+      .sourceCode .er { color: #ff0000; }
     toc: true
 output-file: index
 ---
@@ -1138,7 +1151,7 @@ The full VAR estimation script is shown below. It is called by the
 ```{r python-source}
 #| echo: false
 #| message: false
-#| comment: ""
+#| results: asis
 cat("```python\n",
     paste(readLines("scripts/var_analysis.py"), collapse = "\n"),
     "\n```\n", sep = "")
