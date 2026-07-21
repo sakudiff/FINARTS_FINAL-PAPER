@@ -1,3 +1,4 @@
+
 # LaTeX temp files
 *.aux
 *.bbl
@@ -46,3 +47,5 @@ data_pipeline_cache/
 .Rhistory
 .Rdata
 .renv/
+
+docs/***REMOVED***-svar-implementation
