@@ -96,7 +96,7 @@ def _compute_irf(results, periods=125):
     irfs = np.zeros((periods + 1, K, K)); irfs[0] = np.eye(K)
     for i in range(1, periods + 1):
         for j in range(1, min(i, k_ar) + 1):
-            irfs[i] += irfs[i - j] @ results.coefs[j - 1].T
+            irfs[i] += irfs[i - j] @ results.coefs[j - 1]
     chol = np.linalg.cholesky(results.sigma_u)
     for i in range(periods + 1):
         irfs[i] = irfs[i] @ chol
@@ -157,11 +157,13 @@ for lag in test_lags:
     irf = res.irf(periods=IRF_HORIZON)
     irf_vals = irf.irfs
 
-    # Analytical CIs
+    # Analytical CIs — IRF is [horizon, response_var, shock_var]
+    # Shock is risk_off = variable 0
+    shock_idx = 0
     z = 1.96
     se = np.sqrt(np.diag(res.sigma_u) / res.nobs)
-    lower = irf_vals[:, 0, :] - z * se[np.newaxis, :]
-    upper = irf_vals[:, 0, :] + z * se[np.newaxis, :]
+    lower = irf_vals[:, :, shock_idx] - z * se[np.newaxis, :]
+    upper = irf_vals[:, :, shock_idx] + z * se[np.newaxis, :]
 
     set_style()
     key_indices = [VAR_ORDER.index(v) for v in KEY_VARS]
@@ -173,7 +175,7 @@ for lag in test_lags:
     steps = np.arange(IRF_HORIZON)
     for i, (vname, vidx) in enumerate(zip(KEY_VARS, key_indices)):
         ax = axes_flat[i]
-        resp = irf_vals[:, 0, vidx]
+        resp = irf_vals[:, vidx, shock_idx]
         ax.plot(steps, resp, color=COLORS["paper"], linewidth=0.8)
         ax.fill_between(steps, lower[:, vidx], upper[:, vidx],
                         color=COLORS["paper"], alpha=0.15)

@@ -208,7 +208,7 @@ def _compute_irf(results, periods=125):
     for i in range(1, periods + 1):
         for j in range(1, min(i, k_ar) + 1):
             lag_coef = results.coefs[j - 1]
-            irfs[i] += irfs[i - j] @ lag_coef.T
+            irfs[i] += irfs[i - j] @ lag_coef
     chol = np.linalg.cholesky(results.sigma_u)
     irfs_orth = np.zeros((periods + 1, K, K))
     for i in range(periods + 1):
@@ -344,7 +344,7 @@ def _delta_irf_ci(irf_obj, B=1000, alpha=0.05):
             for t in range(k_ar, n_totobs):
                 pred = np.zeros(K)
                 for lag in range(1, k_ar + 1):
-                    pred += coefs[lag - 1].T @ boot_data[t - lag]
+                    pred += coefs[lag - 1] @ boot_data[t - lag]
                 exog_idx = t - k_ar
                 if exog_k > 0 and exog_idx < len(exog):
                     pred += exog_coef @ exog[exog_idx]
@@ -426,7 +426,7 @@ def _bootstrap_irf_ci(irf_obj, B=1000, alpha=0.05):
             for t in range(k_ar, n_totobs):
                 pred = np.zeros(K)
                 for lag in range(1, k_ar + 1):
-                    pred += coefs[lag - 1].T @ boot_data[t - lag]
+                    pred += coefs[lag - 1] @ boot_data[t - lag]
                 exog_idx = t - k_ar
                 if exog_k > 0 and exog_idx < len(exog):
                     pred += exog_coef @ exog[exog_idx]
