@@ -1198,8 +1198,6 @@ closing <- c(
 
 dir.create("drafts", showWarnings = FALSE)
 writeLines(c(preamble, rows$line, closing), "drafts/risk_off_episodes.tex")
-cat("Written:", nrow(rows), "episodes to drafts/risk_off_episodes.tex\n")
-cat(rows$event |> table() |> paste(collapse = "\n"), "\n")
 ```
 
 ## SVAR Estimation
