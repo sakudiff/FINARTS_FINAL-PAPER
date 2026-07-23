@@ -561,14 +561,12 @@ def _ci_restricted(results, irf_vals, repl, seed=42):
 
 
 def _ci_unrestricted(results, irf_obj, repl, seed=42):
-    try:
-        lower_mc, upper_mc = irf_obj.errband_mc(
-            orth=True, repl=repl, signif=ALPHA, seed=seed)
-        lower = np.asarray(lower_mc)[:, :, 0]
-        upper = np.asarray(upper_mc)[:, :, 0]
-    except Exception:
-        lower, upper = _delta_irf_ci(irf_obj, B=repl, alpha=ALPHA)
-    return lower, upper
+    se = np.asarray(irf_obj.stderr(orth=True))
+    orth = np.asarray(irf_obj.orth_irfs)
+    z = 1.96
+    lower = orth - z * se
+    upper = orth + z * se
+    return lower[:, :, 0], upper[:, :, 0]
 
 
 def _irf_rows(irf_vals, lower, upper, var_order, horizons):
@@ -1104,7 +1102,7 @@ def main():
     _run_pipeline(with_daily_ci=args.with_daily_ci, repl=args.repl)
 
 
-# --- Vintage data fetch functions (inlined from fetch_alfred_vintage.py) ---
+# Vintage data fetch (inlined from fetch_alfred_vintage.py)
 
 ALFRED_API_BASE = "https://fred.stlouisfed.org/graph/api"
 ALFRED_SERIES_ID = "JPNRGDPEXP"
@@ -1203,7 +1201,7 @@ def fetch_vintage_gdp():
             print(f"ERROR: {e}")
 
 
-# --- BIS REER vintage fetch (inlined from fetch_reer_vintage.py) ---
+# BIS REER vintage fetch (inlined from fetch_reer_vintage.py)
 
 REER_SNAPSHOT_URL = (
     "https://web.archive.org/web/20210524235626id_/"
