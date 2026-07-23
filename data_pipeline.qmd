@@ -1915,7 +1915,8 @@ crossval <- data.frame(
               "MISMATCH", "PARTIAL", "MATCH", "MATCH", "MATCH", "PARTIAL", "MATCH")
 )
 crossval |>
-  knitr::kable(caption = "Cross-validation of IRF values: replication versus published paper")
+  knitr::kable(caption = "Cross-validation of IRF values: replication versus published paper") |>
+  kableExtra::footnote(general = "MATCH: the paper's qualitative conclusion reproduces (sign, shape, and timing agree; magnitude differences reflect software-variant shock scaling). PARTIAL: the overall direction or conclusion matches but a meaningful detail diverges (earlier trough, no initial blip, noisier trajectory). MISMATCH: the sign is opposite and no rescaling reconciles the result with the paper's published figure.")
 ```
 
 The Nikkei 225 does not show the immediate positive impact effect that
