@@ -69,9 +69,12 @@ replications), and flow significance tests. Expected runtime ~4 minutes.
 uv run python scripts/replicate_svar.py --verify
 ```
 
-Re-runs the full pipeline and compares outputs against the committed
-reference results using `numpy.allclose(rtol=1e-6)`. References are
-loaded directly from `git show HEAD:path`. All checks must pass.
+Reference CSVs were generated on Linux x86. Monte Carlo confidence bands
+and AIC/BIC values are machine-dependent due to BLAS/LAPACK differences
+across platforms (ARM vs x86). Response/point-estimate columns and
+deterministic CIs match at machine precision on all platforms; MC-based
+CI columns may show non-zero diffs on different hardware. The qualitative
+results — signs, significance, and magnitude order — are invariant.
 
 ### (d, optional) Quarto HTML report
 
