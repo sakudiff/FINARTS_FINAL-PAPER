@@ -1014,6 +1014,28 @@ def _panel_pair(daily_csv, monthly_csv, variable, out_name, title):
 
 def run_figures():
     FIG_DIR.mkdir(parents=True, exist_ok=True)
+    plt.rcParams.update({
+        "axes.grid": True,
+        "grid.color": "#F2F2F2",
+        "grid.linewidth": 0.3,
+        "axes.spines.top": False,
+        "axes.spines.right": False,
+        "axes.spines.left": False,
+        "axes.spines.bottom": True,
+        "axes.titleweight": "bold",
+        "axes.titlesize": 9,
+        "axes.labelsize": 8,
+        "axes.labelcolor": "#595959",
+        "xtick.major.size": 0,
+        "ytick.major.size": 0,
+        "xtick.color": "#595959",
+        "ytick.color": "#595959",
+        "text.color": "#0D0D0D",
+        "legend.fontsize": 7,
+        "legend.frameon": False,
+        "figure.facecolor": "#F5F4EF",
+        "axes.facecolor": "#F5F4EF",
+    })
 
     grids = [
         (TWOTIER_DIR / "daily_paper_irf.csv",
