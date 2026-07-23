@@ -1591,6 +1591,43 @@ finding of a negative and persistent RGDP response to risk-off shocks.
 #| message: false
 #| echo: true
 
+dp <- read_csv(file.path(TWOTIER, "daily_paper_irf.csv"), show_col_types = FALSE)
+mp <- read_csv(file.path(TWOTIER, "monthly_paper_restricted_irf.csv"), show_col_types = FALSE)
+
+get_d <- function(var, h) dp |> filter(variable == var, horizon == h) |> pull(response)
+get_m <- function(var, h) mp |> filter(variable == var, horizon == h) |> pull(response)
+f <- function(x, d=6) sprintf("%.*f", d, round(x, d))
+
+our_daily <- c(
+  sprintf("%s at h=0, decays to %s by h=125", f(get_d("risk_off",0)), f(get_d("risk_off",125))),
+  sprintf("trough %s at h=%d, returns to %s at h=125",
+    f(dp |> filter(variable=="log_wui") |> slice_min(response, n=1) |> pull(response)),
+    dp |> filter(variable=="log_wui") |> slice_min(response, n=1) |> pull(horizon),
+    f(get_d("log_wui",125))),
+  sprintf("peak %s at h=50, decays to %s at h=125", f(get_d("spread",50)), f(get_d("spread",125))),
+  sprintf("trough %s at h=50, at %s at h=125", f(get_d("log_rgdp",50)), f(get_d("log_rgdp",125))),
+  sprintf("%s plateau at h=50", f(get_d("log_reer",50))),
+  sprintf("%s at h=0, trough %s at h=50, %s at h=125 (no initial positive blip)",
+    f(get_d("log_nikkei",0)), f(dp |> filter(variable=="log_nikkei") |> slice_min(response, n=1) |> pull(response)),
+    f(get_d("log_nikkei",125))),
+  sprintf("trough %s at h=5, settles near %s at h=125 (noisy)", f(get_d("debtsec_pct",5)), f(get_d("debtsec_pct",125))),
+  sprintf("trough %s at h=25, recovers to %s at h=125", f(get_d("equity_pct",25)), f(get_d("equity_pct",125))),
+  sprintf("spike %s at h=5, then %s at h=50", f(get_d("other_pct",5)), f(get_d("other_pct",50))),
+  sprintf("trough %s at h=1, %s at h=50, %s at h=125",
+    f(dp |> filter(variable=="direct_pct", horizon<=20) |> slice_min(response, n=1) |> pull(response)),
+    f(get_d("direct_pct",50)), f(get_d("direct_pct",125)))
+)
+
+our_monthly <- c(
+  sprintf("peak %s at h=5, oscillates thereafter", f(get_m("log_wui",5))),
+  sprintf("%s at h=0, trough %s at h=3, %s at h=40", f(get_m("log_rgdp",0)), f(get_m("log_rgdp",3)), f(get_m("log_rgdp",40))),
+  sprintf("%s start, peak %s at h=3, ends %s at h=40", f(get_m("log_reer",0)), f(get_m("log_reer",3)), f(get_m("log_reer",40))),
+  sprintf("%s start, recovers to %s at h=40", f(get_m("log_nikkei",0)), f(get_m("log_nikkei",40))),
+  sprintf("%s start, spike %s at h=3, decays to %s at h=40", f(get_m("spread",0)), f(get_m("spread",3)), f(get_m("spread",40))),
+  sprintf("%s at h=0, volatile, settles near %s at h=40", f(get_m("debtsec_pct",0)), f(get_m("debtsec_pct",40))),
+  sprintf("trough %s at h=3, rebound %s at h=5", f(get_m("equity_pct",3)), f(get_m("equity_pct",5)))
+)
+
 crossval <- data.frame(
   Variable = c("risk_off", "WUI", "SPREAD", "RGDP", "REER", "STOCK", "DEBTSEC", "EQUITY", "OTHER", "DIRECT",
                "WUI", "RGDP", "REER", "STOCK", "SPREAD", "DEBTSEC", "EQUITY"),
@@ -1613,24 +1650,7 @@ crossval <- data.frame(
     "0.04 start, 0.075 spike month 3, decays to 0.01",
     "+0.06 start, volatile, settles to 0",
     "-0.065 trough month 4, +0.025 rebound month 8"),
-  Our_value = c(
-    "0.098 to 0 by day 50",
-    "trough -0.01 day 40, returns to 0",
-    "peak 0.015 day 50, decays to 0.012",
-    "trough -0.00074 day 50, at -0.00064 day 125",
-    "+0.002 plateau",
-    "-0.0014 to -0.0066, no blip",
-    "noisy, settles near 0",
-    "-0.038 day 25, recovers to -0.0017",
-    "+0.118 day 5, then -0.017 day 50",
-    "+0.0015 day 50, +0.0009",
-    "+0.052 peak month 5, oscillates",
-    "-0.00004 start, trough -0.004 month 3, -0.0004 month 40",
-    "+0.005, peak +0.012 month 3, ends +0.0008",
-    "-0.021 start, recovers to +0.0003 month 40",
-    "0.024 start, 0.115 spike month 3, decays to 0.003",
-    "-0.15 start, volatile, settles to 0",
-    "-0.055 trough month 3, +0.026 rebound month 5"),
+  Our_value = c(our_daily, our_monthly),
   Verdict = c("MATCH", "MISMATCH", "MATCH", "MATCH", "MATCH", "PARTIAL", "PARTIAL", "PARTIAL", "MISMATCH", "MATCH",
               "MISMATCH", "PARTIAL", "MATCH", "MATCH", "MATCH", "PARTIAL", "MATCH")
 )
