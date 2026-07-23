@@ -1076,6 +1076,7 @@ def run_figures():
         _grid(csv_path, out_name, title, color)
     _plot_lag_selection()
     _plot_adf_results()
+    _plot_stylized_facts()
 
 
 def _plot_lag_selection():
@@ -1122,6 +1123,62 @@ def _plot_adf_results():
     fig.savefig(FIG_DIR / "infographics_adf_stationarity.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
     print("Saved: infographics_adf_stationarity.png")
+
+
+def _plot_stylized_facts():
+    """Time series of financial variables with risk-off episode shading."""
+    df = pd.read_csv("data/processed/final_dataset.csv", parse_dates=["date"])
+    df = df.sort_values("date")
+    ro = df[df["risk_off"] > 0.5][["date"]].copy()
+    ro["block"] = (ro["date"].diff().dt.days > 3).cumsum()
+    episodes = ro.groupby("block").agg(start=("date", "first"), end=("date", "last"))
+
+    # Load raw data for variables not in final_dataset
+    vix = pd.read_csv("data/raw/VIX.csv", parse_dates=["Date"]).rename(columns={"Date": "date", "Close": "vix"})
+    usdjpy = pd.read_csv("data/raw/USDJPY.csv", parse_dates=["Date"]).rename(columns={"Date": "date", "Close": "usdjpy"})
+    reer_raw = pd.read_excel("data/raw/REER.xlsx")
+    reer_raw["date"] = pd.to_datetime(reer_raw["Date"], errors="coerce")
+    reer_raw["reer"] = pd.to_numeric(reer_raw.iloc[:, 1], errors="coerce")
+    reer_raw = reer_raw.dropna(subset=["date", "reer"])
+    nikkei = pd.read_csv("data/raw/NIKKEI225.csv", parse_dates=["Date"]).rename(columns={"Date": "date", "Close": "nikkei225"})
+    jgb = pd.read_csv("data/raw/jgbcme_all.csv", skiprows=1)
+    jgb.columns = [c.strip() for c in jgb.columns]
+    jgb["date"] = pd.to_datetime(jgb["Date"], format="%Y/%m/%d", errors="coerce")
+    jgb = jgb.dropna(subset=["date"])
+    jgb["jgb10y"] = pd.to_numeric(jgb["10Y"], errors="coerce")
+    us10y = pd.read_csv("data/raw/US10Y.csv", parse_dates=["Date"]).rename(columns={"Date": "date", "Close": "us10y"})
+
+    plot_sources = {
+        "vix": (vix, "VIX index"),
+        "usdjpy": (usdjpy, "JPY per USD"),
+        "reer": (reer_raw, "Real effective exchange rate (index)"),
+        "jgb10y": (jgb, "JGB 10-year yield"),
+        "nikkei225": (nikkei, "Nikkei 225 index"),
+        "us10y": (us10y, "US 10-year Treasury yield"),
+        "debtsec_pct": (df, "Debt portfolio flows (% GDP)"),
+        "equity_pct": (df, "Equity portfolio flows (% GDP)"),
+        "other_pct": (df, "Other investment flows (% GDP)"),
+        "direct_pct": (df, "Direct investment flows (% GDP)"),
+    }
+
+    for col, (src, label) in plot_sources.items():
+        if col not in src.columns:
+            continue
+        try:
+            fig, ax = plt.subplots(figsize=(10, 3.5))
+            for _, ep in episodes.iterrows():
+                ax.axvspan(ep["start"], ep["end"], color="#C91D42", alpha=0.12, zorder=1)
+            ax.plot(src["date"], src[col], color="#2E45B8", linewidth=0.4, zorder=2)
+            ax.set_ylabel(label, fontsize=8)
+            ax.set_title(f"{label} and risk-off episodes, 1999-2026", fontsize=10, fontweight="bold")
+            ax.set_xlabel("")
+            fig.tight_layout()
+            slug = col.replace("_", "")
+            fig.savefig(FIG_DIR / f"stylized_{slug}_risk_off.png", dpi=150, bbox_inches="tight")
+            plt.close(fig)
+            print(f"Saved: stylized_{slug}_risk_off.png")
+        except Exception as e:
+            print(f"WARNING: stylized_{slug} failed ({e})")
 
 
 def main():

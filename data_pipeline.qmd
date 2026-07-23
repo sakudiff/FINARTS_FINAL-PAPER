@@ -677,88 +677,69 @@ Filho (2013). These episodes align with major global financial stress events.
 #| fig-height: 4
 #| fig-width: 10
 
-# Build risk-off episode bands from the daily_fin data (already in environment)
-make_ro_bands <- function(df) {
-  df |> filter(risk_off == 1) |>
-    mutate(ep = cumsum(c(1, diff(date) > 10))) |>
-    group_by(ep) |>
-    summarise(start = min(date), end = max(date), .groups = "drop")
-}
-
-ro_vix <- make_ro_bands(daily_fin)
-
-p1 <- ggplot() +
-  geom_rect(data = ro_vix,
-            aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf,
-                fill = "Risk-off episode"), alpha = 0.12) +
-  geom_line(data = daily_fin, aes(x = date, y = vix, color = "VIX"),
-            linewidth = 0.4) +
-  geom_line(data = daily_fin, aes(x = date, y = vix_ma60, color = "60-day MA"),
-            linewidth = 0.4, alpha = 0.8) +
-  scale_color_manual(values = c("VIX" = "#2E45B8", "60-day MA" = "#F97A1F")) +
-  scale_fill_manual(values = c("Risk-off episode" = "#C91D42")) +
-  labs(x = NULL, y = "VIX index",
-       title = "VIX, 60-day moving average, and risk-off episodes") +
-  theme_quant() + theme(legend.position = "bottom", legend.title = element_blank())
-
-print(p1)
+```{r stylized-vix}
+#| echo: false
+#| message: false
+knitr::include_graphics("data/processed/var_results/figures/stylized_vix_risk_off.png")
 ```
 
-```{r fig2-usdjpy}
-#| fig-height: 4
-#| fig-width: 10
-#| echo: true
+```{r stylized-usdjpy}
+#| echo: false
 #| message: false
-
-ro_fx <- make_ro_bands(daily_fin)
-
-p2 <- ggplot() +
-  geom_rect(data = ro_fx,
-            aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf,
-                fill = "Risk-off episode"), alpha = 0.12) +
-  geom_line(data = daily_fin, aes(x = date, y = usdjpy),
-            color = "#2E45B8", linewidth = 0.4) +
-  scale_fill_manual(values = c("Risk-off episode" = "#C91D42")) +
-  labs(x = NULL, y = "JPY per USD",
-       title = "Bilateral nominal USD/JPY exchange rate and risk-off episodes") +
-  theme_quant() + theme(legend.position = "bottom", legend.title = element_blank())
-
-print(p2)
+knitr::include_graphics("data/processed/var_results/figures/stylized_usdjpy_risk_off.png")
 ```
 
-```{r fig3-reer}
-#| fig-height: 4
-#| fig-width: 10
-#| echo: true
+```{r stylized-reer}
+#| echo: false
 #| message: false
+knitr::include_graphics("data/processed/var_results/figures/stylized_reer_risk_off.png")
+```
 
-# REER is monthly; join with risk_off via year-month to handle frequency mismatch
-reer_with_ro <- reer |>
-  mutate(ym = floor_date(date, "month")) |>
-  left_join(daily_fin |>
-              mutate(ym = floor_date(date, "month")) |>
-              group_by(ym) |>
-              summarise(risk_off = max(risk_off, na.rm = TRUE), .groups = "drop"),
-            by = "ym")
+```{r stylized-jgb}
+#| echo: false
+#| message: false
+knitr::include_graphics("data/processed/var_results/figures/stylized_jgb10y_risk_off.png")
+```
 
-ro_reer <- reer_with_ro |>
-  filter(risk_off == 1) |>
-  mutate(ep = cumsum(c(1, diff(date) > 10))) |>
-  group_by(ep) |>
-  summarise(start = min(date), end = max(date), .groups = "drop")
+```{r stylized-nikkei}
+#| echo: false
+#| message: false
+knitr::include_graphics("data/processed/var_results/figures/stylized_nikkei225_risk_off.png")
+```
 
-p3 <- ggplot() +
-  geom_rect(data = ro_reer,
-            aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf,
-                fill = "Risk-off episode"), alpha = 0.12) +
-  geom_line(data = reer, aes(x = date, y = reer),
-            color = "#2E45B8", linewidth = 0.4) +
-  scale_fill_manual(values = c("Risk-off episode" = "#C91D42")) +
-  labs(x = NULL, y = "REER (2010 = 100)",
-       title = "Japan's real effective exchange rate and risk-off episodes") +
-  theme_quant() + theme(legend.position = "bottom", legend.title = element_blank())
+```{r stylized-us10y}
+#| echo: false
+#| message: false
+knitr::include_graphics("data/processed/var_results/figures/stylized_us10y_risk_off.png")
+```
 
-print(p3)
+```{r stylized-spread}
+#| echo: false
+#| message: false
+```
+
+```{r stylized-debtsec}
+#| echo: false
+#| message: false
+knitr::include_graphics("data/processed/var_results/figures/stylized_debtsecpct_risk_off.png")
+```
+
+```{r stylized-equity}
+#| echo: false
+#| message: false
+knitr::include_graphics("data/processed/var_results/figures/stylized_equitypct_risk_off.png")
+```
+
+```{r stylized-other}
+#| echo: false
+#| message: false
+knitr::include_graphics("data/processed/var_results/figures/stylized_otherpct_risk_off.png")
+```
+
+```{r stylized-direct}
+#| echo: false
+#| message: false
+knitr::include_graphics("data/processed/var_results/figures/stylized_directpct_risk_off.png")
 ```
 
 Descriptive statistics are computed per period and exported both as a rendered table and a CSV file.
