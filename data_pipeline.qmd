@@ -1916,6 +1916,11 @@ crossval <- data.frame(
 )
 crossval |>
   knitr::kable(caption = "Cross-validation of IRF values: replication versus published paper") |>
+  kableExtra::kable_styling(full_width = TRUE) |>
+  kableExtra::column_spec(1, width = "7em") |>
+  kableExtra::column_spec(2, width = "5em") |>
+  kableExtra::column_spec(c(3, 4), width = "14em") |>
+  kableExtra::column_spec(5, width = "5em") |>
   kableExtra::footnote(general = "MATCH: the paper's qualitative conclusion reproduces (sign, shape, and timing agree; magnitude differences reflect software-variant shock scaling). PARTIAL: the overall direction or conclusion matches but a meaningful detail diverges (earlier trough, no initial blip, noisier trajectory). MISMATCH: the sign is opposite and no rescaling reconciles the result with the paper's published figure.")
 ```
 
