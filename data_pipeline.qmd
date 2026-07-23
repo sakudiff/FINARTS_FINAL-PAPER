@@ -1439,23 +1439,67 @@ the Replication Failure section above.
 
 ### Stationarity and Lag Selection
 
-The paper states AIC selects the lag without reporting the maximum searched.
-Lags 1 through 20 are searched. At lag 20 each equation estimates 200
-endogenous coefficients plus 13 exogenous coefficients (11 month dummies, one
-time trend, one constant). With 5,199 complete observations in the replication
-period the observation-to-parameter ratio exceeds 24 to 1. The confidence
-intervals are Monte Carlo bands: shocks are drawn from N(0, Sigma_u),
-synthetic data are generated, the VAR is re-estimated, and IRFs are computed
-for each of 1,000 replications. The 2.5th and 97.5th percentiles form the 95
-percent band. These bands widen with the forecast horizon, which the original
-flat bands did not.
+Lag selection for this replication was not a single call to a criterion
+function. It was a process of elimination across four candidate
+specifications, each eliminated by failure mode.
 
-Augmented Dickey-Fuller test with AIC lag selection and a maximum of 20 lags
-at the 5 percent significance level is applied below. The paper does not
-discuss unit root testing or stationarity requirements for the endogenous
-variables. The model is estimated in levels, which is standard in the macro
-VAR literature (Sims 1980; Lutkepohl 2005). ADF results are reported as
-supplementary diagnostics and do not affect the estimation specification.
+The first attempt used AIC for both the daily and monthly tiers, following
+the paper's stated method. The daily AIC declined monotonically through every
+lag from 1 through 20 and selected the boundary. Extending the search to 30
+lags produced the same behaviour. The penalty of 2 per parameter is
+meaningless in a ten-variable system with over 5,000 observations. Each
+additional lag adds 100 endogenous coefficients. The likelihood improvement
+from absorbing a small amount of residual autocorrelation swamps the AIC
+penalty at any reasonable lag cap. The criterion fails to identify a local
+minimum because none exists within the searchable range.
+
+The second attempt applied AIC to the monthly tier. The same failure pattern
+appeared. The monthly AIC declines from lag 1 to lag 12, the search boundary,
+on current-vintage data. The paper does not state which vintage it used, but
+the boundary-selection behaviour is identical to the daily case and for the
+same reason.
+
+The third attempt switched the monthly tier to BIC. The Bayesian penalty
+ln(n) at the monthly frequency means approximately ln(300) or 5.7 per
+parameter rather than AIC's flat 2. The monthly BIC stabilises at lag 3.
+Lag 3 matches the paper's monthly figures in Appendix 4 on sign, shape, and
+peak timing. Lag 2 underfits and produces visibly smoother trajectories than
+the publication shows. Lag 4 widens the confidence intervals and adds a
+second oscillation that is not present in the paper's plots. Lag 3 is the
+unique local minimum of the information criterion surface, not a boundary
+artefact.
+
+The fourth attempt tried BIC on the daily tier. It selected one or two lags
+depending on whether the maximum searched was 20 or 30. The resulting impulse
+responses were too persistent and did not reproduce the paper's daily decay
+rates. BIC underpenalises autocorrelation removal because its observation
+count at the daily frequency (n approximately 5,200) is an order of magnitude
+larger than monthly, but the lag penalty is logarithmic, so the damage is the
+same and the loss of explanatory power is visible.
+
+The resolution is asymmetric. The daily tier retains AIC with maxlag 20 per
+the paper's stated method, with no better alternative. The monthly tier uses
+BIC with maxlag 12, returning lag 3 for both the paper period and the
+extended sample. This decision is documented in the Design Decisions section
+and cross-referenced as limitation L7.
+
+The confidence intervals adopt different methods by tier. The daily restricted
+model uses Monte Carlo delta-method bands, 1,000 replications, with shocks
+drawn from N(0, Sigma_u). Synthetic data are generated, the VAR is
+re-estimated, and IRFs are computed for each replication. The 2.5th and
+97.5th percentiles form the band. The daily unrestricted model uses asymptotic
+standard errors from the statsmodels OLS covariance matrix, consistent with
+the EViews default. The monthly model uses Monte Carlo bands for the
+restricted specification and asymptotic standard errors for the unrestricted
+specification. All bands widen with the forecast horizon, which distinguishes
+them from the paper's flat confidence intervals described under L3.
+
+Augmented Dickey-Fuller tests are reported as supplementary diagnostics below.
+The paper does not discuss unit root testing or stationarity requirements.
+The model is estimated in levels, which is standard in the macro VAR
+literature (Sims 1980; Lutkepohl 2005). These test results confirm that the
+endogenous variables are stationary or trend-stationary at conventional
+significance levels, which the levels specification does not depend on.
 
 ```{r repl-fig-adf}
 #| echo: false
