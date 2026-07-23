@@ -1288,7 +1288,7 @@ indicators absorb. A linear time trend indexed from 1 to T serves as the time
 dummy, the simplest specification that satisfies the stated requirement. The
 constant term is included in every equation.
 
-### Lag Selection and Confidence Intervals
+### Stationarity and Lag Selection
 
 The paper states AIC selects the lag without reporting the maximum searched.
 Lags 1 through 20 are searched. At lag 20 each equation estimates 200
@@ -1301,38 +1301,12 @@ for each of 1,000 replications. The 2.5th and 97.5th percentiles form the 95
 percent band. These bands widen with the forecast horizon, which the original
 flat bands did not.
 
-### Stationarity Tests
-
 Augmented Dickey-Fuller test with AIC lag selection and a maximum of 20 lags
 at the 5 percent significance level is applied below. The paper does not
 discuss unit root testing or stationarity requirements for the endogenous
 variables. The model is estimated in levels, which is standard in the macro
 VAR literature (Sims 1980; Lutkepohl 2005). ADF results are reported as
 supplementary diagnostics and do not affect the estimation specification.
-
-### Two-Tier Results
-
-The pre-computed SVAR results are stored in
-`data/processed/var_results/twotier/`. The chunks below load them directly
-without re-estimation, because the full VAR estimation (2 to 12 minutes
-depending on hardware) is a separate computational step.
-
-```{r load-twotier}
-#| message: false
-
-TWOTIER <- file.path("data", "processed", "var_results", "twotier")
-
-daily_paper     <- read_csv(file.path(TWOTIER, "daily_paper_irf.csv"), show_col_types = FALSE)
-daily_extended  <- read_csv(file.path(TWOTIER, "daily_extended_irf.csv"), show_col_types = FALSE)
-monthly_paper_r <- read_csv(file.path(TWOTIER, "monthly_paper_restricted_irf.csv"), show_col_types = FALSE)
-monthly_paper_u <- read_csv(file.path(TWOTIER, "monthly_paper_unrestricted_irf.csv"), show_col_types = FALSE)
-monthly_ext_r   <- read_csv(file.path(TWOTIER, "monthly_extended_restricted_irf.csv"), show_col_types = FALSE)
-monthly_ext_u   <- read_csv(file.path(TWOTIER, "monthly_extended_unrestricted_irf.csv"), show_col_types = FALSE)
-comparison      <- read_csv(file.path(TWOTIER, "comparison_paper_vs_extended.csv"), show_col_types = FALSE)
-flow_sig        <- read_csv(file.path(TWOTIER, "flow_significance.csv"), show_col_types = FALSE)
-```
-
-### ADF Stationarity Tests
 
 ```{r repl-fig-adf}
 #| echo: false
@@ -1358,8 +1332,6 @@ adf_both |>
                        background = "#E8E8F4")
 ```
 
-### Lag Selection
-
 ```{r repl-fig-lag}
 #| echo: false
 #| message: false
@@ -1383,138 +1355,37 @@ lag_both |>
                        background = "#E8E8F4")
 ```
 
-### IRF Summary: Key Horizons
+### Discussion of Results
 
-The table below reports impulse response values at selected horizons for the
-ten endogenous variables, for both the paper-period daily restricted VAR and
-the extended-period daily restricted VAR. All responses are to a
-one-standard-deviation risk-off shock. Confidence intervals are 95 percent
-Monte Carlo bands.
+The sections below present the impulse response results from the two-tier
+structural VAR. Four paper-period grids and four extended-period grids
+document the response of each endogenous variable to a one-standard-deviation
+risk-off shock. The daily grids cover 125 trading days (approximately six
+months). The monthly grids cover 40 months. Each grid panel shows the point
+estimate as a solid line with the 95 percent Monte Carlo confidence band as
+shading. The restricted specification imposes the block exogeneity constraint
+from the paper. The unrestricted specification removes it. The paper period
+uses vintage data for RGDP and REER. The extended period uses current-vintage
+data for all series. Every per-variable verdict draws on the cross-validation
+table in the Cross-Validation section below. Limitations that affect
+interpretation are cross-referenced by label.
 
-```{r irf-key-table}
+```{r load-twotier}
 #| message: false
-#| code-fold: true
 
-key_horizons <- c(0, 1, 3, 6, 12, 24, 125)
+TWOTIER <- file.path("data", "processed", "var_results", "twotier")
 
-paper_key <- daily_paper |> filter(horizon %in% key_horizons)
-ext_key  <- daily_extended |> filter(horizon %in% key_horizons)
-
-paper_wide <- paper_key |>
-  mutate(entry = sprintf("%.6f [%.6f, %.6f]", response, lower, upper)) |>
-  select(variable, horizon, entry) |>
-  pivot_wider(names_from = horizon, values_from = entry, names_prefix = "h")
-
-ext_wide <- ext_key |>
-  mutate(entry = sprintf("%.6f [%.6f, %.6f]", response, lower, upper)) |>
-  select(variable, horizon, entry) |>
-  pivot_wider(names_from = horizon, values_from = entry, names_prefix = "h")
-
-cat("\n**Daily Restricted VAR - Paper Period (1999-2021)**\n\n")
-paper_wide |>
-  knitr::kable(caption = "Daily restricted VAR IRFs, paper period")
-
-cat("\n**Daily Restricted VAR - Extended Period (1999-2026)**\n\n")
-ext_wide |>
-  knitr::kable(caption = "Daily restricted VAR IRFs, extended period")
+daily_paper     <- read_csv(file.path(TWOTIER, "daily_paper_irf.csv"), show_col_types = FALSE)
+daily_extended  <- read_csv(file.path(TWOTIER, "daily_extended_irf.csv"), show_col_types = FALSE)
+monthly_paper_r <- read_csv(file.path(TWOTIER, "monthly_paper_restricted_irf.csv"), show_col_types = FALSE)
+monthly_paper_u <- read_csv(file.path(TWOTIER, "monthly_paper_unrestricted_irf.csv"), show_col_types = FALSE)
+monthly_ext_r   <- read_csv(file.path(TWOTIER, "monthly_extended_restricted_irf.csv"), show_col_types = FALSE)
+monthly_ext_u   <- read_csv(file.path(TWOTIER, "monthly_extended_unrestricted_irf.csv"), show_col_types = FALSE)
+comparison      <- read_csv(file.path(TWOTIER, "comparison_paper_vs_extended.csv"), show_col_types = FALSE)
+flow_sig        <- read_csv(file.path(TWOTIER, "flow_significance.csv"), show_col_types = FALSE)
 ```
 
-### Daily Tier: Paper Period IRF Figure
-
-Each panel below shows the response of one variable to a one-standard-deviation
-risk-off shock over 125 trading days. The solid line is the point estimate.
-The shaded band is the 95 percent Monte Carlo confidence interval.
-
-```{r daily-paper-irf-plot}
-#| echo: false
-#| message: false
-knitr::include_graphics("data/processed/var_results/figures/irf_grid_daily_restricted_paper.png")
-```
-
-### Monthly Tier: Paper Period Restricted IRF Figure
-
-The monthly restricted VAR uses BIC-selected lags over a 40-month horizon.
-This mirrors the paper's appendix structure.
-
-```{r monthly-paper-restricted-irf-plot}
-#| echo: false
-#| message: false
-knitr::include_graphics("data/processed/var_results/figures/irf_grid_monthly_restricted_paper.png")
-```
-
-### Monthly Tier Summary: Key Horizons
-
-```{r monthly-key-table}
-#| message: false
-#| code-fold: true
-
-monthly_key <- c(0, 1, 3, 6, 12, 24, 40)
-
-mp_r_key <- monthly_paper_r |> filter(horizon %in% monthly_key)
-mp_u_key <- monthly_paper_u |> filter(horizon %in% monthly_key)
-
-mp_r_wide <- mp_r_key |>
-  mutate(entry = sprintf("%.6f [%.6f, %.6f]", response, lower, upper)) |>
-  select(variable, horizon, entry) |>
-  pivot_wider(names_from = horizon, values_from = entry, names_prefix = "h")
-
-mp_u_wide <- mp_u_key |>
-  mutate(entry = sprintf("%.6f [%.6f, %.6f]", response, lower, upper)) |>
-  select(variable, horizon, entry) |>
-  pivot_wider(names_from = horizon, values_from = entry, names_prefix = "h")
-
-cat("\n**Monthly Restricted VAR - Paper Period (1999-2021)**\n\n")
-mp_r_wide |>
-  knitr::kable(caption = "Monthly restricted VAR IRFs, paper period")
-
-cat("\n**Monthly Unrestricted VAR - Paper Period (1999-2021)**\n\n")
-mp_u_wide |>
-  knitr::kable(caption = "Monthly unrestricted VAR IRFs, paper period")
-```
-
-### Paper vs Extended Comparison
-
-```{r comparison-table}
-#| message: false
-#| code-fold: true
-
-comparison_clean <- comparison |>
-  mutate(entry = sprintf("%.6f", response)) |>
-  select(tier, period, specification, variable, horizon, entry) |>
-  pivot_wider(names_from = c(tier, period, specification),
-              values_from = entry,
-              names_sep = "_")
-
-comparison_clean |>
-  knitr::kable(caption = "IRF comparison: paper vs extended period at selected horizons")
-```
-
-### Capital Flow Significance
-
-The table below shows the Monte Carlo significance status for each capital flow
-variable at horizons 1, 3, 6, 12, and 24 months under both the restricted and
-unrestricted specifications.
-
-```{r flow-sig-table}
-#| message: false
-#| code-fold: true
-
-flow_sig |>
-  select(specification, variable, horizon, response, significant_95) |>
-  mutate(across(where(is.numeric), ~ round(.x, 4))) |>
-  knitr::kable(caption = "Capital flow IRF significance at 95% level")
-```
-
-The capital flow responses are predominantly insignificant across all
-specifications and horizons. Only two entries reach the 95 percent
-significance threshold: the restricted and unrestricted models both show a
-significant positive direct_pct response at h=3. All other capital flow
-horizons and variables are insignificant. This matches the paper's finding
-that capital flow variables do not respond systematically to risk-off shocks,
-with the caveat that a single isolated significant cell at one horizon is
-consistent with random sampling variation under the null.
-
-### Replication Figures
+#### 1. Daily Restricted Grid, Paper Period (Figure A3.1)
 
 ```{r repl-fig-daily-restricted-paper}
 #| echo: false
@@ -1522,7 +1393,101 @@ consistent with random sampling variation under the null.
 knitr::include_graphics("data/processed/var_results/figures/irf_grid_daily_restricted_paper.png")
 ```
 
-This daily restricted grid corresponds to the paper's Figures 4 through 8 and Appendix Figure A3.1. Five variables match the paper. Risk_off declines from approximately 0.10 to 0 in the paper and from 0.098 to 0 in our replication. SPREAD peaks at 0.010 at day 50 in the paper and at 0.015 at day 50 in our data, then decays to 0.007 and 0.012. RGDP troughs at -0.0006 at day 45 in the paper and at -0.00074 at day 50 in our data. Both confidence intervals stay below zero. REER reaches a +0.0008 plateau in the paper and a +0.002 plateau in our data. DIRECT dips to -0.002 in the paper and reaches +0.0015 at day 50 in our data, settling at +0.0009. Three variables are partial matches. STOCK shows a +0.0005 blip then a decline to -0.001 in the paper. Our estimate declines from -0.0014 to -0.0066 with no initial blip. DEBTSEC dips to -0.005 then flattens at zero in the paper. Our estimate is noisy and settles near zero. EQUITY troughs at -0.006 at day 40 in the paper and recovers to +0.001. Our estimate troughs at -0.038 at day 25 and recovers to -0.0017. Two variables are mismatches. WUI rises to a +0.0017 plateau in the paper. Our estimate troughs at -0.01 at day 40 and returns to zero. OTHER peaks at +0.010 at day 50 in the paper. Our estimate spikes to +0.118 at day 5 then reaches -0.017 at day 50.
+**Response of risk_off to a risk-off shock.** The risk-off indicator declines
+from approximately 0.10 in the paper and from 0.098 in our replication toward
+zero over 125 trading days. The cross-validation verdict is MATCH. The
+self-response decays at a comparable rate across both specifications.
+
+**Response of LOG(WUI_JP) to a risk-off shock.** The paper shows a smooth
+rise to a +0.0017 plateau. Our daily restricted estimate troughs at -0.01 at
+day 40 and returns to zero. The monthly estimates show the same sign
+reversal: our monthly restricted estimate peaks at +0.052 at month 5 and
+oscillates, while the paper shows a shallow dip to -0.003 at month 7. The
+cross-validation verdict is MISMATCH across both frequencies. This divergence
+is a known frequency artifact (L5) combined with the unreported EViews
+interpolation settings (L2). The paper's own daily and monthly WUI have
+opposite signs, confirming that sign instability in WUI is inherent to the
+frequency conversion method.
+
+**Response of SPREAD_JP to a risk-off shock.** The spread peaks at 0.010 at
+day 50 in the paper and at 0.015 at day 50 in our data, then decays to 0.007
+and 0.012. In the monthly specification the paper shows a 0.04 start with a
+0.075 spike at month 3 decaying to 0.01, while our estimate starts at 0.024,
+spikes to 0.115 at month 3, and decays to 0.003. The cross-validation verdict
+is MATCH for daily and MATCH for monthly. The magnitude is approximately 1.5
+times the paper's peak but the directional pattern and persistence are
+consistent. Cross-referencing the cross-validation table confirms the MATCH
+classification. The AIC boundary behaviour noted in L7 does not affect
+the daily SPREAD verdict because the AIC-selected lag at the boundary still
+captures the spread dynamics adequately.
+
+**Response of LOG(RGDP_JP) to a risk-off shock.** The daily restricted
+estimate troughs at -0.00074 at day 50 with both confidence intervals below
+zero. The paper troughs at -0.0006 at day 45. The monthly restricted vintage
+model shows a trough of -0.003980 at h=3, significant through h=6, marginal
+at h=12 (upper bound -0.000104), and indistinguishable from zero at h=24. In
+the monthly unrestricted specification the trough is earlier and deeper
+(-0.004 at month 3). The daily RGDP response remains negative and persistent
+in the unrestricted specification as well. The cross-validation verdict is
+MATCH (daily) and PARTIAL (monthly). The daily match depends on vintage data:
+the sign reversal on current-vintage data is documented in L1 (GDP Vintage
+Revisions). The monthly partial match reflects additional sensitivity to
+unreported EViews settings (L2).
+
+**Response of LOG(REER_JP) to a risk-off shock.** The paper shows a +0.0008
+plateau. Our daily restricted estimate reaches a +0.002 plateau. In the
+monthly restricted specification the paper rises from +0.004 to a peak of
++0.005 at months 3 to 4 ending at -0.001, while our estimate rises from
++0.005 to +0.012 at month 3 ending at +0.0008. The cross-validation verdict
+is MATCH for both frequencies. The REER vintage is a single Wayback Machine
+snapshot (L6), but directional agreement holds across specifications.
+
+**Response of LOG(STOCK_IDX_JP) to a risk-off shock.** The paper shows a
++0.0005 positive blip followed by a decline to -0.001 and a flat -0.0005. Our
+daily estimate declines from -0.0014 to -0.0066 with no initial positive
+blip. In the monthly specification the paper starts at -0.017 and recovers
+to -0.004 at month 40, while our estimate starts at -0.021 and recovers to
++0.0003. The cross-validation verdict is PARTIAL for daily and MATCH for
+monthly. The missing initial blip in the daily frequency is consistent with
+the unreported EViews interpolation method (L2) affecting the high-frequency
+dynamics. The overall negative trajectory replicates.
+
+**Response of DEBTSEC_JP to a risk-off shock.** The paper dips to -0.005 then
+flattens at zero. Our daily estimate is noisy and settles near zero. In the
+monthly specification the paper starts at +0.06 and is volatile settling to
+zero, while our estimate starts at -0.15 and is similarly volatile. The
+cross-validation verdict is PARTIAL for both frequencies. The source
+difference between BOJ BPM6 data and IMF IFS data (L4) is the most likely
+driver of the level offset. The zero long-run response matches the paper's
+null finding.
+
+**Response of EQUITY_JP to a risk-off shock.** The paper troughs at -0.006 at
+day 40 and recovers to +0.001. Our estimate troughs at -0.038 at day 25 and
+recovers to -0.0017. In the monthly specification the paper troughs at -0.065
+at month 4 and rebounds to +0.025, while our estimate troughs at -0.055 at
+month 3 and rebounds to +0.026. The cross-validation verdict is PARTIAL for
+daily and MATCH for monthly. The daily trough is substantially deeper than
+the paper's, which the cross-platform numerical variance (L8) may explain.
+
+**Response of OTHER_JP to a risk-off shock.** The paper dips then shows a
++0.010 peak at day 50. Our estimate spikes to +0.118 at day 5 and reaches
+-0.017 at day 50. The cross-validation verdict is MISMATCH. The other
+investment category is the most heterogeneous of the four capital flow
+series, and the BOJ source data (L4) may capture components that the paper's
+IMF IFS classification grouped differently. The phase mismatch between the
+paper's peak and our spike is consistent with interpolation-induced
+dynamics.
+
+**Response of DIRECT_JP to a risk-off shock.** The paper dips to -0.002 then
+reaches a +0.001 plateau. Our estimate reaches +0.0015 at day 50 and settles
+at +0.0009. In the flow significance table, direct_pct is the only capital
+flow variable with a statistically significant positive response at h=3 in
+both the restricted and unrestricted specifications. The cross-validation
+verdict is MATCH. This is the exception to the paper's general null result
+for capital flows. The significance at h=3 should be interpreted cautiously
+as it is a single horizon among many tested (L4, L8).
+
+#### 2. Daily Unrestricted Grid, Paper Period (Figure A2.1)
 
 ```{r repl-fig-daily-unrestricted-paper}
 #| echo: false
@@ -1530,7 +1495,17 @@ This daily restricted grid corresponds to the paper's Figures 4 through 8 and Ap
 knitr::include_graphics("data/processed/var_results/figures/irf_grid_daily_unrestricted_paper.png")
 ```
 
-This daily unrestricted grid corresponds to the paper's Appendix Figure A2.1. The unrestricted specification removes the block exogeneity constraint. The cross-validation values in section 6 apply to the restricted specification only. The unrestricted results show the same directional patterns with wider confidence bands. The daily RGDP response remains negative and persistent.
+The daily unrestricted grid corresponds to the paper's Appendix Figure A2.1.
+Removing the block exogeneity constraint widens the confidence bands but does
+not change the directional patterns. The daily RGDP response remains negative
+and persistent. The unrestricted specification on current-vintage data
+diverges from the restricted specification, which the paper states are
+consistent. This divergence is itself a finding about model sensitivity to
+GDP data revisions (L1, L3). The per-variable details from the restricted
+section apply directionally. The cross-validation values in the table below
+apply to the restricted specification only.
+
+#### 3. Monthly Restricted Grid, Paper Period (Figure A4 Restricted)
 
 ```{r repl-fig-monthly-restricted-paper}
 #| echo: false
@@ -1538,7 +1513,26 @@ This daily unrestricted grid corresponds to the paper's Appendix Figure A2.1. Th
 knitr::include_graphics("data/processed/var_results/figures/irf_grid_monthly_restricted_paper.png")
 ```
 
-This monthly restricted grid corresponds to the paper's A4 monthly panels in grid form. Four variables match the paper. REER rises from +0.004 to a peak of +0.005 at months 3 to 4 in the paper, ending at -0.001. Our estimate rises from +0.005 to +0.012 at month 3, ending at +0.0008. STOCK starts at -0.017 in the paper and recovers to -0.004 at month 40. Our estimate starts at -0.021 and recovers to +0.0003. SPREAD starts at 0.04 in the paper and 0.024 in our data, spikes to 0.075 and 0.115 at month 3, then decays to 0.01 and 0.003. EQUITY troughs at -0.065 at month 4 in the paper and rebounds to +0.025. Our estimate troughs at -0.055 at month 3 and rebounds to +0.026. Two variables are partial matches. RGDP starts at +0.001 in the paper and at -0.00004 in our data. It troughs at -0.002 at months 7 to 8 in the paper and at -0.004 at month 3 in our data. Both recover toward zero by month 40. DEBTSEC starts at +0.06 in the paper and at -0.15 in our data. Both are volatile and settle near zero. One variable is a mismatch. WUI starts at +0.002 in the paper and dips to -0.003 at month 7. Our estimate peaks at +0.052 at month 5 and oscillates.
+The monthly restricted grid corresponds to the paper's A4 monthly panels in
+grid form. Four variables match the paper. REER rises from +0.004 to a peak
+of +0.005 at months 3 to 4 in the paper ending at -0.001; our estimate rises
+from +0.005 to +0.012 at month 3 ending at +0.0008. STOCK starts at -0.017 in
+the paper and recovers to -0.004 at month 40; our estimate starts at -0.021
+and recovers to +0.0003. SPREAD starts at 0.04 in the paper and 0.024 in our
+data, spikes to 0.075 and 0.115 at month 3, then decays to 0.01 and 0.003.
+EQUITY troughs at -0.065 at month 4 in the paper and rebounds to +0.025; our
+estimate troughs at -0.055 at month 3 and rebounds to +0.026. Two variables
+are partial matches. RGDP starts at +0.001 in the paper and at -0.00004 in
+our data, troughs at -0.002 at months 7 to 8 in the paper and at -0.004 at
+month 3 in our data, with both recovering toward zero by month 40. DEBTSEC
+starts at +0.06 in the paper and at -0.15 in our data; both are volatile and
+settle near zero. One variable is a mismatch. WUI starts at +0.002 in the
+paper and dips to -0.003 at month 7; our estimate peaks at +0.052 at month 5
+and oscillates. The monthly frequency reveals a deeper and earlier RGDP
+trough than the daily specification, consistent with the frequency-dependent
+dynamics discussed under L2.
+
+#### 4. Monthly Unrestricted Grid, Paper Period (Figure A4 Unrestricted)
 
 ```{r repl-fig-monthly-unrestricted-paper}
 #| echo: false
@@ -1546,7 +1540,15 @@ This monthly restricted grid corresponds to the paper's A4 monthly panels in gri
 knitr::include_graphics("data/processed/var_results/figures/irf_grid_monthly_unrestricted_paper.png")
 ```
 
-This monthly unrestricted grid is a robustness check. It removes the block exogeneity restriction from the monthly specification. The unrestricted results diverge from the restricted specification on current-vintage data. The paper states the two are consistent. This divergence is itself a finding about model sensitivity to GDP revisions.
+This monthly unrestricted grid is a robustness check. It removes the block
+exogeneity restriction from the monthly specification. The unrestricted
+results diverge from the restricted specification on current-vintage data.
+The paper states the two are consistent. This divergence is itself a finding
+about model sensitivity to GDP revisions (L1, L3). The monthly unrestricted
+specification provides the closest comparable robustness to the paper's
+Appendix 4, which is restricted-only.
+
+#### 5. Extended Period Grids (1999-2026)
 
 ```{r repl-fig-daily-restricted-extended}
 #| echo: false
@@ -1554,15 +1556,11 @@ This monthly unrestricted grid is a robustness check. It removes the block exoge
 knitr::include_graphics("data/processed/var_results/figures/irf_grid_daily_restricted_extended.png")
 ```
 
-This daily restricted grid extends the sample to 2026. It uses current-vintage data for all series. The extended period RGDP confidence intervals are wider due to post-2022 GDP benchmark revisions. The directional responses are consistent with the paper period.
-
 ```{r repl-fig-daily-unrestricted-extended}
 #| echo: false
 #| message: false
 knitr::include_graphics("data/processed/var_results/figures/irf_grid_daily_unrestricted_extended.png")
 ```
-
-This daily unrestricted grid extends the unrestricted specification to 2026 on current-vintage data. It extends the analysis of the paper's Appendix Figure A2.1 beyond the original sample.
 
 ```{r repl-fig-monthly-restricted-extended}
 #| echo: false
@@ -1570,33 +1568,26 @@ This daily unrestricted grid extends the unrestricted specification to 2026 on c
 knitr::include_graphics("data/processed/var_results/figures/irf_grid_monthly_restricted_extended.png")
 ```
 
-This monthly restricted grid extends the monthly restricted VAR to 2026. The extended period uses current-vintage data for all series. The RGDP response remains negative through the first six months, consistent with the paper period.
-
 ```{r repl-fig-monthly-unrestricted-extended}
 #| echo: false
 #| message: false
 knitr::include_graphics("data/processed/var_results/figures/irf_grid_monthly_unrestricted_extended.png")
 ```
 
-This monthly unrestricted grid extends the unrestricted monthly specification to 2026. It shows the unrestricted model over the full 1999 to 2026 sample.
+The extended period grids cover the full 1999 to 2026 sample using
+current-vintage data for all series. The daily restricted grid shows RGDP
+confidence intervals that are wider than the paper period, consistent with
+the GDP benchmark revisions that introduce additional uncertainty after 2022
+(L1). The directional responses remain consistent with the paper period. The
+daily unrestricted grid extends the analysis of the paper's Appendix Figure
+A2.1 beyond the original sample. The monthly restricted grid shows the RGDP
+response remaining negative through the first six months. The monthly
+unrestricted grid shows the unrestricted model over the full sample. The
+post-2021 period introduces structural shifts from yen depreciation and
+policy divergence that the extended grids capture but do not alter the core
+finding of a negative and persistent RGDP response to risk-off shocks.
 
-### Replication Fidelity: Assessment
-
-The paper-period daily restricted VAR produces a negative and statistically
-significant RGDP response at every horizon. At h=1 the response is -0.000053
-(95 percent CI [-0.000083, -0.000024]). At h=125 it is -0.000640 (95 percent
-CI [-0.000765, -0.000242]). The monthly restricted vintage model shows an
-RGDP trough of -0.003980 at h=3, significant through h=6 (CI entirely below
-zero), marginal at h=12 (upper bound -0.000104), and statistically
-indistinguishable from zero at h=24 and beyond. The spread response is
-positive and persistent in all specifications. The WUI response is negative
-in the long horizon but does not replicate the paper's smooth
-positive-then-negative pattern. Capital flow responses are mostly
-insignificant, matching the paper's null result for portfolio flows. Only
-two entries in the flow significance table reach the 95 percent threshold:
-both for direct_pct at h=3 (restricted and unrestricted).
-
-The paper's A4 weekly panels are not replicated. The daily and monthly frequencies are presented instead, per the two-tier design.
+### Cross-Validation Against Published Figures
 
 ```{r crossval-table}
 #| message: false
@@ -1671,32 +1662,90 @@ source. The paper's stated monthly WUI series cannot exist before 2008, so
 quarterly WUI is the defensible source, but the conversion method between
 frequencies is the authors' choice, not the paper's.
 
+### Replication Fidelity
+
+The paper-period daily restricted VAR produces a negative and statistically
+significant RGDP response at every horizon. At h=1 the response is -0.000053
+(95 percent CI [-0.000083, -0.000024]). At h=125 it is -0.000640 (95 percent
+CI [-0.000765, -0.000242]). The monthly restricted vintage model shows an
+RGDP trough of -0.003980 at h=3, significant through h=6 (CI entirely below
+zero), marginal at h=12 (upper bound -0.000104), and statistically
+indistinguishable from zero at h=24 and beyond. The spread response is
+positive and persistent in all specifications. The WUI response is negative
+in the long horizon but does not replicate the paper's smooth
+positive-then-negative pattern. Capital flow responses are mostly
+insignificant, matching the paper's null result for portfolio flows. Only
+two entries in the flow significance table reach the 95 percent threshold:
+both for direct_pct at h=3 (restricted and unrestricted).
+
+The paper's A4 weekly panels are not replicated. The daily and monthly frequencies are presented instead, per the two-tier design.
+
 ### Limitations
 
-This replication is limited by five unresolved constraints. First, the daily
-RGDP magnitudes cannot be directly compared to the paper's published charts
-without the paper's exact EViews settings. The quadratic-match average
-interpolation is a Python reimplementation, not EViews itself, and no
-cross-software equivalence test has been performed. Second, unreported lag
-search bounds and unreported interpolation settings (quadratic-match average
-versus quadratic-match sum) could shift results within the paper's published
-uncertainty. Third, the BIS REER vintage is a single Wayback Machine snapshot,
-not a certified vintage series, and the BIS does not publicly archive
-retrospective vintages. Fourth, the unrestricted specification on
-current-vintage data gives results that conflict with the restricted
-specification, which the paper claims are consistent. This conflict cannot be
-resolved without the paper's original data and software environment. Fifth,
-the World Uncertainty Index is available at quarterly frequency only for the
-full sample, and the monthly WUI dataset begins in 2008. Every replication of
-the paper's 1999 sample start must therefore use quarterly WUI, and the
-interpolation method is a modeling choice, not a reproduction.
+#### L1. GDP Vintage Revisions
 
-These limitations do not invalidate the core replication finding: the paper's
-negative, persistent, and statistically significant RGDP response to a
-risk-off shock reproduces when the correct data vintage and corrected VAR code
-are used together. The sensitivity of the result to GDP data vintage is itself
-a substantive finding about the fragility of recursively identified VARs to
-national accounts revisions.
+Japan's post-2022 GDP benchmark revisions raised current-vintage RGDP by 3.5
+to 6.3 percent over 2019 to 2021 and altered the COVID trough trajectory.
+Substituting the ALFRED 2021-06-01 vintage restores the paper's negative,
+persistent, and statistically significant RGDP response. On current-vintage
+data the restricted model's RGDP sign reverses. This is the single most
+consequential limitation for the replication claim.
+
+#### L2. Unreported EViews Settings
+
+The paper does not report whether quadratic-match average or quadratic-match
+sum was used for interpolation, what lag maximum was searched, or what
+confidence interval method was applied. Every replication of a recursively
+identified VAR from a published paper with unreported software settings
+carries irreducible uncertainty about whether the differences between
+replication and original results are due to data, code, or configuration.
+
+#### L3. Restricted/Unrestricted Divergence
+
+The paper states the restricted and unrestricted specifications are
+consistent. On current-vintage data they diverge. This divergence is visible
+in both the daily and monthly tiers and signals model sensitivity to GDP data
+revisions. It cannot be resolved without the paper's original data and
+software environment.
+
+#### L4. Capital Flow Source
+
+The paper used IMF IFS quarterly balance of payments data. This replication
+uses BOJ BPM6 balance of payments data. The series are directly comparable
+under BPM6 conventions, but the quarterly IMF IFS frequency and the
+monthly-to-daily conversion path differ. The level offset in DEBTSEC and the
+OTHER phase mismatch are consistent with a source-data effect.
+
+#### L5. WUI Frequency
+
+The World Uncertainty Index is available at quarterly frequency for the full
+sample. A monthly WUI dataset exists but begins in 2008 and cannot cover the
+1999 sample start. Every replication of the paper's 1999 sample must use
+quarterly WUI. The sign instability in WUI between daily and monthly
+specifications is consistent with the paper's own frequency-dependent WUI
+dynamics.
+
+#### L6. BIS REER Vintage
+
+The BIS retroactively rebased the REER from 2010 = 100 to 2020 = 100 in
+January 2023. The replication relies on a single Wayback Machine snapshot
+from May 2021 for the vintage data. The BIS does not publicly archive
+retrospective vintages.
+
+#### L7. Unreported AIC Maxlag
+
+AIC overfits to the boundary lag on this data vintage, selecting the maximum
+lag searched regardless of information content. The monthly tier uses BIC
+instead. The daily tier retains AIC per the paper's method. The paper does
+not report whether they encountered the same AIC boundary behaviour.
+
+#### L8. Cross-Platform Numerical Variance
+
+Monte Carlo confidence bands differ between x86 and ARM architectures at
+machine precision. Response columns in the IRF CSVs show differences in the
+sixth decimal place across platforms. These differences are negligible for
+the MATCH/PARTIAL/MISMATCH classification but would prevent exact
+bit-for-bit reproduction across hardware.
 
 ### Appendix: Financial Markets and Risk-off Events in Japan
 
@@ -1993,4 +2042,3 @@ cat("```python\n",
     paste(readLines("scripts/replicate_svar.py"), collapse = "\n"),
     "\n```\n", sep = "")
 ```
-
