@@ -1504,7 +1504,75 @@ lag_both |>
                        background = "#E8E8F4")
 ```
 
-### Discussion of Results
+### Limitations
+
+#### L1. GDP Vintage Revisions
+
+Japan's post-2022 GDP benchmark revisions raised current-vintage RGDP by 3.5
+to 6.3 percent over 2019 to 2021 and altered the COVID trough trajectory.
+Substituting the ALFRED 2021-06-01 vintage restores the paper's negative,
+persistent, and statistically significant RGDP response. On current-vintage
+data the restricted model's RGDP sign reverses. This is the single most
+consequential limitation for the replication claim.
+
+#### L2. Unreported EViews Settings
+
+The paper does not report whether quadratic-match average or quadratic-match
+sum was used for interpolation, what lag maximum was searched, or what
+confidence interval method was applied. Every replication of a recursively
+identified VAR from a published paper with unreported software settings
+carries irreducible uncertainty about whether the differences between
+replication and original results are due to data, code, or configuration.
+
+#### L3. Restricted/Unrestricted Divergence
+
+The paper states the restricted and unrestricted specifications are
+consistent. On current-vintage data they diverge. This divergence is visible
+in both the daily and monthly tiers and signals model sensitivity to GDP data
+revisions. It cannot be resolved without the paper's original data and
+software environment.
+
+#### L4. Capital Flow Source
+
+The paper used IMF IFS quarterly balance of payments data. This replication
+uses BOJ BPM6 balance of payments data. The series are directly comparable
+under BPM6 conventions, but the quarterly IMF IFS frequency and the
+monthly-to-daily conversion path differ. The level offset in DEBTSEC and the
+OTHER phase mismatch are consistent with a source-data effect.
+
+#### L5. WUI Frequency
+
+The World Uncertainty Index is available at quarterly frequency for the full
+sample. A monthly WUI dataset exists but begins in 2008 and cannot cover the
+1999 sample start. Every replication of the paper's 1999 sample must use
+quarterly WUI. The sign instability in WUI between daily and monthly
+specifications is consistent with the paper's own frequency-dependent WUI
+dynamics.
+
+#### L6. BIS REER Vintage
+
+The BIS retroactively rebased the REER from 2010 = 100 to 2020 = 100 in
+January 2023. The replication relies on a single Wayback Machine snapshot
+from May 2021 for the vintage data. The BIS does not publicly archive
+retrospective vintages.
+
+#### L7. Unreported AIC Maxlag
+
+AIC overfits to the boundary lag on this data vintage, selecting the maximum
+lag searched regardless of information content. The monthly tier uses BIC
+instead. The daily tier retains AIC per the paper's method. The paper does
+not report whether they encountered the same AIC boundary behaviour.
+
+#### L8. Cross-Platform Numerical Variance
+
+Monte Carlo confidence bands differ between x86 and ARM architectures at
+machine precision. Response columns in the IRF CSVs show differences in the
+sixth decimal place across platforms. These differences are negligible for
+the MATCH/PARTIAL/MISMATCH classification but would prevent exact
+bit-for-bit reproduction across hardware.
+
+
+## Discussion of Results
 
 This replication tested whether the sign patterns and qualitative conclusions
 in Beirne and Sugandi (2023) for Japan reproduce after five code defects
@@ -1530,7 +1598,7 @@ estimate as a solid line with the 95 percent Monte Carlo confidence band as
 shading. The restricted specification imposes the block exogeneity constraint
 from the paper. The unrestricted specification removes it. The paper period
 uses vintage data for RGDP and REER. The extended period uses current-vintage
-data for all series. Every per-variable verdict draws on the cross-validation
+data for all series. The cross-validation
 table in the Cross-Validation section below. Limitations that affect
 interpretation are cross-referenced by label.
 
@@ -1563,7 +1631,7 @@ There is not much to debate here. The risk-off indicator starts at 0.098 in our
 replication, nearly identical to the paper's 0.10, and both decay to zero over
 125 trading days. The paper does not discuss the risk-off self-response in
 detail, treating it as the exogenous impulse rather than a variable of interest.
-The cross-validation verdict is MATCH. This equation is the simplest in the
+This equation is the simplest in the
 system (risk-off depends only on its own lags under the block exogeneity
 restriction) and both sets of estimates agree on its dynamics. The persistence
 of roughly 25 trading days means a shock is felt in the system for about five
@@ -1579,7 +1647,7 @@ rising to a +0.0017 plateau. Our daily restricted estimate goes the other way:
 a trough of -0.01 at day 40, returning to zero. The monthly specification is no
 kinder. Our monthly restricted peaks at +0.052 at month 5 and oscillates. The
 paper's monthly WUI barely moves, a shallow dip to -0.003 at month 7. The
-cross-validation verdict is MISMATCH for both frequencies. Why this variable
+the WUI response disagrees with the paper at both frequencies. Why this variable
 fails when the financial channels reproduce cleanly is itself informative.
 Japan's WUI responds differently to global shocks than to regional ones. During
 Lehman and the Tohoku earthquake the index rises sharply. During European debt
@@ -1603,8 +1671,7 @@ in both papers. The replication peaks at 0.015 at day 50 and decays to 0.012 by
 day 125, against the paper's peak of 0.010 decaying to 0.007. The monthly
 numbers carry the same story: the paper shows a 0.04 start with a 0.075 spike
 at month 3 decaying to 0.01, while our monthly estimate starts at 0.024, spikes
-to 0.115 at month 3, and decays to 0.003. The cross-validation verdict is MATCH
-for both frequencies. The magnitude runs about 1.5 times the paper's peak in
+to 0.115 at month 3, and decays to 0.003. The magnitude runs about 1.5 times the paper's peak in
 both specifications, a consistent scaling difference driven by shock size rather
 than structural divergence. The directional pattern, the peak timing, and the
 persistence are all present. This is the financial channel the paper's thesis
@@ -1668,7 +1735,7 @@ and a flat -0.0005. Our daily estimate skips the blip entirely, dropping from
 -0.0014 to -0.0066 and staying there. The monthly specification reverses the
 grade. The paper starts at -0.017 and recovers to -0.004 at month 40. Our
 estimate starts at -0.021 and recovers to +0.0003, a near-identical trajectory.
-The cross-validation verdict is PARTIAL for daily and MATCH for monthly. The
+The daily comparison is partial and the monthly matches. The
 missing initial blip in the daily frequency affects a +0.0005 movement that
 disappears within five trading days. At reasonable charting resolution the two
 estimates are nearly indistinguishable. The overall negative trajectory, the
@@ -1684,7 +1751,7 @@ Japanese government bonds would produce a positive inflow. The paper finds a
 small negative dip followed by a flat zero response. Our daily estimate
 wobbles and settles near zero. At monthly frequency both estimates are volatile,
 the paper starting at +0.06 and ours at -0.15, and both converge to zero. The
-cross-validation verdict is PARTIAL at both frequencies. The null finding is
+the debt flow response is a partial match at both frequencies. The null finding is
 informative. It tells us that the flight-to-safety mechanism works through
 price channels (the spread, the exchange rate) and does not require observable
 volume shifts in the balance of payments at the portfolio level. Capital flows
@@ -1703,7 +1770,7 @@ at the trough, same recovery direction, earlier timing. The monthly
 specification restores the pattern. The paper troughs at -0.065 at month 4 and
 rebounds to +0.025. Our estimate troughs at -0.055 at month 3 and rebounds to
 +0.026. The magnitudes align, the V-shape is identical, and the
-cross-validation calls it PARTIAL for daily and MATCH for monthly.
+the comparison is partial for daily and matches for monthly.
 Cross-platform numerical variance (L8) may contribute to the daily discrepancy
 through the MC confidence band computation. The economic interpretation is the
 same as for debt flows: the financial channel operates through price
@@ -1720,7 +1787,7 @@ most heterogeneous and highest-variance capital flow series in the model, with
 a standard deviation an order of magnitude larger than direct investment. The
 results reflect this. The paper dips then reaches a +0.010 peak at day 50. Our
 estimate does the opposite, spiking to +0.118 at day 5 and hitting -0.017 at
-day 50. The cross-validation verdict is MISMATCH. The phase reversal between
+day 50. The phase reversal between
 the paper's late peak and our early spike is the most dramatic divergence in
 the entire replication. It happens in a variable that is not central to either
 study's argument. The BOJ source data (L4) may capture components that the
@@ -1738,7 +1805,7 @@ capital flow variable with a statistically significant positive response in
 both the restricted and unrestricted monthly specifications at h=3. The daily
 trajectory aligns with the paper (the paper dips to -0.002 then plateaus at
 +0.001, while our estimate reaches +0.0015 at day 50 and settles at +0.0009),
-earning a MATCH verdict. The significant monthly response at a single horizon
+matching the paper's trajectory. The significant monthly response at a single horizon
 should be interpreted cautiously (L4, L8). But the contrast is worth noting.
 Direct investment reflects long-term capital commitments (plant, equipment,
 acquisitions) rather than the short-term positioning that drives portfolio
@@ -1996,73 +2063,6 @@ portfolio flows. Exactly `r fc` entries in the flow significance table reach
 the 95 percent threshold (`r fs`).
 
 The paper's A4 weekly panels are not replicated. The daily and monthly frequencies are presented instead, per the two-tier design.
-
-### Limitations
-
-#### L1. GDP Vintage Revisions
-
-Japan's post-2022 GDP benchmark revisions raised current-vintage RGDP by 3.5
-to 6.3 percent over 2019 to 2021 and altered the COVID trough trajectory.
-Substituting the ALFRED 2021-06-01 vintage restores the paper's negative,
-persistent, and statistically significant RGDP response. On current-vintage
-data the restricted model's RGDP sign reverses. This is the single most
-consequential limitation for the replication claim.
-
-#### L2. Unreported EViews Settings
-
-The paper does not report whether quadratic-match average or quadratic-match
-sum was used for interpolation, what lag maximum was searched, or what
-confidence interval method was applied. Every replication of a recursively
-identified VAR from a published paper with unreported software settings
-carries irreducible uncertainty about whether the differences between
-replication and original results are due to data, code, or configuration.
-
-#### L3. Restricted/Unrestricted Divergence
-
-The paper states the restricted and unrestricted specifications are
-consistent. On current-vintage data they diverge. This divergence is visible
-in both the daily and monthly tiers and signals model sensitivity to GDP data
-revisions. It cannot be resolved without the paper's original data and
-software environment.
-
-#### L4. Capital Flow Source
-
-The paper used IMF IFS quarterly balance of payments data. This replication
-uses BOJ BPM6 balance of payments data. The series are directly comparable
-under BPM6 conventions, but the quarterly IMF IFS frequency and the
-monthly-to-daily conversion path differ. The level offset in DEBTSEC and the
-OTHER phase mismatch are consistent with a source-data effect.
-
-#### L5. WUI Frequency
-
-The World Uncertainty Index is available at quarterly frequency for the full
-sample. A monthly WUI dataset exists but begins in 2008 and cannot cover the
-1999 sample start. Every replication of the paper's 1999 sample must use
-quarterly WUI. The sign instability in WUI between daily and monthly
-specifications is consistent with the paper's own frequency-dependent WUI
-dynamics.
-
-#### L6. BIS REER Vintage
-
-The BIS retroactively rebased the REER from 2010 = 100 to 2020 = 100 in
-January 2023. The replication relies on a single Wayback Machine snapshot
-from May 2021 for the vintage data. The BIS does not publicly archive
-retrospective vintages.
-
-#### L7. Unreported AIC Maxlag
-
-AIC overfits to the boundary lag on this data vintage, selecting the maximum
-lag searched regardless of information content. The monthly tier uses BIC
-instead. The daily tier retains AIC per the paper's method. The paper does
-not report whether they encountered the same AIC boundary behaviour.
-
-#### L8. Cross-Platform Numerical Variance
-
-Monte Carlo confidence bands differ between x86 and ARM architectures at
-machine precision. Response columns in the IRF CSVs show differences in the
-sixth decimal place across platforms. These differences are negligible for
-the MATCH/PARTIAL/MISMATCH classification but would prevent exact
-bit-for-bit reproduction across hardware.
 
 ### Replication Script (replicate_svar.py)
 
