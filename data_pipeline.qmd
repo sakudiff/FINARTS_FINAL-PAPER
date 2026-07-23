@@ -1332,6 +1332,108 @@ indicators absorb. A linear time trend indexed from 1 to T serves as the time
 dummy, the simplest specification that satisfies the stated requirement. The
 constant term is included in every equation.
 
+### Design Decisions Diverging from the Paper
+
+Five specification choices depart from the paper's stated or implied defaults.
+Each was made after diagnostic testing against the paper's published figures.
+
+#### Risk-off construction
+
+A risk-off event follows De Bock and De Carvalho
+Filho (2013): the VIX exceeds its 60-day backward-looking moving average by
+10 percentage points. The daily value is binary (1 on risk-off days, 0
+otherwise). This definition reproduces all 15 episode initial dates listed in
+the paper's Table 1 exactly to the day. At the monthly frequency the daily
+binary is aggregated as the proportion of risk-off days in each month. Summing
+risk-off days inflated the shock standard deviation to 2.23 and produced
+excessively sharp impulse response curves. A binary indicator for any risk-off
+day in the month gave the wrong RGDP sign. The proportion preserved the
+correct signs and produced smoother curves matching the paper's Appendix 4
+figures. The paper does not specify its monthly aggregation method.
+
+#### Interpolation method
+
+The paper converts lower-frequency series to
+working-days frequency using quadratic interpolation without specifying
+whether EViews used quadratic-match average, quadratic-match sum, or
+quadratic-match point. Each variant produces a different interpolated daily
+path. This replication reimplements quadratic-match average, the documented
+EViews default, in Python. The method fits a local quadratic through each
+triplet of adjacent source observations constrained so that the mean of the
+high-frequency values within each low-frequency period equals the source
+observation. Mean preservation is verified at machine precision across all
+series. The interpolation target is the trading-day grid from the daily
+dataset, not a calendar-day grid.
+
+#### Dual-vintage data policy
+
+Japan's real GDP underwent a base-year change
+from chained 2011 yen to chained 2015 yen in December 2020, and subsequent
+benchmark revisions raised current-vintage RGDP by 3.5 to 6.3 percent over
+2019 to 2021 while flattening the COVID trough. The BIS REER was retroactively
+rebased from 2010 to 2020 in January 2023 with updated trade weights. The
+paper period (14 January 1999 to 31 March 2021) therefore uses JPNRGDPEXP
+from the FRED ALFRED archive at vintage 2021-06-01 and BIS REER from a
+Wayback Machine snapshot dated 24 May 2021. The extended period uses
+current-vintage data for all series. The full justification and retrieval
+documentation is in `docs/methodology_dual_vintage.md`.
+
+#### Lag selection criteria
+
+The paper selects the lag by AIC without reporting
+the maximum lag searched. On current-vintage data AIC consistently selects the
+boundary lag regardless of the cap, at both daily and monthly frequencies. The
+AIC penalty term is swamped by the likelihood improvement from adding lags in
+a system with ten variables and over 5,000 daily observations. The monthly
+tier uses BIC, which stabilises at 3 lags and produces impulse responses
+matching the paper's Appendix 4 figures. The daily tier retains AIC per the
+paper's stated method. This divergence is disclosed under L7.
+
+#### Capital flow data source
+The paper uses IMF IFS quarterly balance of
+payments data in USD billions. This replication uses Bank of Japan BPM6 data
+at the monthly frequency, measuring net incurrence of portfolio investment
+liabilities. Both sources follow BPM6 conventions. The IMF IFS republishes BOJ
+and Ministry of Finance of Japan data, making the two directly comparable.
+The higher frequency introduces variation in the capital flow equations that
+the paper's quarterly interpolation would smooth.
+
+### Data Transformation Pipeline
+
+The estimation dataset passes through three transformation stages. First, each
+series is stored at its native frequency. The lower-frequency series are
+quadratic-match interpolated to the daily trading-day grid using the
+`quadratic_match_average` function in `replicate_svar.py`. A separate
+pandas-spline interpolation mode (`--interpolate-v1`) produces the v1 daily
+files consumed by the Quarto data pipeline to build `final_dataset.csv`. The
+two-tier estimation uses the quadratic-match v2 files for the daily tier and
+aggregates `final_dataset.csv` for the monthly tier.
+
+Second, the monthly dataset is constructed through `_agg_monthly`. The daily
+risk-off binary is averaged to the monthly proportion of risk-off days. All
+other variables use the last trading day observation of each month. The
+exception is the real GDP and REER series for the paper period, where the
+monthly values are overwritten with the vintage data. The ALFRED vintage GDP
+is assigned to each month within its quarter. The vintage REER is assigned
+directly to its calendar month.
+
+Third, the exogenous matrix is built by `build_exog`. It stacks a unit
+constant vector, a linear time trend indexed from 1 to T, and 11 monthly
+dummy variables with January as the reference month. The same matrix enters
+the daily and monthly VAR specifications.
+
+The restricted model's impulse response confidence intervals use
+`_delta_irf_ci`, a Monte Carlo delta method with 1,000 parametric bootstrap
+draws (seed 42). For each draw, synthetic residuals are sampled from a normal
+distribution with the estimated residual covariance, a bootstrap data path is
+reconstructed from the coefficient matrices, the VAR is re-estimated, and the
+impulse response is recomputed and orthogonalised with the original Cholesky
+factor. The unrestricted model's confidence intervals use asymptotic standard
+errors from `statsmodels` `IRAnalysis.stderr(orth=True)`, the same method
+EViews applies by default. Both interval types widen with the forecast horizon
+and produce non-degenerate bands, correcting the flat-band defect described in
+the Replication Failure section above.
+
 ### Stationarity and Lag Selection
 
 The paper states AIC selects the lag without reporting the maximum searched.
