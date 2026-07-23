@@ -103,8 +103,10 @@ own-lag coefficients of the risk-off equation into cross-variable slots.
 
 After correction, the core findings reproduce in both tiers. The paper's RGDP
 sign, spread widening, and REER appreciation are replicated. The Nikkei
-immediate-positive impact effect is not reproduced. Daily RGDP magnitude is
-shallower than the paper's charts. The restricted and unrestricted
+immediate-positive impact effect is not reproduced. The daily RGDP trough is
+deeper than the paper's charts (-0.00074 versus -0.0006 at day 45-50), and the
+monthly trough is approximately twice as deep (-0.004 versus -0.002). The
+restricted and unrestricted
 specifications diverge on current-vintage data, contrary to the paper's
 claim of full consistency. This divergence is presented as a finding about
 sensitivity to GDP data revisions rather than a failure of either

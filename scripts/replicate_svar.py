@@ -15,6 +15,7 @@ import argparse
 import warnings
 from pathlib import Path
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy import stats
@@ -40,6 +41,11 @@ MAX_LAG_MONTHLY = 12
 ALPHA = 0.05
 MC_REPL_DEFAULT = 1000
 RNG_SEED = 42
+
+FIG_DIR = Path("data/processed/var_results/figures")
+PAPER_COLOR = "#2E45B8"
+EXT_COLOR = "#F97A1F"
+ZERO_COLOR = "#595959"
 
 TMP_DIR = Path("data/tmp_quadratic")
 V2_DIR = TMP_DIR / "v2"
@@ -651,11 +657,25 @@ def _estimate_daily(data, exog, label, with_ci, repl,
     rows_r = _irf_rows(irf_r, lower_r, upper_r, var_order,
                        list(range(irf_r.shape[0])))
 
+    print(f"  Estimating daily unrestricted VAR...")
+    res_u, irf_u = _run_unrestricted_var(data, exog, lag, periods)
+
+    lower_u, upper_u = None, None
+    if with_ci:
+        print(f"  Computing daily unrestricted CIs (asymptotic, B={repl})...")
+        lower_u, upper_u = _ci_unrestricted(res_u, res_u.irf(periods=periods), repl)
+
+    rows_u = _irf_rows(irf_u, lower_u, upper_u, var_order,
+                       list(range(irf_u.shape[0])))
+
     _print_signs(label, irf_r, var_order, [1, 6, 12])
+    _print_signs(label + " (unrestricted)", irf_u, var_order, [1, 6, 12])
 
     return {
         "restricted": {"irf": irf_r, "lower": lower_r, "upper": upper_r, "lag": lag},
+        "unrestricted": {"irf": irf_u, "lower": lower_u, "upper": upper_u, "lag": lag},
         "rows_r": rows_r,
+        "rows_u": rows_u,
     }
 
 
@@ -818,6 +838,8 @@ def _verify():
         "monthly_paper_unrestricted_irf.csv",
         "monthly_extended_restricted_irf.csv",
         "monthly_extended_unrestricted_irf.csv",
+        "daily_paper_unrestricted_irf.csv",
+        "daily_extended_unrestricted_irf.csv",
         "comparison_paper_vs_extended.csv",
         "flow_significance.csv",
     ]
@@ -841,9 +863,9 @@ def _verify():
             refs[fname] = ref
 
     n_refs = len(refs)
-    print(f"    Loaded {n_refs}/12 reference files")
-    if n_refs < 12:
-        print(f"    WARNING: {12 - n_refs} references missing — verify will be incomplete")
+    print(f"    Loaded {n_refs}/14 reference files")
+    if n_refs < 14:
+        print(f"    WARNING: {14 - n_refs} references missing — verify will be incomplete")
 
     # Run the pipeline in-place
     print("\n  Running pipeline...")
@@ -949,6 +971,101 @@ def _verify():
     return all_ok
 
 
+# --- figure functions ---
+
+
+def _plot_panel(ax, df, variable, color):
+    sub = df[df["variable"] == variable].sort_values("horizon")
+    has_ci = "lower" in sub.columns and "upper" in sub.columns
+    if has_ci:
+        ax.fill_between(sub["horizon"], sub["lower"], sub["upper"],
+                         color=color, alpha=0.15)
+    ax.plot(sub["horizon"], sub["response"], color=color, linewidth=0.8)
+    ax.axhline(0, color=ZERO_COLOR, linewidth=0.4, linestyle="--")
+    ax.set_title(variable, fontsize=8)
+
+
+def _grid(csv_path, out_name, title, color):
+    df = pd.read_csv(csv_path)
+    fig, axes = plt.subplots(3, 4, figsize=(12, 8))
+    for ax, var in zip(axes.flat, VAR_ORDER):
+        _plot_panel(ax, df, var, color)
+    for ax in list(axes.flat)[len(VAR_ORDER):]:
+        ax.set_visible(False)
+    fig.suptitle(title, fontsize=11)
+    fig.tight_layout()
+    fig.savefig(FIG_DIR / out_name, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Saved: {out_name}")
+
+
+def _panel_pair(daily_csv, monthly_csv, variable, out_name, title):
+    fig, axes = plt.subplots(1, 2, figsize=(10, 3.5))
+    _plot_panel(axes[0], pd.read_csv(daily_csv), variable, PAPER_COLOR)
+    axes[0].set_title(f"{variable} daily", fontsize=8)
+    _plot_panel(axes[1], pd.read_csv(monthly_csv), variable, PAPER_COLOR)
+    axes[1].set_title(f"{variable} monthly", fontsize=8)
+    fig.suptitle(title, fontsize=10)
+    fig.tight_layout()
+    fig.savefig(FIG_DIR / out_name, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Saved: {out_name}")
+
+
+def run_figures():
+    FIG_DIR.mkdir(parents=True, exist_ok=True)
+
+    grids = [
+        (TWOTIER_DIR / "daily_paper_irf.csv",
+         "irf_grid_daily_restricted_paper.png",
+         "Daily restricted VAR, response to risk-off shock, 1999-2021", PAPER_COLOR),
+        (TWOTIER_DIR / "daily_paper_unrestricted_irf.csv",
+         "irf_grid_daily_unrestricted_paper.png",
+         "Daily unrestricted VAR, response to risk-off shock, 1999-2021", PAPER_COLOR),
+        (TWOTIER_DIR / "monthly_paper_restricted_irf.csv",
+         "irf_grid_monthly_restricted_paper.png",
+         "Monthly restricted VAR, response to risk-off shock, 1999-2021", PAPER_COLOR),
+        (TWOTIER_DIR / "monthly_paper_unrestricted_irf.csv",
+         "irf_grid_monthly_unrestricted_paper.png",
+         "Monthly unrestricted VAR, response to risk-off shock, 1999-2021", PAPER_COLOR),
+        (TWOTIER_DIR / "daily_extended_irf.csv",
+         "irf_grid_daily_restricted_extended.png",
+         "Daily restricted VAR, response to risk-off shock, 1999-2026", EXT_COLOR),
+        (TWOTIER_DIR / "daily_extended_unrestricted_irf.csv",
+         "irf_grid_daily_unrestricted_extended.png",
+         "Daily unrestricted VAR, response to risk-off shock, 1999-2026", EXT_COLOR),
+        (TWOTIER_DIR / "monthly_extended_restricted_irf.csv",
+         "irf_grid_monthly_restricted_extended.png",
+         "Monthly restricted VAR, response to risk-off shock, 1999-2026", EXT_COLOR),
+        (TWOTIER_DIR / "monthly_extended_unrestricted_irf.csv",
+         "irf_grid_monthly_unrestricted_extended.png",
+         "Monthly unrestricted VAR, response to risk-off shock, 1999-2026", EXT_COLOR),
+    ]
+    for csv_path, out_name, title, color in grids:
+        _grid(csv_path, out_name, title, color)
+
+    daily_csv = TWOTIER_DIR / "daily_paper_irf.csv"
+    monthly_csv = TWOTIER_DIR / "monthly_paper_restricted_irf.csv"
+
+    panels = [
+        ("log_wui", "irf_panel_wui_paper.png",
+         "log_wui response to risk-off shock, daily vs monthly (paper A4.1)"),
+        ("log_rgdp", "irf_panel_rgdp_paper.png",
+         "log_rgdp response to risk-off shock, daily vs monthly (paper A4.2)"),
+        ("log_reer", "irf_panel_reer_paper.png",
+         "log_reer response to risk-off shock, daily vs monthly (paper A4.3)"),
+        ("spread", "irf_panel_spread_paper.png",
+         "spread response to risk-off shock, daily vs monthly (paper A4.4)"),
+        ("log_nikkei", "irf_panel_stock_paper.png",
+         "log_nikkei response to risk-off shock, daily vs monthly (paper A4.5)"),
+        ("debtsec_pct", "irf_panel_debtsec_paper.png",
+         "debtsec_pct response to risk-off shock, daily vs monthly (paper A4.6)"),
+        ("equity_pct", "irf_panel_equity_paper.png",
+         "equity_pct response to risk-off shock, daily vs monthly (paper A4.7)"),
+    ]
+    for var, out_name, title in panels:
+        _panel_pair(daily_csv, monthly_csv, var, out_name, title)
+
 
 def _run_pipeline(with_daily_ci=False, repl=MC_REPL_DEFAULT):
     """Run the full two-tier estimation pipeline, writing outputs in-place."""
@@ -988,6 +1105,7 @@ def _run_pipeline(with_daily_ci=False, repl=MC_REPL_DEFAULT):
         data_p, exog_p, "Daily paper (restricted)",
         with_ci=with_daily_ci, repl=repl)
     _save_irf_csv(res_daily_paper["rows_r"], "daily_paper_irf.csv")
+    _save_irf_csv(res_daily_paper["rows_u"], "daily_paper_unrestricted_irf.csv")
     all_runs["daily_paper"] = res_daily_paper
 
     print()
@@ -999,6 +1117,7 @@ def _run_pipeline(with_daily_ci=False, repl=MC_REPL_DEFAULT):
         data_e, exog_e, "Daily extended (restricted)",
         with_ci=with_daily_ci, repl=repl)
     _save_irf_csv(res_daily_ext["rows_r"], "daily_extended_irf.csv")
+    _save_irf_csv(res_daily_ext["rows_u"], "daily_extended_unrestricted_irf.csv")
     all_runs["daily_extended"] = res_daily_ext
 
     print()
@@ -1064,6 +1183,8 @@ def main():
                         help=f"MC bootstrap replications (default: {MC_REPL_DEFAULT})")
     parser.add_argument("--verify", action="store_true",
                         help="Compare outputs against committed reference CSVs")
+    parser.add_argument("--figures", action="store_true",
+                        help="Render IRF figures from committed CSVs")
     parser.add_argument("--fetch-vintage-gdp", action="store_true",
                         help="Download ALFRED JPNRGDPEXP vintage CSV if missing (requires internet)")
     parser.add_argument("--fetch-vintage-reer", action="store_true",
@@ -1087,6 +1208,10 @@ def main():
 
     if args.fetch_vintage_reer:
         fetch_vintage_reer()
+        return
+
+    if args.figures:
+        run_figures()
         return
 
     print(60 * "=")
