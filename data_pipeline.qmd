@@ -1423,6 +1423,8 @@ daily_paper |>
        title = "Daily Restricted VAR: IRF to Risk-off Shock (Paper Period, 1999-2021)",
        caption = "95% Monte Carlo confidence bands. Quadratic-match interpolation.") +
   theme_quant()
+ggsave("data/processed/var_results/figures/irf_daily_paper_restricted.png",
+       width = 16, height = 10, dpi = 150)
 ```
 
 ### Monthly Tier: Paper Period Restricted IRF Figure
@@ -1446,6 +1448,8 @@ monthly_paper_r |>
        title = "Monthly Restricted VAR: IRF to Risk-off Shock (Paper Period, 1999-2021)",
        caption = "95% Monte Carlo confidence bands. Vintage data used for RGDP and REER.") +
   theme_quant()
+ggsave("data/processed/var_results/figures/irf_monthly_paper_restricted.png",
+       width = 16, height = 10, dpi = 150)
 ```
 
 ### Monthly Tier Summary: Key Horizons
