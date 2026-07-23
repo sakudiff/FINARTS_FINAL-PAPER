@@ -1200,18 +1200,50 @@ dir.create("drafts", showWarnings = FALSE)
 writeLines(c(preamble, rows$line, closing), "drafts/risk_off_episodes.tex")
 ```
 
-## SVAR Estimation
+## Methodology
 
-The remaining code implements the structural VAR from Section 4 of Beirne and
-Sugandi (2023). The data pipeline above already produces the ten endogenous
-variables in the correct Cholesky ordering. What follows is the model
-estimation and a full-disclosure account of the replication process.
+The empirical strategy follows Beirne and Sugandi (2023, Section 4) with
+modifications documented below. The model is a structural vector autoregression
+estimated on working-days data from 14 January 1999 to 31 March 2021 for the
+paper period and extended through 30 June 2026. The generic VAR is
+
+\[
+Y_t = \sum_{\tau=1}^k Y_{t-\tau} A_\tau + X_t B + c + \varepsilon_t
+\]
+
+where \(Y_t\) is the \(10 \times 1\) vector of endogenous variables, \(X_t\) is
+the matrix of exogenous variables (constant, linear time trend, and 11 monthly
+seasonal dummies), \(A_\tau\) and \(B\) are coefficient matrices, \(c\) is the
+constant vector, and \(\varepsilon_t\) is the vector of reduced-form residuals.
+The lag length \(k\) is selected by the Akaike Information Criterion for the
+daily tier and the Bayesian Information Criterion for the monthly tier. The
+AIC overfits to the maximum search boundary on current-vintage data, a
+behaviour documented under L7.
+
+The ten endogenous variables enter in Cholesky order: risk_off, log_wui,
+spread, log_rgdp, log_reer, log_nikkei, debtsec_pct, equity_pct, other_pct,
+direct_pct. The risk-off variable is ordered first because it is the
+exogenous shock of interest. Identification is via lower-triangular Cholesky
+decomposition of the residual covariance matrix. The baseline specification is
+a recursively restricted VAR: the risk-off equation depends only on its own
+lagged values, imposing block exogeneity, while all other equations depend on
+the lagged values of every variable, including risk-off. The unrestricted VAR
+removes this restriction and is reported as a robustness check, mirroring the
+paper's Appendix A2.
+
+Estimation uses ordinary least squares equation-by-equation for the restricted
+model and `statsmodels` for the unrestricted model. Monte Carlo delta-method
+confidence bands (1,000 draws) cover the restricted impulse responses.
+Asymptotic standard errors cover the unrestricted responses. All computations
+run on Python with `uv` as the package manager. The complete pipeline is a
+single script, `scripts/replicate_svar.py`, and the repository is publicly
+available at `https://github.com/sakudiff/FINARTS_FINAL-PAPER`.
 
 ### Replication Failure and Diagnosis
 
 The replication initially produced impulse responses that did not match the
 paper's published figures. The failure turned out to be diagnostic, not
-terminal. Four code defects were identified and corrected.
+terminal. Five code defects were identified and corrected.
 
 The first defect was an IRF recursion transpose. The impulse response
 computation in the original VAR script used `irfs[i - j] @ coefs[j - 1].T`
@@ -1765,21 +1797,34 @@ status weakened during the Federal Reserve's rate hiking cycle, the Bank of
 Japan's continued yield curve control, and the energy-driven deterioration of
 Japan's balance of payments position after the Russian invasion of Ukraine.
 
-### Replication Fidelity
+```{r fidelity-values}
+#| echo: false
+#| message: false
+get_dv <- function(var, h) daily_paper |> filter(variable==var, horizon==h)
+get_mv <- function(var, h) monthly_paper_r |> filter(variable==var, horizon==h)
+dr1  <- get_dv("log_rgdp", 1);   dr125 <- get_dv("log_rgdp", 125)
+mr3  <- get_mv("log_rgdp", 3);   mr12  <- get_mv("log_rgdp", 12)
+fc   <- sum(flow_sig$significant_95)
+fs   <- flow_sig |> filter(significant_95) |> select(specification, variable, horizon) |>
+  mutate(label = paste0(specification, " at h=", horizon)) |> pull(label) |> paste(collapse=" and ")
+```
 
 The paper-period daily restricted VAR produces a negative and statistically
-significant RGDP response at every horizon. At h=1 the response is -0.000053
-(95 percent CI [-0.000083, -0.000024]). At h=125 it is -0.000640 (95 percent
-CI [-0.000765, -0.000242]). The monthly restricted vintage model shows an
-RGDP trough of -0.003980 at h=3, significant through h=6 (CI entirely below
-zero), marginal at h=12 (upper bound -0.000104), and statistically
-indistinguishable from zero at h=24 and beyond. The spread response is
-positive and persistent in all specifications. The WUI response is negative
-in the long horizon but does not replicate the paper's smooth
-positive-then-negative pattern. Capital flow responses are mostly
-insignificant, matching the paper's null result for portfolio flows. Only
-two entries in the flow significance table reach the 95 percent threshold:
-both for direct_pct at h=3 (restricted and unrestricted).
+significant RGDP response at every horizon. At h=1 the response
+is `r sprintf("%.6f", dr1$response)` (95 percent CI
+[`r sprintf("%.6f", dr1$lower)`, `r sprintf("%.6f", dr1$upper)`]).
+At h=125 it is `r sprintf("%.6f", dr125$response)` (95 percent CI
+[`r sprintf("%.6f", dr125$lower)`, `r sprintf("%.6f", dr125$upper)`]).
+The monthly restricted vintage model shows an RGDP trough of
+`r sprintf("%.6f", mr3$response)` at h=3, significant through h=6 (CI
+entirely below zero), marginal at h=12 (upper bound
+`r sprintf("%.6f", mr12$upper)`), and statistically indistinguishable from
+zero at h=24 and beyond. The spread response is positive and persistent in
+all specifications. The WUI response is negative in the long horizon but
+does not replicate the paper's smooth positive-then-negative pattern. Capital
+flow responses are mostly insignificant, matching the paper's null result for
+portfolio flows. Exactly `r fc` entries in the flow significance table reach
+the 95 percent threshold (`r fs`).
 
 The paper's A4 weekly panels are not replicated. The daily and monthly frequencies are presented instead, per the two-tier design.
 
