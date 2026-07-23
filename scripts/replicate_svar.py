@@ -974,7 +974,15 @@ def _verify():
 # --- figure functions ---
 
 
-def _plot_panel(ax, df, variable, color):
+VAR_LABELS = {
+    "risk_off": "RISK", "log_wui": "LOG(WUI_JP)", "spread": "SPREAD_JP",
+    "log_rgdp": "LOG(RGDP_JP)", "log_reer": "LOG(REER_JP)",
+    "log_nikkei": "LOG(STOCK_IDX_JP)", "debtsec_pct": "DEBTSEC_JP",
+    "equity_pct": "EQUITY_JP", "other_pct": "OTHER_JP", "direct_pct": "DIRECT_JP",
+}
+
+
+def _plot_panel(ax, df, variable, color, x_max):
     sub = df[df["variable"] == variable].sort_values("horizon")
     has_ci = "lower" in sub.columns and "upper" in sub.columns
     if has_ci:
@@ -982,31 +990,32 @@ def _plot_panel(ax, df, variable, color):
                          color=color, alpha=0.15)
     ax.plot(sub["horizon"], sub["response"], color=color, linewidth=0.8)
     ax.axhline(0, color=ZERO_COLOR, linewidth=0.4, linestyle="--")
-    ax.set_title(variable, fontsize=8)
+    ax.set_title(VAR_LABELS.get(variable, variable), fontsize=8)
+    ax.set_xlim(0, x_max)
+    ax.set_xlabel("")
+    ax.tick_params(labelbottom=False)
 
 
 def _grid(csv_path, out_name, title, color):
     df = pd.read_csv(csv_path)
-    fig, axes = plt.subplots(3, 4, figsize=(12, 8))
-    for ax, var in zip(axes.flat, VAR_ORDER):
-        _plot_panel(ax, df, var, color)
-    for ax in list(axes.flat)[len(VAR_ORDER):]:
-        ax.set_visible(False)
-    fig.suptitle(title, fontsize=11)
-    fig.tight_layout()
-    fig.savefig(FIG_DIR / out_name, dpi=150, bbox_inches="tight")
-    plt.close(fig)
-    print(f"Saved: {out_name}")
-
-
-def _panel_pair(daily_csv, monthly_csv, variable, out_name, title):
-    fig, axes = plt.subplots(1, 2, figsize=(10, 3.5))
-    _plot_panel(axes[0], pd.read_csv(daily_csv), variable, PAPER_COLOR)
-    axes[0].set_title(f"{variable} daily", fontsize=8)
-    _plot_panel(axes[1], pd.read_csv(monthly_csv), variable, PAPER_COLOR)
-    axes[1].set_title(f"{variable} monthly", fontsize=8)
-    fig.suptitle(title, fontsize=10)
-    fig.tight_layout()
+    x_max = df["horizon"].max()
+    x_ticks = list(range(0, int(x_max) + 1, 25)) if x_max > 60 else list(range(0, int(x_max) + 1, 5))
+    last_ax_idx = None
+    fig, axes = plt.subplots(5, 2, figsize=(10, 12))
+    for idx, var in enumerate(VAR_ORDER):
+        ax = axes.flat[idx]
+        _plot_panel(ax, df, var, color, x_max)
+        last_ax_idx = idx
+    for idx in range(len(VAR_ORDER), 10):
+        axes.flat[idx].set_visible(False)
+    axes.flat[last_ax_idx].set_xlabel("Horizon")
+    axes.flat[last_ax_idx].tick_params(labelbottom=True)
+    axes.flat[last_ax_idx].set_xticks(x_ticks)
+    axes.flat[last_ax_idx - 1].set_xlabel("Horizon")
+    axes.flat[last_ax_idx - 1].tick_params(labelbottom=True)
+    axes.flat[last_ax_idx - 1].set_xticks(x_ticks)
+    fig.suptitle(title, fontsize=12, fontweight="bold")
+    fig.tight_layout(rect=[0, 0, 1, 0.97])
     fig.savefig(FIG_DIR / out_name, dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"Saved: {out_name}")
@@ -1040,161 +1049,31 @@ def run_figures():
     grids = [
         (TWOTIER_DIR / "daily_paper_irf.csv",
          "irf_grid_daily_restricted_paper.png",
-         "Daily restricted VAR, response to risk-off shock, 1999-2021", PAPER_COLOR),
+         "Figure A3.1, Real and Financial Spillovers in Japan (Restricted), 1999-2021", PAPER_COLOR),
         (TWOTIER_DIR / "daily_paper_unrestricted_irf.csv",
          "irf_grid_daily_unrestricted_paper.png",
-         "Daily unrestricted VAR, response to risk-off shock, 1999-2021", PAPER_COLOR),
+         "Figure A2.1, Real and Financial Spillovers in Japan (Unrestricted), 1999-2021", PAPER_COLOR),
         (TWOTIER_DIR / "monthly_paper_restricted_irf.csv",
          "irf_grid_monthly_restricted_paper.png",
-         "Monthly restricted VAR, response to risk-off shock, 1999-2021", PAPER_COLOR),
+         "Figure A4, Real and Financial Spillovers in Japan, Monthly (Restricted), 1999-2021", PAPER_COLOR),
         (TWOTIER_DIR / "monthly_paper_unrestricted_irf.csv",
          "irf_grid_monthly_unrestricted_paper.png",
-         "Monthly unrestricted VAR, response to risk-off shock, 1999-2021", PAPER_COLOR),
+         "Figure A4, Real and Financial Spillovers in Japan, Monthly (Unrestricted), 1999-2021", PAPER_COLOR),
         (TWOTIER_DIR / "daily_extended_irf.csv",
          "irf_grid_daily_restricted_extended.png",
-         "Daily restricted VAR, response to risk-off shock, 1999-2026", EXT_COLOR),
+         "Real and Financial Spillovers in Japan (Restricted), 1999-2026", EXT_COLOR),
         (TWOTIER_DIR / "daily_extended_unrestricted_irf.csv",
          "irf_grid_daily_unrestricted_extended.png",
-         "Daily unrestricted VAR, response to risk-off shock, 1999-2026", EXT_COLOR),
+         "Real and Financial Spillovers in Japan (Unrestricted), 1999-2026", EXT_COLOR),
         (TWOTIER_DIR / "monthly_extended_restricted_irf.csv",
          "irf_grid_monthly_restricted_extended.png",
-         "Monthly restricted VAR, response to risk-off shock, 1999-2026", EXT_COLOR),
+         "Real and Financial Spillovers in Japan, Monthly (Restricted), 1999-2026", EXT_COLOR),
         (TWOTIER_DIR / "monthly_extended_unrestricted_irf.csv",
          "irf_grid_monthly_unrestricted_extended.png",
-         "Monthly unrestricted VAR, response to risk-off shock, 1999-2026", EXT_COLOR),
+         "Real and Financial Spillovers in Japan, Monthly (Unrestricted), 1999-2026", EXT_COLOR),
     ]
     for csv_path, out_name, title, color in grids:
         _grid(csv_path, out_name, title, color)
-
-    daily_csv = TWOTIER_DIR / "daily_paper_irf.csv"
-    monthly_csv = TWOTIER_DIR / "monthly_paper_restricted_irf.csv"
-
-    panels = [
-        ("log_wui", "irf_panel_wui_paper.png",
-         "log_wui response to risk-off shock, daily vs monthly (paper A4.1)"),
-        ("log_rgdp", "irf_panel_rgdp_paper.png",
-         "log_rgdp response to risk-off shock, daily vs monthly (paper A4.2)"),
-        ("log_reer", "irf_panel_reer_paper.png",
-         "log_reer response to risk-off shock, daily vs monthly (paper A4.3)"),
-        ("spread", "irf_panel_spread_paper.png",
-         "spread response to risk-off shock, daily vs monthly (paper A4.4)"),
-        ("log_nikkei", "irf_panel_stock_paper.png",
-         "log_nikkei response to risk-off shock, daily vs monthly (paper A4.5)"),
-        ("debtsec_pct", "irf_panel_debtsec_paper.png",
-         "debtsec_pct response to risk-off shock, daily vs monthly (paper A4.6)"),
-        ("equity_pct", "irf_panel_equity_paper.png",
-         "equity_pct response to risk-off shock, daily vs monthly (paper A4.7)"),
-    ]
-    for var, out_name, title in panels:
-        _panel_pair(daily_csv, monthly_csv, var, out_name, title)
-
-
-def _run_pipeline(with_daily_ci=False, repl=MC_REPL_DEFAULT):
-    """Run the full two-tier estimation pipeline, writing outputs in-place."""
-    print("Running pipeline...")
-    print(f"Daily CIs:     {'YES' if with_daily_ci else 'point estimates only'}")
-    print(f"MC repl:       {repl}")
-    print()
-
-    t_start = time.time()
-
-    df_daily = pd.read_csv("data/processed/final_dataset.csv", parse_dates=["date"])
-    df_daily = df_daily.sort_values("date").reset_index(drop=True)
-    print(f"Daily data: {len(df_daily)} rows, {df_daily['date'].min()} to {df_daily['date'].max()}")
-    print()
-
-    print("STEP 1: Quadratic-match interpolation (v2)")
-    print(60 * "-")
-    _regenerate_qdmatch()
-
-    print()
-    print("STEP 2: Stationarity tests and lag selection")
-    print(60 * "-")
-    _run_adf_and_lag(df_daily)
-
-    all_runs = {}
-
-    print()
-    print("STEP 3: DAILY RESTRICTED VAR")
-    print(60 * "-")
-
-    print()
-    print("  Building daily paper-period dataset (vintage)...")
-    daily_paper = _build_daily_paper(df_daily)
-    exog_p, _ = build_exog(daily_paper.loc[daily_paper[VAR_ORDER].dropna().index])
-    data_p = daily_paper[VAR_ORDER].dropna()
-    res_daily_paper = _estimate_daily(
-        data_p, exog_p, "Daily paper (restricted)",
-        with_ci=with_daily_ci, repl=repl)
-    _save_irf_csv(res_daily_paper["rows_r"], "daily_paper_irf.csv")
-    _save_irf_csv(res_daily_paper["rows_u"], "daily_paper_unrestricted_irf.csv")
-    all_runs["daily_paper"] = res_daily_paper
-
-    print()
-    print("  Building daily extended-period dataset...")
-    daily_ext = _build_daily_extended(df_daily)
-    exog_e, _ = build_exog(daily_ext.loc[daily_ext[VAR_ORDER].dropna().index])
-    data_e = daily_ext[VAR_ORDER].dropna()
-    res_daily_ext = _estimate_daily(
-        data_e, exog_e, "Daily extended (restricted)",
-        with_ci=with_daily_ci, repl=repl)
-    _save_irf_csv(res_daily_ext["rows_r"], "daily_extended_irf.csv")
-    _save_irf_csv(res_daily_ext["rows_u"], "daily_extended_unrestricted_irf.csv")
-    all_runs["daily_extended"] = res_daily_ext
-
-    print()
-    print("STEP 4: MONTHLY RESTRICTED + UNRESTRICTED VAR")
-    print(60 * "-")
-
-    print()
-    print("  Building monthly paper-period dataset (vintage)...")
-    monthly_paper = _build_monthly_paper_vintage(df_daily)
-    exog_mp, _ = build_exog(monthly_paper.loc[monthly_paper[VAR_ORDER].dropna().index])
-    data_mp = monthly_paper[VAR_ORDER].dropna()
-    res_monthly_paper = _estimate_monthly(
-        data_mp, exog_mp, "Monthly paper (vintage)",
-        repl=repl)
-    _save_irf_csv(res_monthly_paper["rows_r"], "monthly_paper_restricted_irf.csv")
-    _save_irf_csv(res_monthly_paper["rows_u"], "monthly_paper_unrestricted_irf.csv")
-    all_runs["monthly_paper"] = res_monthly_paper
-
-    print()
-    print("  Building monthly extended-period dataset...")
-    monthly_ext = _build_monthly_extended(df_daily)
-    exog_me, _ = build_exog(monthly_ext.loc[monthly_ext[VAR_ORDER].dropna().index])
-    data_me = monthly_ext[VAR_ORDER].dropna()
-    res_monthly_ext = _estimate_monthly(
-        data_me, exog_me, "Monthly extended",
-        repl=repl)
-    _save_irf_csv(res_monthly_ext["rows_r"], "monthly_extended_restricted_irf.csv")
-    _save_irf_csv(res_monthly_ext["rows_u"], "monthly_extended_unrestricted_irf.csv")
-    all_runs["monthly_extended"] = res_monthly_ext
-
-    print()
-    print("STEP 5: COMPARISON AND FLOW SIGNIFICANCE TABLES")
-    print(60 * "-")
-    comp_df = _build_comparison_table(all_runs)
-    comp_df.to_csv(str(TWOTIER_DIR / "comparison_paper_vs_extended.csv"), index=False)
-    print(f"  Saved: comparison_paper_vs_extended.csv ({len(comp_df)} rows)")
-
-    flow_df = _build_flow_significance("monthly_paper", all_runs)
-    if flow_df is not None:
-        flow_df.to_csv(str(TWOTIER_DIR / "flow_significance.csv"), index=False)
-        print(f"  Saved: flow_significance.csv ({len(flow_df)} rows)")
-    else:
-        print("  (flow_significance not available)")
-
-    print()
-    print(60 * "=")
-    print("FLOW SIGNIFICANCE VERDICT (monthly paper)")
-    print(60 * "=")
-    print_flow_verdict(flow_df)
-
-    elapsed = time.time() - t_start
-    print(f"\nTotal time: {elapsed:.1f}s ({elapsed/60:.1f} min)")
-    print(f"All outputs in: {TWOTIER_DIR.resolve()}")
-
-
 def main():
     parser = argparse.ArgumentParser(description="Unified SVAR replication")
     parser.add_argument("--interpolate-v1", action="store_true",

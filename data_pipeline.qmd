@@ -1563,62 +1563,6 @@ knitr::include_graphics("data/processed/var_results/figures/irf_grid_monthly_unr
 
 This monthly unrestricted grid extends the unrestricted monthly specification to 2026. It shows the unrestricted model over the full 1999 to 2026 sample.
 
-```{r repl-fig-panel-wui}
-#| echo: false
-#| message: false
-knitr::include_graphics("data/processed/var_results/figures/irf_panel_wui_paper.png")
-```
-
-This daily and monthly frequency panel corresponds to the paper's Appendix Figure A4.1. WUI is a mismatch at both frequencies. The paper's daily WUI rises to a +0.0017 plateau. Our daily estimate troughs at -0.01 at day 40. The paper's monthly WUI starts at +0.002 and dips to -0.003 at month 7. Our monthly estimate peaks at +0.052 at month 5 and oscillates. The paper's own figures show this frequency dependence: daily WUI reaches +0.0017 and monthly WUI reaches -0.003. Our replication reproduces the sign instability but not the magnitude or the smooth pattern.
-
-```{r repl-fig-panel-rgdp}
-#| echo: false
-#| message: false
-knitr::include_graphics("data/processed/var_results/figures/irf_panel_rgdp_paper.png")
-```
-
-This panel corresponds to the paper's Appendix Figure A4.2. RGDP is a match at daily frequency and a partial match at monthly frequency. At daily frequency the paper troughs at -0.0006 at day 45. Our estimate troughs at -0.00074 at day 50. Both confidence intervals stay below zero. At monthly frequency the paper reaches -0.002 at months 7 to 8. Our estimate troughs at -0.004 at month 3. Both recover toward zero.
-
-```{r repl-fig-panel-reer}
-#| echo: false
-#| message: false
-knitr::include_graphics("data/processed/var_results/figures/irf_panel_reer_paper.png")
-```
-
-This panel corresponds to the paper's Appendix Figure A4.3. REER matches the paper at both frequencies. At daily frequency the paper reaches a +0.0008 plateau. Our estimate reaches a +0.002 plateau. At monthly frequency the paper peaks at +0.005 at months 3 to 4. Our estimate peaks at +0.012 at month 3.
-
-```{r repl-fig-panel-spread}
-#| echo: false
-#| message: false
-knitr::include_graphics("data/processed/var_results/figures/irf_panel_spread_paper.png")
-```
-
-This panel corresponds to the paper's Appendix Figure A4.4. SPREAD matches the paper at both frequencies. At daily frequency the paper peaks at 0.010 at day 50 and decays to 0.007. Our estimate peaks at 0.015 at day 50 and decays to 0.012. At monthly frequency the paper spikes to 0.075 at month 3 and decays to 0.01. Our estimate spikes to 0.115 at month 3 and decays to 0.003.
-
-```{r repl-fig-panel-stock}
-#| echo: false
-#| message: false
-knitr::include_graphics("data/processed/var_results/figures/irf_panel_stock_paper.png")
-```
-
-This panel corresponds to the paper's Appendix Figure A4.5. The Nikkei 225 response is a partial match at daily frequency and a match at monthly frequency. At daily frequency the paper shows a +0.0005 blip then a decline to -0.001. Our estimate declines from -0.0014 to -0.0066 with no initial blip. At monthly frequency the paper starts at -0.017 and recovers to -0.004 at month 40. Our estimate starts at -0.021 and recovers to +0.0003.
-
-```{r repl-fig-panel-debtsec}
-#| echo: false
-#| message: false
-knitr::include_graphics("data/processed/var_results/figures/irf_panel_debtsec_paper.png")
-```
-
-This panel corresponds to the paper's Appendix Figure A4.6. DEBTSEC is a partial match at both frequencies. At daily frequency the paper dips to -0.005 then flattens at zero. Our estimate is noisy and settles near zero. At monthly frequency the paper starts at +0.06, is volatile, and settles to zero. Our estimate starts at -0.15, is volatile, and settles to zero. The directional paths differ but both converge to zero.
-
-```{r repl-fig-panel-equity}
-#| echo: false
-#| message: false
-knitr::include_graphics("data/processed/var_results/figures/irf_panel_equity_paper.png")
-```
-
-This panel corresponds to the paper's Appendix Figure A4.7. EQUITY is a partial match at daily frequency and a match at monthly frequency. At daily frequency the paper troughs at -0.006 at day 40 and recovers to +0.001. Our estimate troughs at -0.038 at day 25 and recovers to -0.0017. At monthly frequency the paper troughs at -0.065 at month 4 and rebounds to +0.025. Our estimate troughs at -0.055 at month 3 and rebounds to +0.026.
-
 ### Replication Fidelity: Assessment
 
 The paper-period daily restricted VAR produces a negative and statistically
