@@ -1369,6 +1369,21 @@ lag_both |>
 
 ### Discussion of Results
 
+This replication tested whether the sign patterns and qualitative conclusions
+in Beirne and Sugandi (2023) for Japan reproduce after five code defects
+are corrected and the estimation switches to vintage-period data for GDP
+and the real effective exchange rate. The answer is yes, with one clean
+failure and a few asterisks. The daily restricted VAR reproduces the paper's
+RGDP decline, REER appreciation, and spread widening. The monthly restricted
+VAR confirms these signs. The extension to 2026 reveals a near-zero RGDP
+response after 2021, consistent with the yen's diminished safe-haven role
+during the rate divergence cycle. Capital flows are mostly insignificant in
+both specifications, matching the paper's null result. The one clean failure
+is the World Uncertainty Index, which shows an opposite-sign response at both
+daily and monthly frequencies. The paper's own daily and monthly WUI have
+opposite signs from each other, confirming that this variable is fragile to
+frequency conversion regardless of who runs the VAR.
+
 The sections below present the impulse response results from the two-tier
 structural VAR. Four paper-period grids and four extended-period grids
 document the response of each endogenous variable to a one-standard-deviation
@@ -1733,6 +1748,22 @@ rests on a single Wayback Machine snapshot, not on a certified archival
 source. The paper's stated monthly WUI series cannot exist before 2008, so
 quarterly WUI is the defensible source, but the conversion method between
 frequencies is the authors' choice, not the paper's.
+
+This replication contributes three findings that extend beyond confirming
+the paper's directional results. The most consequential is the set of five
+code defects disclosed in the Replication Failure and Diagnosis section above.
+The coefficient-storage bug alone corrupted every restricted impulse response.
+Correcting it removed a spurious similarity between the paper period and the
+extended period that had masked the post-2021 weakening of the RGDP response.
+The second is the dual-vintage data policy. Substituting the ALFRED 2021-06-01
+vintage GDP flipped the sign of the restricted model's RGDP response back to
+negative, proving that Japan's post-2022 GDP benchmark revisions alone are
+sufficient to break the paper's restricted specification on current data. The
+third is the extended-period result. The RGDP response drops to near zero
+after 2021, aligning with the emerging evidence that the yen's safe-haven
+status weakened during the Federal Reserve's rate hiking cycle, the Bank of
+Japan's continued yield curve control, and the energy-driven deterioration of
+Japan's balance of payments position after the Russian invasion of Ukraine.
 
 ### Replication Fidelity
 
