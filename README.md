@@ -1,4 +1,4 @@
-# Risk-Off Shocks and Spillovers in Safe Havens — Replication and Extension
+# Risk-Off Shocks and Spillovers in Safe Havens, Replication and Extension
 
 Replication of Beirne and Sugandi (2023), "Risk-off Shocks and Spillovers in
 Safe Havens," *Pacific-Basin Finance Journal*, Vol. 80, 102103. Country-specific
@@ -46,7 +46,7 @@ uv run python scripts/replicate_svar.py --with-daily-ci --repl 1000
 |--------|-------|-----------------|
 | Frequency | Daily (baseline), monthly (appendix) | Daily (Tier 1), monthly (Tier 2) |
 | Model | Restricted VAR (block exogeneity) | Restricted (Tier 1) and unrestricted (Tier 2) |
-| Lag selection | AIC (maxlags unreported) | AIC (Tier 1), BIC (Tier 2 — AIC overfits to boundary) |
+| Lag selection | AIC (maxlags unreported) | AIC (Tier 1), BIC (Tier 2, AIC overfits to boundary) |
 | Identification | Cholesky, risk-off first | Same ordering |
 | Interpolation | EViews quadratic (settings unreported) | Python quadratic-match average reimplementation |
 | Capital flows | IMF IFS quarterly BOP | BOJ BPM6 monthly (BPM6-equivalent, directly comparable) |
@@ -73,11 +73,11 @@ uv run python scripts/replicate_svar.py --with-daily-ci --repl 1000
 
 | Detail | Implication |
 |--------|------------|
-| Exact lag count and AIC search ceiling | AIC always hits the boundary on our data; BIC adopted for monthly tier |
+| Exact lag count and AIC search ceiling | AIC always hits the boundary on our data. BIC adopted for monthly tier |
 | EViews interpolation variant (average vs sum vs point) | Different variants produce meaningfully different daily paths |
-| Monthly risk-off aggregation method | Tested sum, binary, and proportion; proportion chosen for correct signs |
+| Monthly risk-off aggregation method | Tested sum, binary, and proportion. Proportion chosen for correct signs |
 | Confidence interval method | Replaced with Monte Carlo delta method (restricted) and asymptotic bands (unrestricted) |
-| Software | Figure styling suggests EViews; pipeline uses Python and statsmodels |
+| Software | Figure styling suggests EViews. Pipeline uses Python and statsmodels |
 | GDP data source vintage | 3.5–6.3% revision over 2019–2021 requires vintage data for replication |
 
 ## Why each decision was made
@@ -88,8 +88,8 @@ uv run python scripts/replicate_svar.py --with-daily-ci --repl 1000
 | BIC instead of AIC for monthly | AIC consistently selected boundary lag at every tested cap | Stated AIC, did not report cap |
 | Unrestricted as baseline for monthly | Restricted model failed on current-vintage RGDP (vintage substitution confirmed revision sensitivity) | Both restricted and unrestricted, claimed consistency |
 | Proportion risk-off aggregation | Sum inflated shock SD to 2.23, binary gave wrong RGDP sign | Not specified |
-| Dual-vintage data policy | Post-2022 GDP benchmark revisions changed RGDP sign; BIS REER retroactively rebased | Used current data at time of writing |
-| BOJ instead of IMF capital flows | IMF IFS republishes BOJ/MOF data under BPM6; directly comparable | IMF IFS quarterly BOP |
+| Dual-vintage data policy | Post-2022 GDP benchmark revisions changed RGDP sign. BIS REER retroactively rebased | Used current data at time of writing |
+| BOJ instead of IMF capital flows | IMF IFS republishes BOJ/MOF data under BPM6. Directly comparable | IMF IFS quarterly BOP |
 
 ## Replication fidelity
 
@@ -119,7 +119,7 @@ defensible source. BOJ capital flows are higher frequency than the paper's
 IMF series, introducing variation the paper's VAR would not have seen.
 The monthly tier uses BIC for lag selection where the paper states AIC.
 The unrestricted CIs use asymptotic bands rather than Monte Carlo. The
-pipeline is in Python; the paper almost certainly used EViews. Cross-platform
+pipeline is in Python. The paper almost certainly used EViews. Cross-platform
 BLAS and LAPACK differences produce small numerical variations in coefficient
 estimates and Monte Carlo bands between x86 and ARM machines.
 
