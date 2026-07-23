@@ -667,80 +667,102 @@ cat("final_dataset.csv written:", nrow(final_dataset), "rows x", ncol(final_data
 
 ### Stylized Facts on Risk-off Episodes
 
-The figures below replicate Figures 1 through 3 of Beirne and Sugandi (2023).
-The shaded vertical bands mark periods where the VIX exceeds its 60-day moving
-average by at least 10 percentage points, following De Bock and De Carvalho
-Filho (2013). These episodes align with major global financial stress events.
-
-```{r risk-off-charts}
-#| message: false
-#| fig-height: 4
-#| fig-width: 10
+The ten figures below document the raw relationship between financial
+variables and risk-off episodes over the full sample, from 1999 through June
+2026. The shaded vertical bands mark periods where the VIX exceeds its 60-day
+moving average by at least 10 percentage points, following De Bock and De
+Carvalho Filho (2013). The paper's original stylized facts covered the
+VIX, the bilateral USD/JPY exchange rate, and the REER. The remaining panels
+extend the same visual treatment to the sovereign yield, equity market, and
+capital flow series that enter the VAR.
 
 ```{r stylized-vix}
 #| echo: false
 #| message: false
 knitr::include_graphics("data/processed/var_results/figures/stylized_vix_risk_off.png")
 ```
-
 ```{r stylized-usdjpy}
 #| echo: false
 #| message: false
 knitr::include_graphics("data/processed/var_results/figures/stylized_usdjpy_risk_off.png")
 ```
-
 ```{r stylized-reer}
 #| echo: false
 #| message: false
 knitr::include_graphics("data/processed/var_results/figures/stylized_reer_risk_off.png")
 ```
 
+Three groups of variables tell three related stories. The first group covers
+the price channels through which risk-off shocks transmit. The VIX itself
+The VIX panel defines the episodes. Every shaded band corresponds to a VIX
+spike exceeding 40, with peaks at roughly 80 during the global financial
+crisis in 2008 and 85 during the initial COVID outbreak in early 2020. The
+bilateral USD/JPY exchange rate panel shows the yen strengthening
+sharply during every risk-off episode through 2020, dropping from 120 to
+roughly 75 between 2008 and 2011. The REER panel tells the same story
+in trade-weighted terms, declining from 120 in the late 1990s to roughly 70
+by 2015. Both exchange rate measures then break pattern after 2021. The yen
+depreciates steadily from 105 to 160 against the dollar, and the REER falls
+from 80 to 50. This post-2021 divergence from the safe-haven narrative is the
+single most important structural shift in the data, and it drives the
+extended-period VAR results in the Discussion of Results below.
+
+The sovereign yield spread channel The JGB and US Treasury yield panels reveal the
+flight-to-safety mechanism in operation. US 10-year Treasury yields decline
+sharply during each risk-off episode, from 5 percent in 2000 to 2.5 percent in
+2008 to near zero in 2020. Japanese government bond yields compress even
+further, falling from 2 percent in 1999 to near zero by 2010, staying there
+for over a decade, then rising sharply after 2023 to roughly 2.5 percent as
+the Bank of Japan began normalising policy. The paper's argument that risk-off
+shocks widen the JGB-US Treasury spread through safe-haven demand for Japanese
+debt is clearly visible in the raw data through 2020. After 2021 the spread
+narrows not because risk-off dynamics have changed but because both yields are
+rising simultaneously under fundamentally different monetary policy regimes.
+
 ```{r stylized-jgb}
 #| echo: false
 #| message: false
 knitr::include_graphics("data/processed/var_results/figures/stylized_jgb10y_risk_off.png")
 ```
-
-```{r stylized-nikkei}
-#| echo: false
-#| message: false
-knitr::include_graphics("data/processed/var_results/figures/stylized_nikkei225_risk_off.png")
-```
-
 ```{r stylized-us10y}
 #| echo: false
 #| message: false
 knitr::include_graphics("data/processed/var_results/figures/stylized_us10y_risk_off.png")
 ```
 
-```{r stylized-spread}
-#| echo: false
-#| message: false
-```
+The Nikkei 225 panel encapsulates the post-2021 break most starkly. The
+index oscillates between 7,000 and 25,000 for two decades, collapsing during
+each major risk-off episode, then surges nearly vertically after 2023 to
+exceed 70,000. A market that spent 22 years recovering from its 1989 peak
+doubled in three years. This is not a risk-off dynamic. It is a structural
+shift driven by corporate governance reforms, the Tokyo Stock Exchange's
+restructuring push, and the return of inflation to Japan after three decades
+of deflation. The VAR estimates for the extended period should be read with
+this context.
 
-```{r stylized-debtsec}
-#| echo: false
-#| message: false
-knitr::include_graphics("data/processed/var_results/figures/stylized_debtsecpct_risk_off.png")
-```
+The capital flow group The four capital flow panels confirm the paper's
+observation that balance-of-payments flows are noisy and rarely show a
+consistent direction during risk-off episodes. Debt portfolio flows oscillate
+between sharp inflows and outflows regardless of risk-off status. Equity
+portfolio flows follow a similar high-frequency pattern. Other investment
+flows, the catch-all category covering short-term interbank lending and trade
+credit, exhibit the highest variance, with a massive spike to nearly 29
+percent of GDP in early 2020. Direct investment flows are the quietest of the
+four, hovering near zero for most of the sample with occasional outliers. The
+pink risk-off bands do not systematically align with the direction of any flow
+series, which is itself the finding. The price channels (exchange rates and
+yields) respond cleanly to risk-off episodes. The volume channels (capital
+flows) do not.
 
-```{r stylized-equity}
-#| echo: false
-#| message: false
-knitr::include_graphics("data/processed/var_results/figures/stylized_equitypct_risk_off.png")
-```
-
-```{r stylized-other}
-#| echo: false
-#| message: false
-knitr::include_graphics("data/processed/var_results/figures/stylized_otherpct_risk_off.png")
-```
-
-```{r stylized-direct}
-#| echo: false
-#| message: false
-knitr::include_graphics("data/processed/var_results/figures/stylized_directpct_risk_off.png")
-```
+These stylized facts set the stage for the VAR analysis. The paper's
+characterisation of the pre-2021 sample as one where risk-off shocks reliably
+appreciate the yen, compress JGB yields, and depress equity prices is borne
+out by the raw series. The post-2021 extension shows these same channels
+operating under a different monetary policy constellation, where the yen
+weakens, JGB yields rise, and the Nikkei surges even as risk-off episodes
+continue to occur. The VAR impulse responses that follow quantify whether the
+structural relationships estimated over the paper period survive into this new
+regime.
 
 Descriptive statistics are computed per period and exported both as a rendered table and a CSV file.
 
