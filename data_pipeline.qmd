@@ -1207,9 +1207,9 @@ modifications documented below. The model is a structural vector autoregression
 estimated on working-days data from 14 January 1999 to 31 March 2021 for the
 paper period and extended through 30 June 2026. The generic VAR is
 
-\[
+$$
 Y_t = \sum_{\tau=1}^k Y_{t-\tau} A_\tau + X_t B + c + \varepsilon_t
-\]
+$$
 
 where \(Y_t\) is the \(10 \times 1\) vector of endogenous variables, \(X_t\) is
 the matrix of exogenous variables (constant, linear time trend, and 11 monthly
