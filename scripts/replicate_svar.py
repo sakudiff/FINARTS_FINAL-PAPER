@@ -1066,6 +1066,10 @@ def main():
                         help=f"MC bootstrap replications (default: {MC_REPL_DEFAULT})")
     parser.add_argument("--verify", action="store_true",
                         help="Compare outputs against committed reference CSVs")
+    parser.add_argument("--fetch-vintage-gdp", action="store_true",
+                        help="Download ALFRED JPNRGDPEXP vintage CSV if missing (requires internet)")
+    parser.add_argument("--fetch-vintage-reer", action="store_true",
+                        help="Download Wayback BIS REER vintage CSV if missing (requires internet)")
     args = parser.parse_args()
 
     if args.interpolate_v1:
@@ -1079,6 +1083,14 @@ def main():
         _verify()
         return
 
+    if args.fetch_vintage_gdp:
+        fetch_vintage_gdp()
+        return
+
+    if args.fetch_vintage_reer:
+        fetch_vintage_reer()
+        return
+
     print(60 * "=")
     print("Unified SVAR Replication")
     print(60 * "=")
@@ -1090,6 +1102,205 @@ def main():
     print(f"Daily CIs:     {'YES' if args.with_daily_ci else 'point estimates only'}")
 
     _run_pipeline(with_daily_ci=args.with_daily_ci, repl=args.repl)
+
+
+# --- Vintage data fetch functions (inlined from fetch_alfred_vintage.py) ---
+
+ALFRED_API_BASE = "https://fred.stlouisfed.org/graph/api"
+ALFRED_SERIES_ID = "JPNRGDPEXP"
+ALFRED_VINTAGES = ["2021-06-01"]
+ALFRED_OUTPUT_DIR = REPO_ROOT / "data" / "raw" / "vintage"
+
+
+def _alfred_filter_notes(obj):
+    if isinstance(obj, dict):
+        return {k: _alfred_filter_notes(v) for k, v in obj.items() if k != "notes"}
+    if isinstance(obj, list):
+        return [_alfred_filter_notes(v) for v in obj]
+    return obj
+
+
+def _alfred_decompress(data):
+    if data[:2] == b"\x1f\x8b":
+        return gzip.decompress(data)
+    return data
+
+
+def _alfred_fetch_payload(series_id, mode, vintage_date=None):
+    url = f"{ALFRED_API_BASE}/series/?id={series_id}&width=800&mode={mode}"
+    if vintage_date:
+        url += f"&vintage_date={vintage_date}"
+    req = urllib.request.Request(url, headers={
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "application/json",
+    })
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        parsed = json.loads(_alfred_decompress(resp.read()))
+    chart_state = {
+        "chart": parsed["chart"],
+        "seriesObjects": parsed["chart_series"],
+    }
+    return _alfred_filter_notes(chart_state)
+
+
+def _alfred_fetch_observations(series_id, chart_state):
+    body = json.dumps(chart_state, separators=(",", ":"))
+    url = f"{ALFRED_API_BASE}/series/?obs=true&sid={series_id}"
+    req = urllib.request.Request(
+        url, data=body.encode("utf-8"), headers={
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "Accept-Encoding": "gzip, deflate",
+        }, method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=60) as resp:
+        parsed = json.loads(_alfred_decompress(resp.read()))
+    obs_groups = parsed.get("observations", [])
+    if not obs_groups:
+        return {}
+    result = {}
+    for ts_ms, val in obs_groups[0]:
+        dt = datetime.datetime.fromtimestamp(ts_ms / 1000, datetime.UTC)
+        result[dt.strftime("%Y-%m-%d")] = val
+    return result
+
+
+def _alfred_fetch_vintage(series_id, vintage_date):
+    state = _alfred_fetch_payload(series_id, "alfred", vintage_date)
+    return _alfred_fetch_observations(series_id, state)
+
+
+def _alfred_save_csv(filepath, observations):
+    filepath = Path(filepath)
+    filepath.parent.mkdir(parents=True, exist_ok=True)
+    with open(filepath, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["date", "rgdp"])
+        for d in sorted(observations.keys()):
+            writer.writerow([d, observations[d]])
+
+
+def fetch_vintage_gdp():
+    """Fetch ALFRED vintage JPNRGDPEXP if the CSV does not exist."""
+    for vintage in ALFRED_VINTAGES:
+        out_path = ALFRED_OUTPUT_DIR / f"{ALFRED_SERIES_ID}_vintage_{vintage}.csv"
+        if out_path.exists():
+            print(f"  {out_path.name} already exists — skipping")
+            continue
+        print(f"  Fetching {ALFRED_SERIES_ID} as of {vintage} ...", end=" ", flush=True)
+        try:
+            obs = _alfred_fetch_vintage(ALFRED_SERIES_ID, vintage)
+            if not obs:
+                print("FAILED: no observations returned")
+                continue
+            _alfred_save_csv(str(out_path), obs)
+            dates = sorted(obs.keys())
+            print(f"OK — {len(obs)} obs, {dates[0]} to {dates[-1]}")
+        except urllib.error.HTTPError as e:
+            print(f"HTTP {e.code}: {e.reason}")
+            print(f"  Manual download: https://alfred.stlouisfed.org/series?seid={ALFRED_SERIES_ID}")
+        except Exception as e:
+            print(f"ERROR: {e}")
+
+
+# --- BIS REER vintage fetch (inlined from fetch_reer_vintage.py) ---
+
+REER_SNAPSHOT_URL = (
+    "https://web.archive.org/web/20210524235626id_/"
+    "https://www.bis.org/statistics/eer/broad.xlsx"
+)
+REER_JAPAN_COL = 31
+REER_OUTPUT_DIR = REPO_ROOT / "data" / "raw" / "vintage"
+REER_OUTPUT_FILE = REER_OUTPUT_DIR / "REER_JPN_BIS_vintage.csv"
+
+
+def _reer_fetch_broad_xlsx(url):
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    with urllib.request.urlopen(req, timeout=120) as resp:
+        return resp.read()
+
+
+def _reer_extract_japan(data):
+    tmp = tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False)
+    try:
+        tmp.write(data)
+        tmp.close()
+        df = pd.read_excel(tmp.name, sheet_name="Real", header=None)
+    finally:
+        os.unlink(tmp.name)
+    dates_raw = df.iloc[5:, 0].values
+    rbjp_raw = df.iloc[5:, REER_JAPAN_COL].values
+    dates = pd.to_datetime([str(d)[:10] for d in dates_raw])
+    vals = pd.to_numeric(rbjp_raw, errors="coerce")
+    dates = dates.to_period("M").to_timestamp()
+    result = pd.DataFrame({"date": dates, "reer": vals})
+    result = result.dropna(subset=["reer"]).reset_index(drop=True)
+    result["date"] = result["date"].dt.strftime("%Y-%m-%d")
+    return result
+
+
+def _reer_verify(result, source_data):
+    vals = pd.to_numeric(result["reer"], errors="coerce")
+    dates = pd.to_datetime(result["date"])
+    info = {}
+    mask_2010 = (dates >= "2010-01-01") & (dates <= "2010-12-01")
+    mask_2020 = (dates >= "2020-01-01") & (dates <= "2020-12-01")
+    info["base_year"] = "2010" if abs(vals[mask_2010].mean() - 100) < 5 else "unknown"
+    info["2010_mean"] = round(vals[mask_2010].mean(), 4)
+    info["2020_mean"] = round(vals[mask_2020].mean(), 4)
+    info["date_min"] = dates.min().strftime("%Y-%m-%d")
+    info["date_max"] = dates.max().strftime("%Y-%m-%d")
+    info["n_obs"] = len(result)
+    if source_data is not None:
+        vintage_s = result.set_index("date")["reer"]
+        cur_s = source_data.set_index("date")["reer"]
+        both = pd.DataFrame({"v": vintage_s, "c": cur_s}).dropna()
+        both = both.loc["2015-01-01":"2021-03-01"]
+        pct = np.abs(both["v"].astype(float) - both["c"].astype(float)) / both["c"].astype(float) * 100
+        info["mean_abs_pct_diff_vs_current"] = round(pct.mean(), 4)
+        info["max_abs_pct_diff_vs_current"] = round(pct.max(), 4)
+    return info
+
+
+def fetch_vintage_reer():
+    """Fetch 2021-vintage BIS REER from Wayback Machine if the CSV does not exist."""
+    if REER_OUTPUT_FILE.exists():
+        print(f"  {REER_OUTPUT_FILE.name} already exists — skipping")
+        return
+    print(f"  Fetching from Wayback Machine...", end=" ", flush=True)
+    try:
+        xlsx_data = _reer_fetch_broad_xlsx(REER_SNAPSHOT_URL)
+        print(f"downloaded {len(xlsx_data)} bytes")
+        result = _reer_extract_japan(xlsx_data)
+        print(f"  Extracted {len(result)} months of Japan real broad REER")
+
+        current = None
+        current_path = REPO_ROOT / "data" / "raw" / "REER.xlsx"
+        if current_path.exists():
+            try:
+                cur = pd.read_excel(current_path, sheet_name="Table Data")
+                cur["date"] = pd.to_datetime(cur["Date"]).dt.strftime("%Y-%m-%d")
+                cur["reer"] = pd.to_numeric(cur.iloc[:, 1], errors="coerce")
+                current = cur[["date", "reer"]].dropna()
+            except Exception:
+                pass
+
+        info = _reer_verify(result, current)
+        print(f"  Provenance:")
+        print(f"    Source: {REER_SNAPSHOT_URL}")
+        print(f"    Base year: {info['base_year']} (2010 mean = {info['2010_mean']})")
+        print(f"    Coverage: {info['date_min']} to {info['date_max']} ({info['n_obs']} months)")
+        if "mean_abs_pct_diff_vs_current" in info:
+            print(f"    Mean abs % diff vs REER.xlsx (2015-2021): {info['mean_abs_pct_diff_vs_current']}%")
+
+        REER_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+        result.to_csv(REER_OUTPUT_FILE, index=False)
+        print(f"  Wrote {REER_OUTPUT_FILE}")
+    except urllib.error.HTTPError as e:
+        print(f"HTTP {e.code}")
+        print(f"  Manual download: https://www.bis.org/statistics/eer/broad.xlsx")
+    except Exception as e:
+        print(f"ERROR: {e}")
 
 
 if __name__ == "__main__":

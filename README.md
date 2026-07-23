@@ -86,6 +86,17 @@ Generates `index.html` with the full narrative, tables, and figures.
 The Quarto pipeline calls `replicate_svar.py --interpolate-v1`
 for the initial pandas-spline interpolation step.
 
+### (d, optional) Vintage data download
+
+```
+uv run python scripts/replicate_svar.py --fetch-vintage-gdp
+uv run python scripts/replicate_svar.py --fetch-vintage-reer
+```
+
+Download the ALFRED JPNRGDPEXP 2021-06-01 vintage and Wayback Machine
+BIS REER vintage if the CSVs are missing from `data/raw/vintage/`.
+Idempotent: skip if the file already exists. Requires internet.
+
 ### (e, optional) Daily confidence bands
 
 Add `--with-daily-ci` to any run of `replicate_svar.py`:
