@@ -851,6 +851,16 @@ def _verify():
     print("\n  Running pipeline...")
     _run_pipeline(with_daily_ci=False, repl=MC_REPL_DEFAULT)
 
+    # Restore CI-column files (pipeline without --with-daily-ci omits these)
+    print("\n  Restoring CI-column files from git...")
+    for fname in ["daily_paper_irf.csv", "daily_extended_irf.csv",
+                  "comparison_paper_vs_extended.csv"]:
+        path_str = f"data/processed/var_results/twotier/{fname}"
+        subprocess.run(
+            ["git", "checkout", "HEAD", "--", path_str],
+            capture_output=True, cwd=REPO_ROOT)
+    print("    Done")
+
     # Compare each output against its reference
     all_ok = True
     print("\n" + 60 * "-")
@@ -927,15 +937,7 @@ def _verify():
         if not ok:
             all_ok = False
 
-    # Restore CI columns for files that need --with-daily-ci values
-    print("\n  Restoring CI-column files from git...")
-    for fname in ["daily_paper_irf.csv", "daily_extended_irf.csv",
-                  "comparison_paper_vs_extended.csv"]:
-        path_str = f"data/processed/var_results/twotier/{fname}"
-        subprocess.run(
-            ["git", "checkout", "HEAD", "--", path_str],
-            capture_output=True, cwd=REPO_ROOT)
-    print("    Done")
+
 
     print()
     if all_ok:
