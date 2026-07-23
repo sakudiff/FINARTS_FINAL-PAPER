@@ -119,7 +119,6 @@ read_lseg_daily <- function(file, col_name) {
 
 vix      <- read_lseg_daily(file.path(DATA_RAW, "VIX.csv"), "vix")
 nikkei   <- read_lseg_daily(file.path(DATA_RAW, "NIKKEI225.csv"), "nikkei225")
-sp500    <- read_lseg_daily(file.path(DATA_RAW, "SP500.csv"), "sp500")
 us10y    <- read_lseg_daily(file.path(DATA_RAW, "US10Y.csv"), "us10y")
 usdjpy   <- read_lseg_daily(file.path(DATA_RAW, "USDJPY.csv"), "usdjpy")
 
@@ -309,7 +308,6 @@ The risk-off binary is constructed from the VIX using a left_join to preserve da
 # episode start dates that fall on Japanese non-trading days (audit C-3).
 daily_fin <- vix |>
   left_join(nikkei, by = "date") |>
-  left_join(sp500, by = "date") |>
   left_join(us10y, by = "date") |>
   left_join(usdjpy, by = "date") |>
   left_join(jgb10y, by = "date") |>
@@ -569,7 +567,7 @@ Quadratic interpolation runs in Python because R lacks a native quadratic spline
 # R has no native quadratic spline; pandas provides it as a one-liner with
 # proper boundary behaviour (no extrapolation past anchor points).
 # Requires: Python 3.10+ with pandas>=2.0, numpy>=1.24 (managed by pyproject.toml)
-system2("python3", c("scripts/quadratic_interpolate.py"))
+system2("python3", c("scripts/replicate_svar.py", "--interpolate-v1"))
 ```
 
 The daily calendar and interpolated series are imported back into R for the working-days filter.
@@ -995,8 +993,209 @@ corrplot(cor_matrix, method = "color", type = "upper",
 
 ```{r latex-table}
 #| message: false
-system2("Rscript", c("scripts/generate_descriptive_table.R"))
-system2("Rscript", c("scripts/generate_risk_off_table.R"))
+#| echo: true
+
+# Inlined from generate_descriptive_table.R
+
+desc <- read_csv("data/processed/descriptive_stats.csv", show_col_types = FALSE)
+
+raw <- read_csv("data/processed/final_dataset.csv", show_col_types = FALSE, progress = FALSE)
+full_sample <- raw |>
+  select(-date, -period) |>
+  pivot_longer(everything(), names_to = "variable", values_to = "value") |>
+  filter(!is.na(value)) |>
+  group_by(variable) |>
+  summarise(
+    N    = n(),
+    Mean = mean(value, na.rm = TRUE),
+    SD   = sd(value, na.rm = TRUE),
+    Min  = min(value, na.rm = TRUE),
+    Max  = max(value, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  pivot_longer(-variable, names_to = "stat", values_to = "full")
+
+desc_wide <- desc |>
+  pivot_longer(c(N, Mean, SD, Min, Max), names_to = "stat", values_to = "value") |>
+  pivot_wider(names_from = period, values_from = value)
+
+pn <- setdiff(names(desc_wide), c("variable", "stat"))
+
+rows <- desc_wide |>
+  left_join(full_sample, by = c("variable", "stat")) |>
+  mutate(variable = str_replace_all(variable, "_", "\\\\_")) |>
+  group_by(variable) |>
+  mutate(first = row_number() == 1) |>
+  ungroup() |>
+  rowwise() |>
+  mutate(
+    c1 = ifelse(stat == "N", as.character(round(.data[[pn[1]]], 0)), sprintf("%8.4f", .data[[pn[1]]])),
+    c2 = ifelse(stat == "N", as.character(round(.data[[pn[2]]], 0)), sprintf("%8.4f", .data[[pn[2]]])),
+    c3 = ifelse(stat == "N", as.character(round(full, 0)), sprintf("%8.4f", full))
+  ) |>
+  ungroup() |>
+  mutate(line = paste0(
+    ifelse(first & row_number() > 1, "\\\\addlinespace\n", ""),
+    ifelse(first, sprintf("%-15s", variable), "               "),
+    " & ", sprintf("%-5s", stat),
+    " & ", sprintf("%10s", c1),
+    " & ", sprintf("%10s", c2),
+    " & ", sprintf("%10s", c3), "\\\\"
+  ))
+
+bs <- "\\"
+nl <- paste0(bs, bs)
+
+preamble <- c(
+  paste0(bs, "documentclass[10pt]{article}"),
+  paste0(bs, "usepackage[utf8]{inputenc}"),
+  paste0(bs, "usepackage[margin=0.3in]{geometry}"),
+  paste0(bs, "usepackage{booktabs}"),
+  paste0(bs, "usepackage{longtable}"),
+  "",
+  paste0(bs, "begin{document}"),
+  paste0(bs, "pagestyle{empty}"),
+  paste0(bs, "setlength{", bs, "tabcolsep}{4pt}"),
+  paste0(bs, "renewcommand{", bs, "arraystretch}{0.85}"),
+  "",
+  paste0(bs, "begin{longtable}{l l r r r}"),
+  paste0("  ", bs, "caption*{Descriptive Statistics by Period} ", nl),
+  paste0("  ", bs, "toprule"),
+  paste0("  ", bs, "textbf{Variable} & ", bs, "textbf{Stat} & ",
+    bs, "textbf{", pn[1], "} & ", bs, "textbf{", pn[2], "} & ",
+    bs, "textbf{Full Sample} ", nl),
+  paste0("  ", bs, "midrule"),
+  paste0("  ", bs, "endfirsthead"),
+  paste0("  ", bs, "toprule"),
+  paste0("  ", bs, "textbf{Variable} & ", bs, "textbf{Stat} & ",
+    bs, "textbf{", pn[1], "} & ", bs, "textbf{", pn[2], "} & ",
+    bs, "textbf{Full Sample} ", nl),
+  paste0("  ", bs, "midrule"),
+  paste0("  ", bs, "endhead"),
+  paste0("  ", bs, "bottomrule"),
+  paste0("  ", bs, "endfoot"),
+  paste0("  ", bs, "bottomrule"),
+  paste0("  ", bs, "endlastfoot")
+)
+
+closing <- c(
+  paste0(bs, "end{longtable}"),
+  "",
+  paste0(bs, "end{document}")
+)
+
+dir.create("drafts", showWarnings = FALSE)
+tex_path <- file.path("drafts", "descriptive_stats_table.tex")
+writeLines(c(preamble, rows$line, closing), tex_path)
+cat("LaTeX table written to", tex_path, "\n")
+
+# Inlined from generate_risk_off_table.R
+
+Sys.setlocale("LC_TIME", "C")
+
+df <- read_csv("data/processed/final_dataset.csv", show_col_types = FALSE)
+
+risk_dates <- df |>
+  filter(risk_off == 1) |>
+  select(date) |>
+  mutate(
+    gap = date - lag(date, default = first(date) - 1),
+    episode = cumsum(gap > 1)
+  ) |>
+  group_by(episode) |>
+  summarise(start = min(date), end = max(date), days = n(), .groups = "drop") |>
+  arrange(start) |>
+  mutate(
+    merge_gap = start - lag(end, default = first(start) - 11),
+    merge_group = cumsum(merge_gap > 10)
+  ) |>
+  group_by(merge_group) |>
+  summarise(
+    start = min(start),
+    end   = max(end),
+    days  = sum(days),
+    .groups = "drop"
+  ) |>
+  mutate(
+    event = case_when(
+      start <= as.Date("2000-10-31") & end <= as.Date("2000-12-31") ~ "Dot-com crash / Tech sell-off",
+      start <= as.Date("2001-12-31") & end <= as.Date("2001-12-31") ~ "9/11 attacks & aftermath",
+      start <= as.Date("2002-12-31") & end <= as.Date("2002-12-31") ~ "Corporate scandals (WorldCom, Enron)",
+      start <= as.Date("2006-07-31") & end <= as.Date("2006-07-31") ~ "Geopolitical tensions (Iran / NK)",
+      start <= as.Date("2007-12-31") & end <= as.Date("2007-12-31") ~ "BNP Paribas freezes funds / GFC onset",
+      start <= as.Date("2008-12-31") & end <= as.Date("2008-12-31") & days > 10 ~ "Global Financial Crisis (Lehman collapse)",
+      start <= as.Date("2008-12-31") ~ "Global Financial Crisis",
+      start <= as.Date("2010-06-30") ~ "Flash Crash / Eurozone debt crisis",
+      start <= as.Date("2011-04-30") ~ "Tohoku earthquake & tsunami",
+      start <= as.Date("2011-12-31") ~ "US debt ceiling / Eurozone sovereign crisis",
+      start <= as.Date("2014-12-31") ~ "Ebola / Oil price collapse",
+      start <= as.Date("2016-12-31") & end <= as.Date("2016-12-31") ~ "China crash (Black Monday) / Brexit",
+      start <= as.Date("2018-02-28") ~ "Volmageddon (Volatility spike)",
+      start <= as.Date("2018-12-31") & end <= as.Date("2018-12-31") ~ "Trade war / Tech sell-off",
+      start <= as.Date("2020-12-31") & days > 20 ~ "COVID-19 global pandemic",
+      start <= as.Date("2020-12-31") ~ "COVID-19 pandemic",
+      start <= as.Date("2021-06-30") ~ "GameStop short squeeze / Retail mania",
+      start <= as.Date("2022-02-28") ~ "Omicron variant / Fed hawkish pivot",
+      start <= as.Date("2022-12-31") ~ "Russia-Ukraine war / Commodity crisis",
+      start <= as.Date("2024-09-30") ~ "Yen carry trade unwind / Global sell-off",
+      start <= as.Date("2025-02-28") ~ "Fed hawkish pause / BOJ policy divergence",
+      start <= as.Date("2025-06-30") ~ '"America First" trade policy / Tariff war',
+      start >= as.Date("2026-03-01") ~ "Iran conflict / Middle East escalation",
+      TRUE ~ "Other"
+    )
+  )
+
+rows <- risk_dates |>
+  mutate(
+    date_range = ifelse(
+      start == end,
+      format(start, "%b %d, %Y"),
+      paste0(format(start, "%b %d, %Y"), " -- ", format(end, "%b %d, %Y"))
+    ),
+    line = paste0("  ", date_range, " & ", days, " & ", str_replace_all(event, "&", "\\\\&"), " \\\\")
+  )
+
+bs <- "\\"
+
+preamble <- c(
+  paste0(bs, "documentclass[10pt]{article}"),
+  paste0(bs, "usepackage[utf8]{inputenc}"),
+  paste0(bs, "usepackage[margin=0.3in,landscape]{geometry}"),
+  paste0(bs, "usepackage{booktabs}"),
+  paste0(bs, "usepackage{longtable}"),
+  "",
+  paste0(bs, "begin{document}"),
+  paste0(bs, "pagestyle{empty}"),
+  paste0(bs, "small"),
+  paste0(bs, "setlength{", bs, "tabcolsep}{4pt}"),
+  paste0(bs, "renewcommand{", bs, "arraystretch}{0.85}"),
+  "",
+  paste0(bs, "begin{longtable}{l r p{8cm}}"),
+  paste0("  ", bs, "caption*{Risk-off Episodes (VIX ", bs, "ge MA60 + 10)} \\\\"),
+  paste0("  ", bs, "toprule"),
+  "  \\textbf{Dates} & \\textbf{Days} & \\textbf{Event / Interpretation} \\\\",
+  paste0("  ", bs, "midrule"),
+  paste0("  ", bs, "endfirsthead"),
+  paste0("  ", bs, "toprule"),
+  "  \\textbf{Dates} & \\textbf{Days} & \\textbf{Event / Interpretation} \\\\",
+  paste0("  ", bs, "midrule"),
+  paste0("  ", bs, "endhead"),
+  paste0("  ", bs, "bottomrule"),
+  paste0("  ", bs, "endfoot"),
+  paste0("  ", bs, "bottomrule"),
+  paste0("  ", bs, "endlastfoot")
+)
+
+closing <- c(
+  paste0(bs, "end{longtable}"),
+  "",
+  paste0(bs, "end{document}")
+)
+
+dir.create("drafts", showWarnings = FALSE)
+writeLines(c(preamble, rows$line, closing), "drafts/risk_off_episodes.tex")
+cat("Written:", nrow(rows), "episodes to drafts/risk_off_episodes.tex\n")
+cat(rows$event |> table() |> paste(collapse = "\n"), "\n")
 ```
 
 ## SVAR Estimation
@@ -1058,13 +1257,12 @@ structure. Tier one is the paper-faithful daily restricted VAR: block
 exogeneity constraint, AIC-selected lag, Cholesky identification, 125-trading
 day horizon, quadratic-match interpolation onto the trading-day grid. The
 interpolation reimplements the EViews quadratic-match average method in
-Python (see `scripts/quadratic_interpolate.py`), not by running EViews
+Python via `scripts/replicate_svar.py --interpolate-v1`, not by running EViews
 itself. Tier two is the monthly restricted and unrestricted VAR at
 BIC-selected lags over a 40-month horizon, matching the paper's appendix
 structure. The monthly tier uses BIC rather than AIC because AIC overfits to
 the boundary lag on this data vintage, selecting the maximum lag searched
-regardless of information content (see `docs/logs/2026-07-22-svar-issues-
-***REMOVED***`). The daily tier retains AIC per the paper's method. The paper
+regardless of information content. The daily tier retains AIC per the paper's method. The paper
 period (1999-01-14 to 2021-03-31) uses vintage data for RGDP and REER per
 the dual-vintage policy documented in `docs/methodology_dual_vintage.md`. The
 extended period (2021-04-01 to 2026-06-30) uses current-vintage data for all
@@ -1384,7 +1582,222 @@ Sugandi (2023). Each panel shows the time series with risk-off episode shading.
 
 ```{r risk-off-appendix}
 #| message: false
-system2("Rscript", c("scripts/generate_risk_off_charts.R"))
+#| echo: true
+
+chicago_45   <- "#2E45B8"
+singapore_55 <- "#F97A1F"
+tokyo_45     <- "#C91D42"
+london_5     <- "#0D0D0D"
+london_35    <- "#595959"
+london_85    <- "#D9D9D9"
+london_95    <- "#F2F2F2"
+bg_color     <- "#F5F4EF"
+
+FIG_DIR  <- file.path("data", "processed", "var_results", "figures")
+dir.create(FIG_DIR, showWarnings = FALSE, recursive = TRUE)
+
+theme_risk <- function() {
+  theme_minimal() +
+    theme(
+      text = element_text(color = london_5),
+      plot.title = element_text(face = "bold", size = 11, margin = margin(b = 4)),
+      plot.subtitle = element_text(size = 9, color = london_35, margin = margin(b = 6)),
+      plot.caption = element_text(size = 7, color = london_35, hjust = 0, margin = margin(t = 4)),
+      axis.title = element_text(size = 8, color = london_35),
+      axis.text = element_text(size = 7, color = london_35),
+      panel.grid.minor = element_blank(),
+      panel.grid.major = element_line(color = london_95, linewidth = 0.3),
+      plot.background = element_rect(fill = bg_color, color = NA),
+      panel.background = element_rect(fill = bg_color, color = NA),
+      legend.position = "bottom",
+      legend.text = element_text(size = 7),
+      legend.title = element_blank(),
+      axis.ticks = element_blank(),
+      plot.margin = margin(10, 10, 10, 10)
+    )
+}
+
+plot_risk_off_series <- function(data, y_col, y_label, title, caption) {
+  ro_episodes <- data |>
+    filter(risk_off == 1) |>
+    mutate(episode_id = cumsum(c(1, diff(date) > 10))) |>
+    group_by(episode_id) |>
+    summarise(start = min(date), end = max(date), .groups = "drop")
+
+  ggplot() +
+    geom_rect(data = ro_episodes,
+              aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf,
+                  fill = "Risk-off episode"),
+              alpha = 0.12, na.rm = TRUE) +
+    geom_line(data = data, aes(x = date, y = .data[[y_col]]),
+              color = chicago_45, linewidth = 0.5) +
+    geom_hline(yintercept = 0, color = london_85, linewidth = 0.3) +
+    scale_fill_manual(values = c("Risk-off episode" = tokyo_45)) +
+    labs(title = title, x = NULL, y = y_label) +
+    scale_x_date(limits = c(START_DATE, END_DATE),
+                 breaks = seq(START_DATE, END_DATE, by = "5 years"),
+                 date_labels = "%Y") +
+    theme_risk()
+}
+
+vix <- read_csv(file.path(DATA_RAW, "VIX.csv"),
+                col_types = cols(Date = col_date(), Close = col_double()),
+                show_col_types = FALSE) |>
+  rename(date = Date, vix = Close)
+
+nikkei <- read_csv(file.path(DATA_RAW, "NIKKEI225.csv"),
+                   col_types = cols(Date = col_date(), Close = col_double()),
+                   show_col_types = FALSE) |>
+  rename(date = Date, nikkei = Close)
+
+jgb_raw <- read_csv(file.path(DATA_RAW, "jgbcme_all.csv"),
+                    skip = 1, show_col_types = FALSE) |>
+  rename(date = Date) |>
+  mutate(date = ymd(date))
+jgb10y <- jgb_raw |>
+  select(date, jgb10y = all_of(names(jgb_raw)[11])) |>
+  mutate(jgb10y = as.numeric(na_if(jgb10y, "-")))
+
+final <- read_csv(file.path("data", "processed", "final_dataset.csv"),
+                  show_col_types = FALSE) |>
+  mutate(date = as_date(date))
+
+vix <- vix |>
+  arrange(date) |>
+  mutate(
+    vix_ma60 = rollmean(vix, k = 60, fill = NA, align = "right"),
+    risk_off = if_else(vix >= vix_ma60 + 10, 1L, 0L)
+  )
+
+vix_plot <- vix |> filter(date >= START_DATE)
+vix_ro <- vix_plot |>
+  filter(risk_off == 1) |>
+  mutate(ep = cumsum(c(1, diff(date) > 10))) |>
+  group_by(ep) |>
+  summarise(start = min(date), end = max(date), .groups = "drop")
+
+p1 <- ggplot() +
+  geom_rect(data = vix_ro,
+            aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf, fill = "Risk-off episode"),
+            alpha = 0.12) +
+  geom_line(data = vix_plot, aes(x = date, y = vix, color = "VIX"),
+            linewidth = 0.4) +
+  geom_line(data = vix_plot, aes(x = date, y = vix_ma60, color = "60-day MA"),
+            linewidth = 0.4, alpha = 0.8) +
+  scale_color_manual(values = c("VIX" = chicago_45, "60-day MA" = singapore_55)) +
+  scale_fill_manual(values = c("Risk-off episode" = tokyo_45)) +
+  guides(color = guide_legend(order = 1), fill = guide_legend(order = 2)) +
+  labs(
+    title = "VIX, 60-day moving average, and risk-off episodes",
+    subtitle = "Shaded regions denote risk-off episodes (VIX >= 60-day MA + 10pp).",
+    x = NULL, y = "VIX index"
+  ) +
+  scale_x_date(limits = c(START_DATE, END_DATE),
+               breaks = seq(START_DATE, END_DATE, by = "5 years"),
+               date_labels = "%Y") +
+  theme_risk()
+ggsave(file.path(FIG_DIR, "fig1_vix_risk_off.png"), p1, width = 10, height = 4, dpi = 150)
+
+usdjpy <- read_csv(file.path(DATA_RAW, "USDJPY.csv"),
+                   col_types = cols(Date = col_date(), Close = col_double()),
+                   show_col_types = FALSE) |>
+  rename(date = Date, usdjpy = Close)
+usdjpy_plot <- usdjpy |>
+  left_join(vix |> select(date, risk_off), by = "date") |>
+  filter(date >= START_DATE)
+p2 <- plot_risk_off_series(usdjpy_plot, "usdjpy", "JPY per USD",
+  "Bilateral nominal USD/JPY exchange rate and risk-off episodes",
+  "")
+ggsave(file.path(FIG_DIR, "fig2_usdjpy_risk_off.png"), p2, width = 10, height = 4, dpi = 150)
+
+reer_sheets <- excel_sheets(file.path(DATA_RAW, "REER.xlsx"))
+reer_raw <- read_excel(file.path(DATA_RAW, "REER.xlsx"),
+                      sheet = reer_sheets[1], col_types = "text")
+reer <- reer_raw |>
+  filter(!is.na(.data[[names(reer_raw)[1]]])) |>
+  rename(date_raw = 1, reer = 2) |>
+  mutate(date = as_date(ymd_hms(date_raw)), reer = as.numeric(reer)) |>
+  select(date, reer) |>
+  arrange(date)
+reer_plot <- reer |>
+  left_join(vix |> select(date, risk_off), by = "date") |>
+  filter(date >= START_DATE)
+p3 <- plot_risk_off_series(reer_plot, "reer", "REER (2010 = 100)",
+  "Japan's real effective exchange rate and risk-off episodes",
+  "")
+ggsave(file.path(FIG_DIR, "fig3_reer_risk_off.png"), p3, width = 10, height = 4, dpi = 150)
+
+jgb_plot <- jgb10y |>
+  left_join(vix |> select(date, risk_off), by = "date") |>
+  filter(date >= START_DATE)
+p_a1 <- plot_risk_off_series(jgb_plot, "jgb10y", "Percent",
+  "10-year JGB yields and risk-off episodes",
+  "")
+ggsave(file.path(FIG_DIR, "figA1_1_jgb_risk_off.png"), p_a1, width = 10, height = 4, dpi = 150)
+
+nikkei_plot <- nikkei |>
+  left_join(vix |> select(date, risk_off), by = "date") |>
+  filter(date >= START_DATE)
+p_a2 <- plot_risk_off_series(nikkei_plot, "nikkei", "Index value",
+  "Nikkei-225 index and risk-off episodes",
+  "")
+ggsave(file.path(FIG_DIR, "figA1_2_nikkei_risk_off.png"), p_a2, width = 10, height = 4, dpi = 150)
+
+flow_vars <- c("debtsec_pct", "equity_pct", "other_pct", "direct_pct")
+flow_labels <- c("Net debt securities investment to Japan (% of GDP)",
+                 "Net equity investment to Japan (% of GDP)",
+                 "Net other investment to Japan (% of GDP)",
+                 "Net direct investment to Japan (% of GDP)")
+flow_files <- c("figA1_3_debtsec_risk_off.png", "figA1_4_equity_risk_off.png",
+                "figA1_5_other_risk_off.png", "figA1_6_direct_risk_off.png")
+for (i in seq_along(flow_vars)) {
+  plot_data <- final |>
+    select(date, value = all_of(flow_vars[i]), risk_off) |>
+    filter(!is.na(value))
+  ro_bands <- plot_data |>
+    filter(risk_off == 1) |>
+    mutate(ep = cumsum(c(1, diff(date) > 10))) |>
+    group_by(ep) |> summarise(start = min(date), end = max(date), .groups = "drop")
+  p <- ggplot() +
+    geom_rect(data = ro_bands,
+              aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf,
+                  fill = "Risk-off episode"),
+              alpha = 0.12) +
+    geom_line(data = plot_data, aes(x = date, y = value),
+              color = chicago_45, linewidth = 0.4) +
+    geom_hline(yintercept = 0, color = london_85, linewidth = 0.3) +
+    scale_fill_manual(values = c("Risk-off episode" = tokyo_45)) +
+    labs(title = flow_labels[i], x = NULL, y = "Percent of GDP") +
+    scale_x_date(limits = c(START_DATE, END_DATE),
+                 breaks = seq(START_DATE, END_DATE, by = "5 years"),
+                 date_labels = "%Y") +
+    theme_risk()
+  ggsave(file.path(FIG_DIR, flow_files[i]), p, width = 10, height = 4, dpi = 150)
+}
+
+spread_plot <- final |>
+  select(date, spread, risk_off) |>
+  filter(!is.na(spread))
+ro_spread <- spread_plot |>
+  filter(risk_off == 1) |>
+  mutate(ep = cumsum(c(1, diff(date) > 10))) |>
+  group_by(ep) |> summarise(start = min(date), end = max(date), .groups = "drop")
+p_a7 <- ggplot() +
+  geom_rect(data = ro_spread,
+            aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf,
+                fill = "Risk-off episode"),
+            alpha = 0.12) +
+  geom_line(data = spread_plot, aes(x = date, y = spread),
+            color = chicago_45, linewidth = 0.4) +
+  geom_hline(yintercept = 0, color = london_85, linewidth = 0.3) +
+  scale_fill_manual(values = c("Risk-off episode" = tokyo_45)) +
+  labs(title = "Yield spread between 10-year US and Japan government bonds",
+       x = NULL, y = "Percentage points") +
+  scale_x_date(limits = c(START_DATE, END_DATE),
+               breaks = seq(START_DATE, END_DATE, by = "5 years"),
+               date_labels = "%Y") +
+  theme_risk()
+ggsave(file.path(FIG_DIR, "figA1_7_spread_risk_off.png"), p_a7, width = 10, height = 4, dpi = 150)
 ```
 
 ```{r figA1-1}
@@ -1443,21 +1856,18 @@ knitr::include_graphics("data/processed/var_results/figures/figA1_6_direct_risk_
 knitr::include_graphics("data/processed/var_results/figures/figA1_7_spread_risk_off.png")
 ```
 
-### Python Source Code (Deprecated Script)
+### Replication Script (replicate_svar.py)
 
-The script below is the original daily VAR estimation code (`var_analysis.py`)
-that contained the IRF transpose bug and was superseded by the two-tier
-results. It is retained for transparency. The two-tier results in
-`data/processed/var_results/twotier/` were generated by an independent Python
-estimation with the corrected IRF recursion, vintage GDP, and Monte Carlo
-confidence bands.
+The script below is the unified SVAR replication script that reproduces all
+final results from committed inputs. It supersedes the previous collection
+of separate Python scripts.
 
-```{r python-source}
+```{r replicate-source}
 #| echo: false
 #| message: false
 #| results: asis
 cat("```python\n",
-    paste(readLines("scripts/var_analysis.py"), collapse = "\n"),
+    paste(readLines("scripts/replicate_svar.py"), collapse = "\n"),
     "\n```\n", sep = "")
 ```
 
