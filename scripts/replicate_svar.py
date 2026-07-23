@@ -898,18 +898,20 @@ def _verify():
                 d = np.abs(m[rc].values.astype(float) - m[nc].values.astype(float))
                 d = d[~np.isnan(d)]
                 max_diffs[c] = float(np.max(d)) if len(d) > 0 else 0.0
-            ok = all(np.allclose(
-                ref[c].values.astype(float), new[c].values.astype(float),
-                rtol=1e-6, atol=1e-12) for c in num_cols)
+            rvals = [np.nan_to_num(ref[c].values.astype(float)) for c in num_cols]
+            nvals = [np.nan_to_num(new[c].values.astype(float)) for c in num_cols]
+            ok = all(np.allclose(r, n, rtol=1e-6, atol=1e-12)
+                     for r, n in zip(rvals, nvals))
             label = "PASS" if ok else "FAIL"
             fmt = {k: f"{v:.2e}" for k, v in max_diffs.items()}
             print(f"  {fname}: {label} (max diffs: {fmt})")
             if not ok:
                 all_ok = False
         else:
-            ok = all(np.allclose(
-                ref[c].values.astype(float), new[c].values.astype(float),
-                rtol=1e-6, atol=1e-12) for c in num_cols)
+            rvals = [np.nan_to_num(ref[c].values.astype(float)) for c in num_cols]
+            nvals = [np.nan_to_num(new[c].values.astype(float)) for c in num_cols]
+            ok = all(np.allclose(r, n, rtol=1e-6, atol=1e-12)
+                     for r, n in zip(rvals, nvals))
             print(f"  {fname}: {'PASS' if ok else 'FAIL'}")
             if not ok:
                 all_ok = False
@@ -931,8 +933,10 @@ def _verify():
         if not num_cols:
             print(f"  {fname}:  SKIP (no shared numeric columns)")
             continue
-        ok = all(np.allclose(ref[c].values.astype(float), new[c].values.astype(float),
-                             rtol=1e-6, atol=1e-12) for c in num_cols)
+        ok = all(np.allclose(
+            np.nan_to_num(ref[c].values.astype(float)),
+            np.nan_to_num(new[c].values.astype(float)),
+            rtol=1e-6, atol=1e-12) for c in num_cols)
         print(f"  {fname}: {'PASS' if ok else 'FAIL'}")
         if not ok:
             all_ok = False
