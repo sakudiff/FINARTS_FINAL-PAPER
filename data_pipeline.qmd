@@ -1238,9 +1238,23 @@ the IRF recursion, producing flat intervals that did not widen with the
 forecast horizon. These were replaced with Monte Carlo confidence bands from
 1,000 draws, which correctly widen as the horizon increases.
 
+The fifth defect was a coefficient-storage bug in the restricted VAR. The
+block-exogenous risk-off equation stores only its own k lagged values as
+regressors, producing k coefficients. These were placed contiguously at the
+front of the coefficient array, but the downstream reshape that converts each
+equation's flat parameter vector into a (lag, variable) matrix read them as
+lag-1 cross-variable coefficients on variables 1 through k-1. The true own-lag
+coefficients for lags 2 through k remained zero. The corruption was confined
+to the restricted specification (the unrestricted path uses statsmodels
+directly). It altered the magnitude of every restricted impulse response and
+inflated the apparent similarity between the paper period and the extended
+period. Correcting it placed the own-lag coefficients in their proper slots
+and tightened the daily RGDP magnitudes to match the paper's published
+charts.
+
 ### Data Revision Discovery
 
-Even after the four code fixes, the restricted model's RGDP response to a
+Even after the five code fixes, the restricted model's RGDP response to a
 risk-off shock had the wrong sign on current-vintage data. The substitution
 of the ALFRED 2021-06-01 vintage provides compelling evidence that the sign
 reversal was caused by Japan's post-2022 GDP benchmark revisions, which
