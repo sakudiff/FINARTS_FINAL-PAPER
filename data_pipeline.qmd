@@ -1339,7 +1339,11 @@ adf_both <- rbind(adf1, adf2)
 adf_both |>
   knitr::kable(caption = "Augmented Dickey-Fuller Tests at 5% Significance",
                col.names = c("Variable", "ADF Statistic", "P-value",
-                             "5% Critical Value", "Stationary", "Period"))
+                             "5% Critical Value", "Stationary", "Period")) |>
+  kableExtra::row_spec(which(adf_both$period == "1999-2021"),
+                       background = "#E8F4E8") |>
+  kableExtra::row_spec(which(adf_both$period == "1999-2026"),
+                       background = "#E8E8F4")
 ```
 
 ### Lag Selection
@@ -1354,7 +1358,11 @@ lag2$period <- "1999-2026"
 lag_both <- rbind(lag1, lag2)
 lag_both |>
   knitr::kable(caption = "AIC Values by Lag for Periods 1999-2021 and 1999-2026",
-               col.names = c("Lag", "AIC", "Period"))
+               col.names = c("Lag", "AIC", "Period")) |>
+  kableExtra::row_spec(which(lag_both$period == "1999-2021"),
+                       background = "#E8F4E8") |>
+  kableExtra::row_spec(which(lag_both$period == "1999-2026"),
+                       background = "#E8E8F4")
 ```
 
 ### IRF Summary: Key Horizons
