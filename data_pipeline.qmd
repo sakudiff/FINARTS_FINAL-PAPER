@@ -1331,6 +1331,12 @@ flow_sig        <- read_csv(file.path(TWOTIER, "flow_significance.csv"), show_co
 
 ### ADF Stationarity Tests
 
+```{r repl-fig-adf}
+#| echo: false
+#| message: false
+knitr::include_graphics("data/processed/var_results/figures/infographics_adf_stationarity.png")
+```
+
 ```{r adf-table}
 #| message: false
 #| echo: true
@@ -1350,6 +1356,12 @@ adf_both |>
 ```
 
 ### Lag Selection
+
+```{r repl-fig-lag}
+#| echo: false
+#| message: false
+knitr::include_graphics("data/processed/var_results/figures/infographics_lag_selection.png")
+```
 
 ```{r lag-table}
 #| message: false

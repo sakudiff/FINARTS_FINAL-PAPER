@@ -1074,6 +1074,56 @@ def run_figures():
     ]
     for csv_path, out_name, title, color in grids:
         _grid(csv_path, out_name, title, color)
+    _plot_lag_selection()
+    _plot_adf_results()
+
+
+def _plot_lag_selection():
+    ls1 = pd.read_csv("data/processed/var_results/lag_selection_1999_2021.csv")
+    ls2 = pd.read_csv("data/processed/var_results/lag_selection_1999_2026.csv")
+    ls1["period"] = "1999-2021"
+    ls2["period"] = "1999-2026"
+    both = pd.concat([ls1, ls2])
+    fig, axes = plt.subplots(1, 2, figsize=(8, 4), sharey=True)
+    for ax, (per, grp) in zip(axes, both.groupby("period")):
+        grp = grp.sort_values("lag")
+        ax.plot(grp["lag"], grp["aic"], color="#2E45B8", linewidth=0.8, marker="o", markersize=3)
+        min_idx = grp["aic"].idxmin()
+        ax.scatter(grp.loc[min_idx, "lag"], grp.loc[min_idx, "aic"],
+                   color="#C91D42", s=40, zorder=4, marker="v")
+        ax.axhline(y=grp["aic"].min(), color="#C91D42", linewidth=0.5, linestyle=":")
+        ax.set_xlabel("Lag")
+        ax.set_ylabel("AIC") if per == "1999-2021" else None
+        ax.set_title(per)
+    fig.suptitle("AIC by lag, minimum marked by red triangle", fontsize=10)
+    fig.tight_layout(rect=[0, 0, 1, 0.95])
+    fig.savefig(FIG_DIR / "infographics_lag_selection.png", dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print("Saved: infographics_lag_selection.png")
+
+
+def _plot_adf_results():
+    adf1 = pd.read_csv("data/processed/var_results/adf_tests_1999_2021.csv")
+    adf2 = pd.read_csv("data/processed/var_results/adf_tests_1999_2026.csv")
+    adf1["period"] = "1999-2021"
+    adf2["period"] = "1999-2026"
+    both = pd.concat([adf1, adf2])
+    fig, ax = plt.subplots(figsize=(8, 5))
+    for _, row in both.iterrows():
+        clr = "#2E45B8" if row["stationary"] == "Yes" else "#C91D42"
+        mkr = "o" if row["period"] == "1999-2021" else "s"
+        ax.scatter(row["adf_stat"], row["variable"], color=clr, marker=mkr, s=40, zorder=3)
+    ax.axvline(-2.8621, color="#595959", linewidth=0.6, linestyle="--", zorder=1)
+    ax.annotate("5% critical value", xy=(-2.8621, 0.5), fontsize=7, color="#595959")
+    ax.set_xlabel("ADF statistic")
+    ax.set_ylabel("")
+    fig.suptitle("ADF test statistic by variable, markers by period, color by stationarity", fontsize=9)
+    fig.tight_layout()
+    fig.savefig(FIG_DIR / "infographics_adf_stationarity.png", dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print("Saved: infographics_adf_stationarity.png")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Unified SVAR replication")
     parser.add_argument("--interpolate-v1", action="store_true",
