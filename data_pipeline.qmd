@@ -1391,12 +1391,12 @@ flow_sig        <- read_csv(file.path(TWOTIER, "flow_significance.csv"), show_co
 knitr::include_graphics("data/processed/var_results/figures/irf_grid_daily_restricted_paper.png")
 ```
 
-**Response of risk_off to a risk-off shock.** The risk-off indicator declines
+#### Response of risk_off to a risk-off shock The risk-off indicator declines
 from approximately 0.10 in the paper and from 0.098 in our replication toward
 zero over 125 trading days. The cross-validation verdict is MATCH. The
 self-response decays at a comparable rate across both specifications.
 
-**Response of LOG(WUI_JP) to a risk-off shock.** The paper shows a smooth
+#### Response of LOG(WUI_JP) to a risk-off shock The paper shows a smooth
 rise to a +0.0017 plateau. Our daily restricted estimate troughs at -0.01 at
 day 40 and returns to zero. The monthly estimates show the same sign
 reversal: our monthly restricted estimate peaks at +0.052 at month 5 and
@@ -1407,7 +1407,7 @@ interpolation settings (L2). The paper's own daily and monthly WUI have
 opposite signs, confirming that sign instability in WUI is inherent to the
 frequency conversion method.
 
-**Response of SPREAD_JP to a risk-off shock.** The spread peaks at 0.010 at
+#### Response of SPREAD_JP to a risk-off shock The spread peaks at 0.010 at
 day 50 in the paper and at 0.015 at day 50 in our data, then decays to 0.007
 and 0.012. In the monthly specification the paper shows a 0.04 start with a
 0.075 spike at month 3 decaying to 0.01, while our estimate starts at 0.024,
@@ -1419,7 +1419,7 @@ classification. The AIC boundary behaviour noted in L7 does not affect
 the daily SPREAD verdict because the AIC-selected lag at the boundary still
 captures the spread dynamics adequately.
 
-**Response of LOG(RGDP_JP) to a risk-off shock.** The daily restricted
+#### Response of LOG(RGDP_JP) to a risk-off shock The daily restricted
 estimate troughs at -0.00074 at day 50 with both confidence intervals below
 zero. The paper troughs at -0.0006 at day 45. The monthly restricted vintage
 model shows a trough of -0.003980 at h=3, significant through h=6, marginal
@@ -1432,7 +1432,7 @@ the sign reversal on current-vintage data is documented in L1 (GDP Vintage
 Revisions). The monthly partial match reflects additional sensitivity to
 unreported EViews settings (L2).
 
-**Response of LOG(REER_JP) to a risk-off shock.** The paper shows a +0.0008
+#### Response of LOG(REER_JP) to a risk-off shock The paper shows a +0.0008
 plateau. Our daily restricted estimate reaches a +0.002 plateau. In the
 monthly restricted specification the paper rises from +0.004 to a peak of
 +0.005 at months 3 to 4 ending at -0.001, while our estimate rises from
@@ -1440,7 +1440,7 @@ monthly restricted specification the paper rises from +0.004 to a peak of
 is MATCH for both frequencies. The REER vintage is a single Wayback Machine
 snapshot (L6), but directional agreement holds across specifications.
 
-**Response of LOG(STOCK_IDX_JP) to a risk-off shock.** The paper shows a
+#### Response of LOG(STOCK_IDX_JP) to a risk-off shock The paper shows a
 +0.0005 positive blip followed by a decline to -0.001 and a flat -0.0005. Our
 daily estimate declines from -0.0014 to -0.0066 with no initial positive
 blip. In the monthly specification the paper starts at -0.017 and recovers
@@ -1450,7 +1450,7 @@ monthly. The missing initial blip in the daily frequency is consistent with
 the unreported EViews interpolation method (L2) affecting the high-frequency
 dynamics. The overall negative trajectory replicates.
 
-**Response of DEBTSEC_JP to a risk-off shock.** The paper dips to -0.005 then
+#### Response of DEBTSEC_JP to a risk-off shock The paper dips to -0.005 then
 flattens at zero. Our daily estimate is noisy and settles near zero. In the
 monthly specification the paper starts at +0.06 and is volatile settling to
 zero, while our estimate starts at -0.15 and is similarly volatile. The
@@ -1459,7 +1459,7 @@ difference between BOJ BPM6 data and IMF IFS data (L4) is the most likely
 driver of the level offset. The zero long-run response matches the paper's
 null finding.
 
-**Response of EQUITY_JP to a risk-off shock.** The paper troughs at -0.006 at
+#### Response of EQUITY_JP to a risk-off shock The paper troughs at -0.006 at
 day 40 and recovers to +0.001. Our estimate troughs at -0.038 at day 25 and
 recovers to -0.0017. In the monthly specification the paper troughs at -0.065
 at month 4 and rebounds to +0.025, while our estimate troughs at -0.055 at
@@ -1467,7 +1467,7 @@ month 3 and rebounds to +0.026. The cross-validation verdict is PARTIAL for
 daily and MATCH for monthly. The daily trough is substantially deeper than
 the paper's, which the cross-platform numerical variance (L8) may explain.
 
-**Response of OTHER_JP to a risk-off shock.** The paper dips then shows a
+#### Response of OTHER_JP to a risk-off shock The paper dips then shows a
 +0.010 peak at day 50. Our estimate spikes to +0.118 at day 5 and reaches
 -0.017 at day 50. The cross-validation verdict is MISMATCH. The other
 investment category is the most heterogeneous of the four capital flow
@@ -1476,7 +1476,7 @@ IMF IFS classification grouped differently. The phase mismatch between the
 paper's peak and our spike is consistent with interpolation-induced
 dynamics.
 
-**Response of DIRECT_JP to a risk-off shock.** The paper dips to -0.002 then
+#### Response of DIRECT_JP to a risk-off shock The paper dips to -0.002 then
 reaches a +0.001 plateau. Our estimate reaches +0.0015 at day 50 and settles
 at +0.0009. In the flow significance table, direct_pct is the only capital
 flow variable with a statistically significant positive response at h=3 in
