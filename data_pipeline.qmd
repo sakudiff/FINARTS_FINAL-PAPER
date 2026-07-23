@@ -87,18 +87,18 @@ names(period_colors) <- c("1999-2021", "2021-2026", "Full Sample")
 ```
 ### Variable reference
 
-| Variable | Description | Frequency | Source |
-|----------|-------------|-----------|--------|
-| `risk_off` | Risk-off indicator: 1 when VIX is at least 10 points above its 60-day MA | Daily | Bloomberg (VIX); Authors' calculation |
-| `spread` | Yield spread between 10-year JGB and 10-year US Treasury | Daily | Japan MoF, LSEG |
-| `log_nikkei` | Log of Nikkei-225 stock index | Daily | LSEG |
-| `log_reer` | Log of real effective exchange rate, broad index (2010 = 100) | Monthly → daily (quadratic) | BIS |
-| `log_rgdp` | Log of constant-price real GDP | Quarterly → daily (quadratic) | IMF |
-| `log_wui` | Log of World Uncertainty Index for Japan | Quarterly → daily (quadratic) | worlduncertaintyindex.com |
-| `debtsec_pct` | Net portfolio investment inflows to debt securities (% of nominal GDP) | Monthly → daily (quadratic) | BOJ, IMF, LSEG |
-| `equity_pct` | Net portfolio investment inflows to equity (% of nominal GDP) | Monthly → daily (quadratic) | BOJ, IMF, LSEG |
-| `other_pct` | Net other investment inflows (% of nominal GDP) | Monthly → daily (quadratic) | BOJ, IMF, LSEG |
-| `direct_pct` | Net direct investment inflows (% of nominal GDP) | Monthly → daily (quadratic) | BOJ, IMF, LSEG |
+| Code name | Paper label | Description | Frequency | Source |
+|-----------|-------------|-------------|-----------|--------|
+| `risk_off` | RISK | Risk-off indicator: 1 when VIX is at least 10 points above its 60-day MA | Daily | Bloomberg (VIX); Authors' calculation |
+| `log_wui` | LOG(WUI_JP) | Log of World Uncertainty Index for Japan | Quarterly → daily (quadratic) | worlduncertaintyindex.com |
+| `spread` | SPREAD_JP | Yield spread between 10-year JGB and 10-year US Treasury | Daily | Japan MoF, LSEG |
+| `log_rgdp` | LOG(RGDP_JP) | Log of constant-price real GDP | Quarterly → daily (quadratic) | IMF |
+| `log_reer` | LOG(REER_JP) | Log of real effective exchange rate, broad index (2010 = 100) | Monthly → daily (quadratic) | BIS |
+| `log_nikkei` | LOG(STOCK_IDX_JP) | Log of Nikkei-225 stock index | Daily | LSEG |
+| `debtsec_pct` | DEBTSEC_JP | Net portfolio investment inflows to debt securities (% of nominal GDP) | Monthly → daily (quadratic) | BOJ, IMF, LSEG |
+| `equity_pct` | EQUITY_JP | Net portfolio investment inflows to equity (% of nominal GDP) | Monthly → daily (quadratic) | BOJ, IMF, LSEG |
+| `other_pct` | OTHER_JP | Net other investment inflows (% of nominal GDP) | Monthly → daily (quadratic) | BOJ, IMF, LSEG |
+| `direct_pct` | DIRECT_JP | Net direct investment inflows (% of nominal GDP) | Monthly → daily (quadratic) | BOJ, IMF, LSEG |
 
 
 All six daily financial series share a consistent LSEG CSV format, so a single read function handles them.
