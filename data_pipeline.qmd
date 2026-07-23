@@ -1983,13 +1983,10 @@ crossval <- data.frame(
   Our_value = c(our_daily, our_monthly),
   Verdict = c("MATCH", "MISMATCH", "MATCH", "MATCH", "MATCH", "PARTIAL", "PARTIAL", "PARTIAL", "MISMATCH", "MATCH",
               "MISMATCH", "PARTIAL", "MATCH", "MATCH", "MATCH", "PARTIAL", "MATCH")
-) |>
-  mutate(Verdict = case_when(
-    Verdict == "MATCH" ~ '<span style="color:#1DC9A4;font-weight:bold">MATCH</span>',
-    Verdict == "PARTIAL" ~ '<span style="color:#F97A1F;font-weight:bold">PARTIAL</span>',
-    TRUE ~ '<span style="color:#C91D42;font-weight:bold">MISMATCH</span>'))
+)
 crossval |>
-  knitr::kable(caption = "Cross-validation of IRF values: replication versus published paper", escape = FALSE) |>
+  mutate(Verdict = gsub('<[^>]+>', '', Verdict)) |>
+  knitr::kable(caption = "Cross-validation of IRF values: replication versus published paper") |>
   kableExtra::kable_styling(full_width = TRUE) |>
   kableExtra::column_spec(1, width = "7em") |>
   kableExtra::column_spec(2, width = "5em") |>
