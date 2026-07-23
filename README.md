@@ -116,7 +116,8 @@ specification.
 
 The paper's EViews interpolation settings are unreported. The BIS REER
 vintage relies on a single Wayback Machine snapshot. The paper states the
-WUI is monthly, but the dataset begins January 2008. Quarterly WUI is the
+WUI is monthly, but the dataset begins January 2008 (available in the repo as
+`data/raw/WUI_M_dataset_2026_05.xlsx`). Quarterly WUI is the
 defensible source. BOJ capital flows are higher frequency than the paper's
 IMF series, introducing variation the paper's VAR would not have seen.
 The monthly tier uses BIC for lag selection where the paper states AIC.

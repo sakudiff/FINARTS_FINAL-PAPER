@@ -178,6 +178,9 @@ wui <- read_csv(file.path(DATA_RAW, "WUI_JPN.csv"),
                 show_col_types = FALSE) |>
   rename(date = observation_date, wui = WUIJPN) |>
   filter(date >= START_DATE)
+# A monthly WUI dataset exists (data/raw/WUI_M_dataset_2026_05.xlsx, 71 countries,
+# starting January 2008) but cannot cover the 1999 sample start. The quarterly
+# series is the correct source for the replication.
 ```
 
 The BOJ 6pi-1 CSV uses Shift-JIS encoding and Japanese-era year labels, requiring manual line-by-line parsing before structured extraction.
