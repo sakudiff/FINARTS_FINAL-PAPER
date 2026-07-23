@@ -1,0 +1,7 @@
+Monthly VAR Test Summary
+========================
+Original period: 1999-01-01 00:00:00 to 2021-03-01 00:00:00 (267 months)
+
+AIC selected lag: 6
+BIC selected lag: 3
+Using lag: 3
