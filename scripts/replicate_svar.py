@@ -927,9 +927,10 @@ def _verify():
         if not ok:
             all_ok = False
 
-    # Restore CI columns for daily files (they exist in git but not in fresh run)
-    print("\n  Restoring daily CI column files from git...")
-    for fname in ["daily_paper_irf.csv", "daily_extended_irf.csv"]:
+    # Restore CI columns for files that need --with-daily-ci values
+    print("\n  Restoring CI-column files from git...")
+    for fname in ["daily_paper_irf.csv", "daily_extended_irf.csv",
+                  "comparison_paper_vs_extended.csv"]:
         path_str = f"data/processed/var_results/twotier/{fname}"
         subprocess.run(
             ["git", "checkout", "HEAD", "--", path_str],
