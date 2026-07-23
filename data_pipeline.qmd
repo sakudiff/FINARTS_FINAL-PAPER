@@ -705,7 +705,7 @@ print(p1)
 ```{r fig2-usdjpy}
 #| fig-height: 4
 #| fig-width: 10
-#| echo: false
+#| echo: true
 #| message: false
 
 ro_fx <- make_ro_bands(daily_fin)
@@ -727,7 +727,7 @@ print(p2)
 ```{r fig3-reer}
 #| fig-height: 4
 #| fig-width: 10
-#| echo: false
+#| echo: true
 #| message: false
 
 # REER is monthly; join with risk_off via year-month to handle frequency mismatch
@@ -1003,129 +1003,136 @@ system2("Rscript", c("scripts/generate_risk_off_table.R"))
 
 The remaining code implements the structural VAR from Section 4 of Beirne and
 Sugandi (2023). The data pipeline above already produces the ten endogenous
-variables in the correct Cholesky ordering. What follows is the model estimation.
+variables in the correct Cholesky ordering. What follows is the model
+estimation and a full-disclosure account of the replication process.
 
-### Disclosure of Replication Decisions
+### Replication Failure and Diagnosis
 
-The paper specifies a recursively restricted VAR with a Cholesky identification
-scheme, where the Risk-off variable is affected only by its own lagged values
-and the other nine variables are unrestricted. Seasonal dummies and a time
-dummy enter as exogenous regressors. The paper states that AIC determines the
-optimal lag and that 95 percent confidence intervals are provided. The paper
-does not disclose the following details.
+The replication initially produced impulse responses that did not match the
+paper's published figures. The failure turned out to be diagnostic, not
+terminal. Four code defects were identified and corrected.
 
-### Seasonal dummy structure
+The first defect was an IRF recursion transpose. The impulse response
+computation in the original VAR script used `irfs[i - j] @ coefs[j - 1].T`
+where the standard formula Lütkepohl (2005) requires `irfs[i - j] @
+coefs[j - 1]` without the transpose. The coefficient matrices are stored as
+`coefs[lag][equation, variable]`. The transpose swapped equation and variable
+indices, so the effect of risk_off on RGDP was replaced with the effect of
+RGDP on risk_off. This single error corrupted every IRF in every
+specification.
 
-The paper says seasonal dummies without specifying monthly or quarterly
-periodicity. We use eleven monthly indicator variables with January as the
-reference month. Monthly dummies are the natural reading for a daily-frequency
-VAR where the lower-frequency series (WUI, REER, RGDP, capital flows) enter
-through quadratic interpolation. The interpolation injects artificial
-intra-period variation that monthly indicators absorb, preventing the seasonal
-pattern in the source data from biasing coefficient estimates.
+The second defect was a plot indexing error. The plotting code used
+`irf_vals[:, 0, vidx]` which reads the response of risk_off to a shock in
+variable `vidx`. It should have been `irf_vals[:, vidx, 0]`, the response of
+variable `vidx` to a risk_off shock. The displayed IRF curves showed the
+wrong variable responses.
 
-### Time dummy definition
+The third defect was a missing constant term. The paper's model includes a
+constant in every equation. The original estimation omitted it, biasing all
+coefficient estimates in a system where several variables have non-zero means.
 
-The paper says a time dummy without specifying a linear trend, a break dummy,
-or an intercept shift. We use a linear time trend indexed from 1 to T, which
-is the simplest specification that satisfies the stated requirement.
+The fourth defect was flat confidence bands. The original pseudo-confidence
+bands were built from residual standard errors that did not propagate through
+the IRF recursion, producing flat intervals that did not widen with the
+forecast horizon. These were replaced with Monte Carlo confidence bands from
+1,000 draws, which correctly widen as the horizon increases.
 
-### Maximum lag search range
+### Data Revision Discovery
 
-The paper says AIC selects the lag but does not state the maximum searched. We
-search lags 1 through 20. At lag 20 each equation estimates 200 endogenous
-coefficients plus 12 exogenous coefficients. With 5,199 complete observations
-in the replication period the observation to parameter ratio exceeds 24 to 1,
-which is adequate for AIC to discriminate without overfitting. If AIC selects
-lag 20, we flag this as a potential boundary effect.
+Even after the four code fixes, the restricted model's RGDP response to a
+risk-off shock had the wrong sign on current-vintage data. The substitution
+of the ALFRED 2021-06-01 vintage provides compelling evidence that the sign
+reversal was caused by Japan's post-2022 GDP benchmark revisions, which
+raised current-vintage RGDP by 3.5 to 6.3 percent over 2019 to 2021 and
+altered the COVID trough. Substituting the ALFRED 2021-06-01 vintage restored
+the paper's negative, persistent, and statistically significant RGDP
+response. The BIS
+REER was likewise retroactively rebased from 2010 = 100 to 2020 = 100 in
+January 2023, and a 2021 May snapshot was recovered from the Internet Archive
+Wayback Machine.
 
-### Confidence interval method
+### Architecture: Two-Tier SVAR
 
-The paper says 95 percent confidence intervals are provided by the dotted
-lines but does not specify whether they are analytical or bootstrap. We
-produce both. The standard asymptotic delta method for VAR impulse response
-confidence intervals propagates the coefficient covariance through the IRF
-recursion via Monte Carlo simulation. This is the default in every major VAR
-package (EViews, Stata, R vars) and is the most likely method the paper used.
-We implement this via Monte Carlo integration: draw shocks from N(0, Sigma_u),
-generate synthetic data, re-estimate the VAR, and compute IRFs for each of
-500 replications. The 2.5th and 97.5th percentiles across replications form
-the 95 percent band. These bands widen with the forecast horizon, reflecting
-the increasing uncertainty of longer-horizon impulse responses.
+The final specification is a two-tier design that mirrors the paper's own
+structure. Tier one is the paper-faithful daily restricted VAR: block
+exogeneity constraint, AIC-selected lag, Cholesky identification, 125-trading
+day horizon, quadratic-match interpolation onto the trading-day grid. The
+interpolation reimplements the EViews quadratic-match average method in
+Python (see `scripts/quadratic_interpolate.py`), not by running EViews
+itself. Tier two is the monthly restricted and unrestricted VAR at
+BIC-selected lags over a 40-month horizon, matching the paper's appendix
+structure. The monthly tier uses BIC rather than AIC because AIC overfits to
+the boundary lag on this data vintage, selecting the maximum lag searched
+regardless of information content (see `docs/logs/2026-07-22-svar-issues-
+***REMOVED***`). The daily tier retains AIC per the paper's method. The paper
+period (1999-01-14 to 2021-03-31) uses vintage data for RGDP and REER per
+the dual-vintage policy documented in `docs/methodology_dual_vintage.md`. The
+extended period (2021-04-01 to 2026-06-30) uses current-vintage data for all
+series. A further note on data sources: the paper used IMF IFS quarterly
+balance of payments data for capital flow variables. This replication uses
+BOJ BPM6 balance of payments data, which is directly comparable under BPM6
+conventions (see methodology doc section A3). Full disclosure of every model
+choice follows the paper's published description where available, with
+explicit notation wherever the paper is silent on a specification detail.
 
-The bootstrap method (residual-based, 100 replications) is added as a
-robustness check. The capital flow variables in our dataset exhibit non-normal
-distributions. `other_pct` has a mean of 0.39 and a maximum of 28.55 with a
-standard deviation of 3.16, and the binary `risk_off` variable cannot produce
-normally distributed residuals by construction. Bootstrap confidence intervals
-make no distributional assumption and provide a more honest assessment of
-sampling variability when normality fails.
+### Seasonal and Time Dummy Structure
 
-### Restricted VAR implementation
+The paper states seasonal dummies without specifying monthly or quarterly
+periodicity. Eleven monthly indicator variables with January as the reference
+month are used. Monthly dummies are the natural reading for a daily-frequency
+VAR where the lower-frequency series enter through quadratic interpolation.
+The interpolation injects artificial intra-period variation that monthly
+indicators absorb. A linear time trend indexed from 1 to T serves as the time
+dummy, the simplest specification that satisfies the stated requirement. The
+constant term is included in every equation.
 
-The paper describes the block exogeneity constraint as setting the coefficients
-of non-Risk-off variables to zero in the Risk-off equation. The paper does not
-disclose the software package. We implement the restriction via
-equation-by-equation OLS: the Risk-off equation is estimated on its own lags
-and the exogenous variables, and the other nine equations are estimated with
-all variables. This matches the paper stated mathematical specification
-exactly.
+### Lag Selection and Confidence Intervals
 
-### Forecast error variance decomposition
+The paper states AIC selects the lag without reporting the maximum searched.
+Lags 1 through 20 are searched. At lag 20 each equation estimates 200
+endogenous coefficients plus 13 exogenous coefficients (11 month dummies, one
+time trend, one constant). With 5,199 complete observations in the replication
+period the observation-to-parameter ratio exceeds 24 to 1. The confidence
+intervals are Monte Carlo bands: shocks are drawn from N(0, Sigma_u),
+synthetic data are generated, the VAR is re-estimated, and IRFs are computed
+for each of 1,000 replications. The 2.5th and 97.5th percentiles form the 95
+percent band. These bands widen with the forecast horizon, which the original
+flat bands did not.
 
-The working paper version (ADBI Working Paper 1345) does not mention FEVD. We
-include it as a standard VAR diagnostic because it answers a question the IRFs
-leave open: how much of the Risk-off shock total effect on each variable is
-attributable to the shock itself versus propagation through the system. The
-decomposition uses the same Cholesky ordering, so the variance allocation
-inherits the same identification assumptions.
-
-### Stationarity tests
+### Stationarity Tests
 
 The paper states that all endogenous variables are stationary but does not
-report the test statistic, lag specification, or significance threshold. We
-apply the Augmented Dickey-Fuller test with AIC lag selection and a maximum of
-20 lags at the 5 percent significance level, consistent with the 95 percent
-confidence intervals used throughout the paper. If any variable tests as
-non-stationary we report the discrepancy.
+report the test statistic, lag specification, or significance threshold. The
+Augmented Dickey-Fuller test with AIC lag selection and a maximum of 20 lags
+at the 5 percent significance level is applied below.
 
-```{r svar-analysis}
+### Two-Tier Results
+
+The pre-computed SVAR results are stored in
+`data/processed/var_results/twotier/`. The chunks below load them directly
+without re-estimation, because the full VAR estimation (2 to 12 minutes
+depending on hardware) is a separate computational step.
+
+```{r load-twotier}
 #| message: false
-#| cache: true
-# Output: data/processed/var_results/ (figures, CSV tables)
-# Skip if outputs already exist from a prior run
-if (!file.exists("data/processed/var_results/fevd_unrestricted_1999_2026.csv")) {
-  system2("uv", c("run", "scripts/var_analysis.py"))
-} else {
-  message("SVAR outputs found, skipping re-run. Delete data/processed/var_results/ to force.")
-}
+
+TWOTIER <- file.path("data", "processed", "var_results", "twotier")
+
+daily_paper     <- read_csv(file.path(TWOTIER, "daily_paper_irf.csv"), show_col_types = FALSE)
+daily_extended  <- read_csv(file.path(TWOTIER, "daily_extended_irf.csv"), show_col_types = FALSE)
+monthly_paper_r <- read_csv(file.path(TWOTIER, "monthly_paper_restricted_irf.csv"), show_col_types = FALSE)
+monthly_paper_u <- read_csv(file.path(TWOTIER, "monthly_paper_unrestricted_irf.csv"), show_col_types = FALSE)
+monthly_ext_r   <- read_csv(file.path(TWOTIER, "monthly_extended_restricted_irf.csv"), show_col_types = FALSE)
+monthly_ext_u   <- read_csv(file.path(TWOTIER, "monthly_extended_unrestricted_irf.csv"), show_col_types = FALSE)
+comparison      <- read_csv(file.path(TWOTIER, "comparison_paper_vs_extended.csv"), show_col_types = FALSE)
+flow_sig        <- read_csv(file.path(TWOTIER, "flow_significance.csv"), show_col_types = FALSE)
 ```
-
-### What the Script Produces
-
-All outputs cover both the paper replication period (1999 to 2021) and the
-extended period (1999 to 2026) for both the restricted and unrestricted VAR
-specifications.
-
-### Implementation Note
-
-The VAR estimation runs in Python through a standalone script called by R via
-`system2()`. Python code blocks embedded directly in the QMD would require the
-reticulate R package, which is not installed in this environment. The existing
-pipeline already uses this pattern for the quadratic interpolation step.
-
-Keeping the computation in a separate script also avoids re-running the full
-SVAR (2 to 12 minutes depending on hardware) on every render. A cache check
-skips execution when output files already exist.
-
-The full Python source is shown in a collapsible section at the bottom of this
-document for readers who prefer to inspect the implementation directly.
 
 ### ADF Stationarity Tests
 
 ```{r adf-table}
 #| message: false
-#| echo: false
+#| echo: true
 adf1 <- read.csv("data/processed/var_results/adf_tests_1999_2021.csv", row.names = 1)
 adf2 <- read.csv("data/processed/var_results/adf_tests_1999_2026.csv", row.names = 1)
 adf1$period <- "1999-2021"
@@ -1141,7 +1148,7 @@ adf_both |>
 
 ```{r lag-table}
 #| message: false
-#| echo: false
+#| echo: true
 lag1 <- read.csv("data/processed/var_results/lag_selection_1999_2021.csv")
 lag2 <- read.csv("data/processed/var_results/lag_selection_1999_2026.csv")
 lag1$period <- "1999-2021"
@@ -1152,137 +1159,223 @@ lag_both |>
                col.names = c("Lag", "AIC", "Period"))
 ```
 
-### Forecast Error Variance Decomposition
+### IRF Summary: Key Horizons
 
-```{r fevd-table}
+The table below reports impulse response values at selected horizons for the
+ten endogenous variables, for both the paper-period daily restricted VAR and
+the extended-period daily restricted VAR. All responses are to a
+one-standard-deviation risk-off shock. Confidence intervals are 95 percent
+Monte Carlo bands.
+
+```{r irf-key-table}
 #| message: false
-#| echo: false
-fevd_files <- list.files("data/processed/var_results", pattern = "fevd_.*csv", full.names = TRUE)
-for (f in fevd_files) {
-  cat("\n\nFile:", basename(f), "\n\n")
-  df <- read.csv(f, check.names = FALSE)
-  if (ncol(df) > 6) {
-    short <- df[, 1:6]
-  } else {
-    short <- df
-  }
-  print(knitr::kable(short, caption = basename(f), row.names = FALSE))
-}
+#| code-fold: true
+
+key_horizons <- c(0, 1, 3, 6, 12, 24, 125)
+
+paper_key <- daily_paper |> filter(horizon %in% key_horizons)
+ext_key  <- daily_extended |> filter(horizon %in% key_horizons)
+
+paper_wide <- paper_key |>
+  mutate(entry = sprintf("%.6f [%.6f, %.6f]", response, lower, upper)) |>
+  select(variable, horizon, entry) |>
+  pivot_wider(names_from = horizon, values_from = entry, names_prefix = "h")
+
+ext_wide <- ext_key |>
+  mutate(entry = sprintf("%.6f [%.6f, %.6f]", response, lower, upper)) |>
+  select(variable, horizon, entry) |>
+  pivot_wider(names_from = horizon, values_from = entry, names_prefix = "h")
+
+cat("\n**Daily Restricted VAR - Paper Period (1999-2021)**\n\n")
+paper_wide |>
+  knitr::kable(caption = "Daily restricted VAR IRFs, paper period")
+
+cat("\n**Daily Restricted VAR - Extended Period (1999-2026)**\n\n")
+ext_wide |>
+  knitr::kable(caption = "Daily restricted VAR IRFs, extended period")
 ```
 
-### IRF Peak Magnitudes
+### Daily Tier: Paper Period IRF Figure
 
-```{r irf-peak-table}
-#| message: false
-#| echo: false
-peak_files <- list.files("data/processed/var_results", pattern = "irf_peak_.*csv", full.names = TRUE)
-for (f in peak_files) {
-  cat("\n\n", basename(f), "\n\n")
-  df <- read.csv(f)
-  print(knitr::kable(df, caption = basename(f), row.names = FALSE))
-}
-```
+Each panel below shows the response of one variable to a one-standard-deviation
+risk-off shock over 125 trading days. The solid line is the point estimate.
+The shaded band is the 95 percent Monte Carlo confidence interval.
 
-### Impulse Response Functions
-
-The figure below overlays the restricted VAR impulse responses for the paper
-replication period (1999 to 2021, blue) and the extended period (1999 to 2026,
-orange). Each panel shows the response of one endogenous variable to a
-one-standard-deviation structural shock on the Risk-off indicator over 125
-working days. The shaded bands represent 95 percent confidence intervals.
-
-```{r irf-period-comparison}
+```{r daily-paper-irf-plot}
 #| fig-height: 10
 #| fig-width: 16
-#| echo: false
+#| code-fold: true
 #| message: false
-knitr::include_graphics("data/processed/var_results/figures/irf_period_comparison_restricted.png")
+
+daily_paper |>
+  ggplot(aes(x = horizon, y = response)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2, fill = "#2E45B8") +
+  geom_line(color = "#2E45B8", linewidth = 0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey50", linewidth = 0.3) +
+  facet_wrap(~variable, scales = "free_y", ncol = 3) +
+  labs(x = "Horizon (trading days)", y = "Response",
+       title = "Daily Restricted VAR: IRF to Risk-off Shock (Paper Period, 1999-2021)",
+       caption = "95% Monte Carlo confidence bands. Quadratic-match interpolation.") +
+  theme_quant()
 ```
 
-### Restricted VAR IRFs (Analytical CIs)
+### Monthly Tier: Paper Period Restricted IRF Figure
 
-#### Paper Replication Period: 1999 to 2021
+The monthly restricted VAR uses BIC-selected lags over a 40-month horizon.
+This mirrors the paper's appendix structure.
 
-```{r irf-restricted-analytical}
+```{r monthly-paper-restricted-irf-plot}
 #| fig-height: 10
 #| fig-width: 16
-#| echo: false
+#| code-fold: true
 #| message: false
-knitr::include_graphics("data/processed/var_results/figures/irf_restricted_1999_2021_analytical.png")
+
+monthly_paper_r |>
+  ggplot(aes(x = horizon, y = response)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2, fill = "#F97A1F") +
+  geom_line(color = "#F97A1F", linewidth = 0.5) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey50", linewidth = 0.3) +
+  facet_wrap(~variable, scales = "free_y", ncol = 3) +
+  labs(x = "Horizon (months)", y = "Response",
+       title = "Monthly Restricted VAR: IRF to Risk-off Shock (Paper Period, 1999-2021)",
+       caption = "95% Monte Carlo confidence bands. Vintage data used for RGDP and REER.") +
+  theme_quant()
 ```
 
-#### Extended Period: 1999 to 2026
+### Monthly Tier Summary: Key Horizons
 
-```{r irf-restricted-analytical-ext}
-#| fig-height: 10
-#| fig-width: 16
-#| echo: false
+```{r monthly-key-table}
 #| message: false
-knitr::include_graphics("data/processed/var_results/figures/irf_restricted_1999_2026_analytical.png")
+#| code-fold: true
+
+monthly_key <- c(0, 1, 3, 6, 12, 24, 40)
+
+mp_r_key <- monthly_paper_r |> filter(horizon %in% monthly_key)
+mp_u_key <- monthly_paper_u |> filter(horizon %in% monthly_key)
+
+mp_r_wide <- mp_r_key |>
+  mutate(entry = sprintf("%.6f [%.6f, %.6f]", response, lower, upper)) |>
+  select(variable, horizon, entry) |>
+  pivot_wider(names_from = horizon, values_from = entry, names_prefix = "h")
+
+mp_u_wide <- mp_u_key |>
+  mutate(entry = sprintf("%.6f [%.6f, %.6f]", response, lower, upper)) |>
+  select(variable, horizon, entry) |>
+  pivot_wider(names_from = horizon, values_from = entry, names_prefix = "h")
+
+cat("\n**Monthly Restricted VAR - Paper Period (1999-2021)**\n\n")
+mp_r_wide |>
+  knitr::kable(caption = "Monthly restricted VAR IRFs, paper period")
+
+cat("\n**Monthly Unrestricted VAR - Paper Period (1999-2021)**\n\n")
+mp_u_wide |>
+  knitr::kable(caption = "Monthly unrestricted VAR IRFs, paper period")
 ```
 
-### Analytical vs Bootstrap CI Comparison
+### Paper vs Extended Comparison
 
-#### Paper Replication Period: 1999 to 2021
-
-```{r irf-ci-comparison}
-#| fig-height: 10
-#| fig-width: 16
-#| echo: false
+```{r comparison-table}
 #| message: false
-knitr::include_graphics("data/processed/var_results/figures/irf_restricted_1999_2021_ci_comparison.png")
+#| code-fold: true
+
+comparison_clean <- comparison |>
+  mutate(entry = sprintf("%.6f", response)) |>
+  select(tier, period, specification, variable, horizon, entry) |>
+  pivot_wider(names_from = c(tier, period, specification),
+              values_from = entry,
+              names_sep = "_")
+
+comparison_clean |>
+  knitr::kable(caption = "IRF comparison: paper vs extended period at selected horizons")
 ```
 
-#### Extended Period: 1999 to 2026
+### Capital Flow Significance
 
-```{r irf-ci-comparison-ext}
-#| fig-height: 10
-#| fig-width: 16
-#| echo: false
+The table below shows the Monte Carlo significance status for each capital flow
+variable at horizons 1, 3, 6, 12, and 24 months under both the restricted and
+unrestricted specifications.
+
+```{r flow-sig-table}
 #| message: false
-knitr::include_graphics("data/processed/var_results/figures/irf_restricted_1999_2026_ci_comparison.png")
+#| code-fold: true
+
+flow_sig |>
+  select(specification, variable, horizon, response, significant_95) |>
+  mutate(across(where(is.numeric), ~ round(.x, 4))) |>
+  knitr::kable(caption = "Capital flow IRF significance at 95% level")
 ```
 
-### Frequency Robustness
+The capital flow responses are predominantly insignificant across all
+specifications and horizons. Only two entries reach the 95 percent
+significance threshold: the restricted and unrestricted models both show a
+significant positive direct_pct response at h=3. All other capital flow
+horizons and variables are insignificant. This matches the paper's finding
+that capital flow variables do not respond systematically to risk-off shocks,
+with the caveat that a single isolated significant cell at one horizon is
+consistent with random sampling variation under the null.
 
-The restricted VAR re-estimated on weekly and monthly aggregated data
-(Beirne and Sugandi 2023, Appendix 4).
+### Replication Fidelity: Assessment
 
-#### Paper Replication Period: 1999 to 2021
+The paper-period daily restricted VAR produces a negative and statistically
+significant RGDP response at every horizon. At h=1 the response is -0.000053
+(95 percent CI [-0.000083, -0.000024]). At h=125 it is -0.000640 (95 percent
+CI [-0.000765, -0.000242]). The monthly restricted vintage model shows an
+RGDP trough of -0.003980 at h=3, significant through h=6 (CI entirely below
+zero), marginal at h=12 (upper bound -0.000104), and statistically
+indistinguishable from zero at h=24 and beyond. The spread response is
+positive and persistent in all specifications. The WUI response is negative
+in the long horizon but does not replicate the paper's smooth
+positive-then-negative pattern. Capital flow responses are mostly
+insignificant, matching the paper's null result for portfolio flows. Only
+two entries in the flow significance table reach the 95 percent threshold:
+both for direct_pct at h=3 (restricted and unrestricted).
 
-```{r irf-weekly}
-#| fig-height: 10
-#| fig-width: 16
-#| echo: false
-#| message: false
-knitr::include_graphics("data/processed/var_results/figures/irf_restricted_1999_2021_w.png")
-```
+The Nikkei 225 does not show the immediate positive impact effect that
+appears in the paper's daily figure. The response is negative from h=0 in
+every specification we tested. The daily RGDP magnitudes are shallower than
+the paper's published charts. The unrestricted specification diverges from
+the restricted specification on current-vintage data, which contradicts the
+paper's statement that the two are fully consistent. This divergence is
+itself a finding about the sensitivity of the restricted model to GDP data
+revisions.
 
-```{r irf-monthly}
-#| fig-height: 10
-#| fig-width: 16
-#| echo: false
-#| message: false
-knitr::include_graphics("data/processed/var_results/figures/irf_restricted_1999_2021_me.png")
-```
+Whether the paper's EViews interpolation settings used quadratic-match
+average or quadratic-match sum is unreported, and the choice affects the
+interpolated daily path. Whether the paper's lag count was capped at a
+specific maximum is unreported. Whether the paper's daily RGDP magnitudes
+would reproduce given their exact EViews settings and their exact software
+version is unknowable from the published documentation. The BIS REER vintage
+rests on a single Wayback Machine snapshot, not on a certified archival
+source. The paper's stated monthly WUI series cannot exist before 2008, so
+quarterly WUI is the defensible source, but the conversion method between
+frequencies is the authors' choice, not the paper's.
 
-#### Extended Period: 1999 to 2026
+### Limitations
 
-```{r irf-weekly-ext}
-#| fig-height: 10
-#| fig-width: 16
-#| echo: false
-#| message: false
-knitr::include_graphics("data/processed/var_results/figures/irf_restricted_1999_2026_w.png")
-```
+This replication is limited by five unresolved constraints. First, the daily
+RGDP magnitudes cannot be directly compared to the paper's published charts
+without the paper's exact EViews settings. The quadratic-match average
+interpolation is a Python reimplementation, not EViews itself, and no
+cross-software equivalence test has been performed. Second, unreported lag
+search bounds and unreported interpolation settings (quadratic-match average
+versus quadratic-match sum) could shift results within the paper's published
+uncertainty. Third, the BIS REER vintage is a single Wayback Machine snapshot,
+not a certified vintage series, and the BIS does not publicly archive
+retrospective vintages. Fourth, the unrestricted specification on
+current-vintage data gives results that conflict with the restricted
+specification, which the paper claims are consistent. This conflict cannot be
+resolved without the paper's original data and software environment. Fifth,
+the World Uncertainty Index is available at quarterly frequency only for the
+full sample, and the monthly WUI dataset begins in 2008. Every replication of
+the paper's 1999 sample start must therefore use quarterly WUI, and the
+interpolation method is a modeling choice, not a reproduction.
 
-```{r irf-monthly-ext}
-#| fig-height: 10
-#| fig-width: 16
-#| echo: false
-#| message: false
-knitr::include_graphics("data/processed/var_results/figures/irf_restricted_1999_2026_me.png")
-```
+These limitations do not invalidate the core replication finding: the paper's
+negative, persistent, and statistically significant RGDP response to a
+risk-off shock reproduces when the correct data vintage and corrected VAR code
+are used together. The sensitivity of the result to GDP data vintage is itself
+a substantive finding about the fragility of recursively identified VARs to
+national accounts revisions.
 
 ### Appendix: Financial Markets and Risk-off Events in Japan
 
@@ -1350,10 +1443,14 @@ knitr::include_graphics("data/processed/var_results/figures/figA1_6_direct_risk_
 knitr::include_graphics("data/processed/var_results/figures/figA1_7_spread_risk_off.png")
 ```
 
-### Python Source Code
+### Python Source Code (Deprecated Script)
 
-The full VAR estimation script is shown below. It is called by the
-`svar-analysis` chunk above via `system2("uv", c("run", "scripts/var_analysis.py"))`.
+The script below is the original daily VAR estimation code (`var_analysis.py`)
+that contained the IRF transpose bug and was superseded by the two-tier
+results. It is retained for transparency. The two-tier results in
+`data/processed/var_results/twotier/` were generated by an independent Python
+estimation with the corrected IRF recursion, vintage GDP, and Monte Carlo
+confidence bands.
 
 ```{r python-source}
 #| echo: false
