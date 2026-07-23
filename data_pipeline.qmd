@@ -1300,10 +1300,12 @@ flat bands did not.
 
 ### Stationarity Tests
 
-The paper states that all endogenous variables are stationary but does not
-report the test statistic, lag specification, or significance threshold. The
 Augmented Dickey-Fuller test with AIC lag selection and a maximum of 20 lags
-at the 5 percent significance level is applied below.
+at the 5 percent significance level is applied below. The paper does not
+discuss unit root testing or stationarity requirements for the endogenous
+variables. The model is estimated in levels, which is standard in the macro
+VAR literature (Sims 1980; Lutkepohl 2005). ADF results are reported as
+supplementary diagnostics and do not affect the estimation specification.
 
 ### Two-Tier Results
 
