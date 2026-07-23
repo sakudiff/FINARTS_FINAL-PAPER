@@ -63,16 +63,37 @@ restricted VAR with AIC-selected lag, monthly restricted and unrestricted
 VAR with BIC-selected lags, Monte Carlo confidence intervals (1000
 replications), and flow significance tests. Expected runtime ~4 minutes.
 
-Add `--with-daily-ci` for daily restricted VAR confidence bands (longer).
-
 ### (c) Verify against committed reference outputs
 
 ```
 uv run python scripts/replicate_svar.py --verify
 ```
 
-Compares all twotier outputs against reference CSVs using
-`numpy.allclose(rtol=1e-4)`. All checks must pass.
+Re-runs the full pipeline and compares outputs against the committed
+reference results using `numpy.allclose(rtol=1e-6)`. References are
+loaded directly from `git show HEAD:path`. All checks must pass.
+
+### (d, optional) Quarto HTML report
+
+```
+quarto render data_pipeline.qmd
+```
+
+Generates `index.html` with the full narrative, tables, and figures.
+The Quarto pipeline calls `replicate_svar.py --interpolate-v1`
+for the initial pandas-spline interpolation step.
+
+### (e, optional) Daily confidence bands
+
+Add `--with-daily-ci` to any run of `replicate_svar.py`:
+
+```
+uv run python scripts/replicate_svar.py --with-daily-ci
+```
+
+Computes Monte Carlo confidence intervals for the daily restricted
+VAR (1000 replications by default). Expected runtime increases
+from ~4 minutes to ~25 minutes.
 
 ### (d) Build the HTML report (optional)
 

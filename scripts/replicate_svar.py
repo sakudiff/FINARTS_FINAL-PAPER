@@ -30,6 +30,7 @@ VAR_ORDER = [
     "log_nikkei", "debtsec_pct", "equity_pct", "other_pct", "direct_pct",
 ]
 
+REPO_ROOT = Path(__file__).resolve().parent.parent
 PAPER_END = pd.Timestamp("2021-03-31")
 EXTENDED_END = pd.Timestamp("2026-06-30")
 IRF_H_DAILY = 125
@@ -561,9 +562,8 @@ def _ci_restricted(results, irf_vals, repl, seed=42):
 
 def _ci_unrestricted(results, irf_obj, repl, seed=42):
     try:
-        np.random.seed(seed)
         lower_mc, upper_mc = irf_obj.errband_mc(
-            orth=True, repl=repl, signif=ALPHA, seed=None)
+            orth=True, repl=repl, signif=ALPHA, seed=seed)
         lower = np.asarray(lower_mc)[:, :, 0]
         upper = np.asarray(upper_mc)[:, :, 0]
     except Exception:
@@ -792,21 +792,28 @@ def _regenerate_qdmatch():
 
 
 def _verify():
-    """Compare current outputs against backup reference CSVs."""
-    ref_dir = Path("data/tmp_reference")
-    if not ref_dir.exists():
-        print("ERROR: Reference directory data/tmp_reference/ does not exist.")
-        print("Run backup first, then run the pipeline, then this check.")
-        sys.exit(1)
+    """Run the pipeline in-place and compare outputs against git-HEAD references."""
+    import subprocess
+    import tempfile
+    from io import StringIO
+
+    def _load_git_ref(rel_path):
+        result = subprocess.run(
+            ["git", "show", f"HEAD:{rel_path}"],
+            capture_output=True, text=True, cwd=REPO_ROOT)
+        if result.returncode != 0:
+            print(f"  WARNING: cannot read git HEAD for {rel_path} — skipping")
+            return None
+        return pd.read_csv(StringIO(result.stdout))
 
     print("=" * 60)
-    print("VERIFICATION: Comparing outputs against reference CSVs")
+    print("VERIFICATION: Running pipeline and comparing against committed outputs")
     print("=" * 60)
 
-    twotier_ref = ref_dir / "twotier"
-    twotier_new = TWOTIER_DIR
+    paper_end_saved = (PAPER_END,)
+    extended_end_saved = (EXTENDED_END,)
 
-    files_to_check = [
+    twotier_files = [
         "daily_paper_irf.csv",
         "daily_extended_irf.csv",
         "monthly_paper_restricted_irf.csv",
@@ -816,121 +823,118 @@ def _verify():
         "comparison_paper_vs_extended.csv",
         "flow_significance.csv",
     ]
+    std_files = [
+        "adf_tests_1999_2021.csv",
+        "adf_tests_1999_2026.csv",
+        "lag_selection_1999_2021.csv",
+        "lag_selection_1999_2026.csv",
+    ]
 
+    # Load references from git HEAD
+    print("\n  Loading reference outputs from git HEAD...")
+    refs = {}
+    for fname in twotier_files:
+        ref = _load_git_ref(f"data/processed/var_results/twotier/{fname}")
+        if ref is not None:
+            refs[fname] = ref
+    for fname in std_files:
+        ref = _load_git_ref(f"data/processed/var_results/{fname}")
+        if ref is not None:
+            refs[fname] = ref
+
+    n_refs = len(refs)
+    print(f"    Loaded {n_refs}/12 reference files")
+    if n_refs < 12:
+        print(f"    WARNING: {12 - n_refs} references missing — verify will be incomplete")
+
+    # Run the pipeline in-place
+    print("\n  Running pipeline...")
+    _run_pipeline(with_daily_ci=False, repl=MC_REPL_DEFAULT)
+
+    # Compare each output against its reference
     all_ok = True
-    print()
-    for fname in files_to_check:
-        ref_path = twotier_ref / fname
-        new_path = twotier_new / fname
-        if not ref_path.exists():
-            print(f"  {fname}: REFERENCE MISSING — skipping")
-            continue
-        if not new_path.exists():
-            print(f"  {fname}: NEW FILE MISSING — FAIL")
+    print("\n" + 60 * "-")
+    print("COMPARISON RESULTS")
+    print(60 * "-")
+    for fname in twotier_files:
+        path = TWOTIER_DIR / fname
+        if not path.exists():
+            print(f"  {fname}: FAIL (output missing)")
             all_ok = False
             continue
+        ref = refs.get(fname)
+        if ref is None:
+            print(f"  {fname}:  SKIP (no git ref)")
+            continue
+        new = pd.read_csv(str(path))
 
-        ref_df = pd.read_csv(str(ref_path))
-        new_df = pd.read_csv(str(new_path))
-
-        num_cols = []
-        for c in ref_df.columns:
-            if c not in new_df.columns:
-                continue
-            try:
-                if np.issubdtype(ref_df[c].dtype, np.number) and np.issubdtype(new_df[c].dtype, np.number):
-                    num_cols.append(c)
-            except TypeError:
-                pass
-
+        shared = [c for c in ref.columns if c in new.columns]
+        num_cols = [c for c in shared if pd.api.types.is_numeric_dtype(ref[c])
+                    and pd.api.types.is_numeric_dtype(new[c])]
         if not num_cols:
-            print(f"  {fname}: no numeric columns to compare — SKIP")
+            print(f"  {fname}:  SKIP (no shared numeric columns)")
             continue
 
-        if "variable" in ref_df.columns and "horizon" in ref_df.columns:
-            merge_cols = [c for c in ["variable", "horizon", "tier", "period",
-                                       "specification"]
-                          if c in ref_df.columns and c in new_df.columns]
-            merged = ref_df.merge(new_df, on=merge_cols, suffixes=("_ref", "_new"),
-                                  how="inner")
+        mcols = [c for c in ["variable", "horizon", "tier", "period", "specification"]
+                 if c in ref.columns and c in new.columns]
+        if mcols:
+            m = ref.merge(new, on=mcols, suffixes=("_ref", "_new"), how="inner")
             max_diffs = {}
             for c in num_cols:
-                ref_c = f"{c}_ref" if c in ref_df.columns and c not in merge_cols else c
-                new_c = f"{c}_new" if c in ref_df.columns and c not in merge_cols else c
-                if ref_c not in merged.columns or new_c not in merged.columns:
+                rc = f"{c}_ref" if c not in mcols else c
+                nc = f"{c}_new" if c not in mcols else c
+                if rc not in m.columns or nc not in m.columns:
                     continue
-                ref_vals = merged[ref_c].values.astype(float)
-                new_vals = merged[new_c].values.astype(float)
-                diff = np.abs(ref_vals - new_vals)
-                diff = diff[~np.isnan(diff)]
-                max_diffs[c] = np.max(diff) if len(diff) > 0 else 0.0
+                d = np.abs(m[rc].values.astype(float) - m[nc].values.astype(float))
+                d = d[~np.isnan(d)]
+                max_diffs[c] = float(np.max(d)) if len(d) > 0 else 0.0
+            ok = all(np.allclose(
+                ref[c].values.astype(float), new[c].values.astype(float),
+                rtol=1e-6, atol=1e-12) for c in num_cols)
+            label = "PASS" if ok else "FAIL"
+            fmt = {k: f"{v:.2e}" for k, v in max_diffs.items()}
+            print(f"  {fname}: {label} (max diffs: {fmt})")
+            if not ok:
+                all_ok = False
         else:
-            merged = ref_df.merge(new_df, left_index=True, right_index=True,
-                                  suffixes=("_ref", "_new"))
-            max_diffs = {}
-            for c in num_cols:
-                ref_c = f"{c}_ref" if c in ref_df.columns else c
-                new_c = f"{c}_new" if c in ref_df.columns else c
-                ref_vals = merged[ref_c].values.astype(float)
-                new_vals = merged[new_c].values.astype(float)
-                diff = np.abs(ref_vals - new_vals)
-                diff = diff[~np.isnan(diff)]
-                max_diffs[c] = np.max(diff) if len(diff) > 0 else 0.0
+            ok = all(np.allclose(
+                ref[c].values.astype(float), new[c].values.astype(float),
+                rtol=1e-6, atol=1e-12) for c in num_cols)
+            print(f"  {fname}: {'PASS' if ok else 'FAIL'}")
+            if not ok:
+                all_ok = False
 
-        col_ok = True
-        for c in num_cols:
-            ref_c = f"{c}_ref" if c in ref_df.columns and c not in merge_cols else c
-            new_c = f"{c}_new" if c in ref_df.columns and c not in merge_cols else c
-            if "variable" in ref_df.columns and "horizon" in ref_df.columns:
-                ref_vals = merged.get(ref_c, merged.get(c)).values.astype(float)
-                new_vals = merged.get(new_c, merged.get(c)).values.astype(float)
-            else:
-                ref_vals = ref_df[c].values.astype(float)
-                new_vals = new_df[c].values.astype(float)
-            both_ok = ~np.isnan(ref_vals) & ~np.isnan(new_vals)
-            if both_ok.sum() == 0:
-                continue
-            if not np.allclose(ref_vals[both_ok], new_vals[both_ok], rtol=1e-6, atol=1e-12):
-                col_ok = False
-                break
-
-        if col_ok:
-            print(f"  {fname}: PASS (max diffs: { {k: f'{v:.2e}' for k, v in max_diffs.items()} })")
-        else:
-            print(f"  {fname}: FAIL")
+    for fname in std_files:
+        path = OUT_DIR / fname
+        if not path.exists():
+            print(f"  {fname}: FAIL (output missing)")
             all_ok = False
-            for c, d in max_diffs.items():
-                if d > 1e-6:
-                    print(f"    {c}: max_abs_diff={d:.6e}")
-
-    for prefix in ["adf_tests_1999_2021", "adf_tests_1999_2026",
-                    "lag_selection_1999_2021", "lag_selection_1999_2026"]:
-        ref_path = ref_dir / f"{prefix}.csv"
-        new_path = OUT_DIR / f"{prefix}.csv"
-        if not ref_path.exists():
             continue
-        ref_df = pd.read_csv(str(ref_path))
-        new_df = pd.read_csv(str(new_path))
-        num_cols = []
-        for c in ref_df.columns:
-            if c not in new_df.columns:
-                continue
-            try:
-                if np.issubdtype(ref_df[c].dtype, np.number):
-                    num_cols.append(c)
-            except TypeError:
-                pass
+        ref = refs.get(fname)
+        if ref is None:
+            print(f"  {fname}:  SKIP (no git ref)")
+            continue
+        new = pd.read_csv(str(path))
+        num_cols = [c for c in ref.columns if c in new.columns
+                    and pd.api.types.is_numeric_dtype(ref[c])
+                    and pd.api.types.is_numeric_dtype(new[c])]
         if not num_cols:
+            print(f"  {fname}:  SKIP (no shared numeric columns)")
             continue
-        col_ok = all(np.allclose(ref_df[c].values.astype(float),
-                                 new_df[c].values.astype(float),
-                                 rtol=1e-6, atol=1e-12)
-                    for c in num_cols)
-        if col_ok:
-            print(f"  {prefix}.csv: PASS")
-        else:
-            print(f"  {prefix}.csv: FAIL")
+        ok = all(np.allclose(ref[c].values.astype(float), new[c].values.astype(float),
+                             rtol=1e-6, atol=1e-12) for c in num_cols)
+        print(f"  {fname}: {'PASS' if ok else 'FAIL'}")
+        if not ok:
             all_ok = False
+
+    # Restore CI columns for daily files (they exist in git but not in fresh run)
+    print("\n  Restoring daily CI column files from git...")
+    for fname in ["daily_paper_irf.csv", "daily_extended_irf.csv"]:
+        path_str = f"data/processed/var_results/twotier/{fname}"
+        subprocess.run(
+            ["git", "checkout", "HEAD", "--", path_str],
+            capture_output=True, cwd=REPO_ROOT)
+    print("    Done")
 
     print()
     if all_ok:
@@ -939,6 +943,110 @@ def _verify():
         print("VERDICT: SOME CHECKS FAILED — investigate discrepancies above")
     return all_ok
 
+
+
+def _run_pipeline(with_daily_ci=False, repl=MC_REPL_DEFAULT):
+    """Run the full two-tier estimation pipeline, writing outputs in-place."""
+    print("Running pipeline...")
+    print(f"Daily CIs:     {'YES' if with_daily_ci else 'point estimates only'}")
+    print(f"MC repl:       {repl}")
+    print()
+
+    t_start = time.time()
+
+    df_daily = pd.read_csv("data/processed/final_dataset.csv", parse_dates=["date"])
+    df_daily = df_daily.sort_values("date").reset_index(drop=True)
+    print(f"Daily data: {len(df_daily)} rows, {df_daily['date'].min()} to {df_daily['date'].max()}")
+    print()
+
+    print("STEP 1: Quadratic-match interpolation (v2)")
+    print(60 * "-")
+    _regenerate_qdmatch()
+
+    print()
+    print("STEP 2: Stationarity tests and lag selection")
+    print(60 * "-")
+    _run_adf_and_lag(df_daily)
+
+    all_runs = {}
+
+    print()
+    print("STEP 3: DAILY RESTRICTED VAR")
+    print(60 * "-")
+
+    print()
+    print("  Building daily paper-period dataset (vintage)...")
+    daily_paper = _build_daily_paper(df_daily)
+    exog_p, _ = build_exog(daily_paper.loc[daily_paper[VAR_ORDER].dropna().index])
+    data_p = daily_paper[VAR_ORDER].dropna()
+    res_daily_paper = _estimate_daily(
+        data_p, exog_p, "Daily paper (restricted)",
+        with_ci=with_daily_ci, repl=repl)
+    _save_irf_csv(res_daily_paper["rows_r"], "daily_paper_irf.csv")
+    all_runs["daily_paper"] = res_daily_paper
+
+    print()
+    print("  Building daily extended-period dataset...")
+    daily_ext = _build_daily_extended(df_daily)
+    exog_e, _ = build_exog(daily_ext.loc[daily_ext[VAR_ORDER].dropna().index])
+    data_e = daily_ext[VAR_ORDER].dropna()
+    res_daily_ext = _estimate_daily(
+        data_e, exog_e, "Daily extended (restricted)",
+        with_ci=with_daily_ci, repl=repl)
+    _save_irf_csv(res_daily_ext["rows_r"], "daily_extended_irf.csv")
+    all_runs["daily_extended"] = res_daily_ext
+
+    print()
+    print("STEP 4: MONTHLY RESTRICTED + UNRESTRICTED VAR")
+    print(60 * "-")
+
+    print()
+    print("  Building monthly paper-period dataset (vintage)...")
+    monthly_paper = _build_monthly_paper_vintage(df_daily)
+    exog_mp, _ = build_exog(monthly_paper.loc[monthly_paper[VAR_ORDER].dropna().index])
+    data_mp = monthly_paper[VAR_ORDER].dropna()
+    res_monthly_paper = _estimate_monthly(
+        data_mp, exog_mp, "Monthly paper (vintage)",
+        repl=repl)
+    _save_irf_csv(res_monthly_paper["rows_r"], "monthly_paper_restricted_irf.csv")
+    _save_irf_csv(res_monthly_paper["rows_u"], "monthly_paper_unrestricted_irf.csv")
+    all_runs["monthly_paper"] = res_monthly_paper
+
+    print()
+    print("  Building monthly extended-period dataset...")
+    monthly_ext = _build_monthly_extended(df_daily)
+    exog_me, _ = build_exog(monthly_ext.loc[monthly_ext[VAR_ORDER].dropna().index])
+    data_me = monthly_ext[VAR_ORDER].dropna()
+    res_monthly_ext = _estimate_monthly(
+        data_me, exog_me, "Monthly extended",
+        repl=repl)
+    _save_irf_csv(res_monthly_ext["rows_r"], "monthly_extended_restricted_irf.csv")
+    _save_irf_csv(res_monthly_ext["rows_u"], "monthly_extended_unrestricted_irf.csv")
+    all_runs["monthly_extended"] = res_monthly_ext
+
+    print()
+    print("STEP 5: COMPARISON AND FLOW SIGNIFICANCE TABLES")
+    print(60 * "-")
+    comp_df = _build_comparison_table(all_runs)
+    comp_df.to_csv(str(TWOTIER_DIR / "comparison_paper_vs_extended.csv"), index=False)
+    print(f"  Saved: comparison_paper_vs_extended.csv ({len(comp_df)} rows)")
+
+    flow_df = _build_flow_significance("monthly_paper", all_runs)
+    if flow_df is not None:
+        flow_df.to_csv(str(TWOTIER_DIR / "flow_significance.csv"), index=False)
+        print(f"  Saved: flow_significance.csv ({len(flow_df)} rows)")
+    else:
+        print("  (flow_significance not available)")
+
+    print()
+    print(60 * "=")
+    print("FLOW SIGNIFICANCE VERDICT (monthly paper)")
+    print(60 * "=")
+    print_flow_verdict(flow_df)
+
+    elapsed = time.time() - t_start
+    print(f"\nTotal time: {elapsed:.1f}s ({elapsed/60:.1f} min)")
+    print(f"All outputs in: {TWOTIER_DIR.resolve()}")
 
 
 def main():
@@ -950,13 +1058,13 @@ def main():
     parser.add_argument("--repl", type=int, default=MC_REPL_DEFAULT,
                         help=f"MC bootstrap replications (default: {MC_REPL_DEFAULT})")
     parser.add_argument("--verify", action="store_true",
-                        help="Compare outputs against reference CSVs")
+                        help="Compare outputs against committed reference CSVs")
     args = parser.parse_args()
 
     if args.interpolate_v1:
-        print("=" * 60)
+        print(60 * "=")
         print("Mode: v1 daily interpolation only")
-        print("=" * 60)
+        print(60 * "=")
         run_interpolate_v1()
         return
 
@@ -964,109 +1072,17 @@ def main():
         _verify()
         return
 
-
-    print("=" * 60)
-    print("Unified SVAR Replication — Beirne & Sugandi (2023)")
-    print("=" * 60)
+    print(60 * "=")
+    print("Unified SVAR Replication")
+    print(60 * "=")
     print(f"Paper period:  {PAPER_END.date()}")
     print(f"Extended end:  {EXTENDED_END.date()}")
     print(f"Daily IRF:     {IRF_H_DAILY} days (restricted)")
     print(f"Monthly IRF:   {IRF_H_MONTHLY} months (restricted + unrestricted)")
     print(f"MC repl:       {args.repl}")
     print(f"Daily CIs:     {'YES' if args.with_daily_ci else 'point estimates only'}")
-    print()
 
-    t_start = time.time()
-
-    df_daily = pd.read_csv("data/processed/final_dataset.csv", parse_dates=["date"])
-    df_daily = df_daily.sort_values("date").reset_index(drop=True)
-    print(f"Daily data: {len(df_daily)} rows, {df_daily['date'].min()} to {df_daily['date'].max()}")
-    print()
-
-    print("-" * 60)
-    print("STEP 1: Quadratic-match interpolation (v2)")
-    print("-" * 60)
-    _regenerate_qdmatch()
-
-    print("\n" + "-" * 60)
-    print("STEP 2: Stationarity tests and lag selection")
-    print("-" * 60)
-    _run_adf_and_lag(df_daily)
-
-    all_runs = {}
-
-    print("\n" + "-" * 60)
-    print("STEP 3: DAILY RESTRICTED VAR")
-    print("-" * 60)
-
-    print("\n  Building daily paper-period dataset (vintage RGDP + REER)...")
-    daily_paper = _build_daily_paper(df_daily)
-    exog_p, _ = build_exog(daily_paper.loc[daily_paper[VAR_ORDER].dropna().index])
-    data_p = daily_paper[VAR_ORDER].dropna()
-    res_daily_paper = _estimate_daily(
-        data_p, exog_p, "Daily paper (restricted)",
-        with_ci=args.with_daily_ci, repl=args.repl)
-    _save_irf_csv(res_daily_paper["rows_r"], "daily_paper_irf.csv")
-    all_runs["daily_paper"] = res_daily_paper
-
-    print("\n  Building daily extended-period dataset...")
-    daily_ext = _build_daily_extended(df_daily)
-    exog_e, _ = build_exog(daily_ext.loc[daily_ext[VAR_ORDER].dropna().index])
-    data_e = daily_ext[VAR_ORDER].dropna()
-    res_daily_ext = _estimate_daily(
-        data_e, exog_e, "Daily extended (restricted)",
-        with_ci=args.with_daily_ci, repl=args.repl)
-    _save_irf_csv(res_daily_ext["rows_r"], "daily_extended_irf.csv")
-    all_runs["daily_extended"] = res_daily_ext
-
-    print("\n" + "-" * 60)
-    print("STEP 4: MONTHLY RESTRICTED + UNRESTRICTED VAR")
-    print("-" * 60)
-
-    print("\n  Building monthly paper-period dataset (vintage RGDP + REER)...")
-    monthly_paper = _build_monthly_paper_vintage(df_daily)
-    exog_mp, _ = build_exog(monthly_paper.loc[monthly_paper[VAR_ORDER].dropna().index])
-    data_mp = monthly_paper[VAR_ORDER].dropna()
-    res_monthly_paper = _estimate_monthly(
-        data_mp, exog_mp, "Monthly paper (vintage)",
-        repl=args.repl)
-    _save_irf_csv(res_monthly_paper["rows_r"], "monthly_paper_restricted_irf.csv")
-    _save_irf_csv(res_monthly_paper["rows_u"], "monthly_paper_unrestricted_irf.csv")
-    all_runs["monthly_paper"] = res_monthly_paper
-
-    print("\n  Building monthly extended-period dataset...")
-    monthly_ext = _build_monthly_extended(df_daily)
-    exog_me, _ = build_exog(monthly_ext.loc[monthly_ext[VAR_ORDER].dropna().index])
-    data_me = monthly_ext[VAR_ORDER].dropna()
-    res_monthly_ext = _estimate_monthly(
-        data_me, exog_me, "Monthly extended",
-        repl=args.repl)
-    _save_irf_csv(res_monthly_ext["rows_r"], "monthly_extended_restricted_irf.csv")
-    _save_irf_csv(res_monthly_ext["rows_u"], "monthly_extended_unrestricted_irf.csv")
-    all_runs["monthly_extended"] = res_monthly_ext
-
-    print("\n" + "-" * 60)
-    print("STEP 5: COMPARISON AND FLOW SIGNIFICANCE TABLES")
-    print("-" * 60)
-    comp_df = _build_comparison_table(all_runs)
-    comp_df.to_csv(str(TWOTIER_DIR / "comparison_paper_vs_extended.csv"), index=False)
-    print(f"  Saved: comparison_paper_vs_extended.csv ({len(comp_df)} rows)")
-
-    flow_df = _build_flow_significance("monthly_paper", all_runs)
-    if flow_df is not None:
-        flow_df.to_csv(str(TWOTIER_DIR / "flow_significance.csv"), index=False)
-        print(f"  Saved: flow_significance.csv ({len(flow_df)} rows)")
-    else:
-        print("  (flow_significance not available — monthly paper CIs missing)")
-
-    print("\n" + "=" * 60)
-    print("FLOW SIGNIFICANCE VERDICT (monthly paper)")
-    print("=" * 60)
-    print_flow_verdict(flow_df)
-
-    elapsed = time.time() - t_start
-    print(f"\nTotal time: {elapsed:.1f}s ({elapsed/60:.1f} min)")
-    print(f"All outputs in: {TWOTIER_DIR.resolve()}")
+    _run_pipeline(with_daily_ci=args.with_daily_ci, repl=args.repl)
 
 
 if __name__ == "__main__":
