@@ -1926,7 +1926,7 @@ crossval |>
   kableExtra::column_spec(5, width = "5em")
 ```
 
-MATCH indicates the paper's qualitative conclusion reproduces (sign, shape, and timing agree; magnitude differences reflect software-variant shock scaling). PARTIAL indicates the overall direction or conclusion matches but a meaningful detail diverges (earlier trough, no initial blip, noisier trajectory). MISMATCH indicates the sign is opposite and no rescaling reconciles the result with the paper's published figure.
+<span style="color: #1DC9A4; font-weight: bold;">MATCH</span> indicates the paper's qualitative conclusion reproduces (sign, shape, and timing agree; magnitude differences reflect software-variant shock scaling). <span style="color: #F97A1F; font-weight: bold;">PARTIAL</span> indicates the overall direction or conclusion matches but a meaningful detail diverges (earlier trough, no initial blip, noisier trajectory). <span style="color: #C91D42; font-weight: bold;">MISMATCH</span> indicates the sign is opposite and no rescaling reconciles the result with the paper's published figure.
 
 The Nikkei 225 does not show the immediate positive impact effect that
 appears in the paper's daily figure. The response is negative from h=0 in
