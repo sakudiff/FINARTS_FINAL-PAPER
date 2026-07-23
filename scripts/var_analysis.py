@@ -162,14 +162,20 @@ def run_var(data, exog, restricted=True, k_ar=None):
         if eq == rest_idx:
             own_cols = [rest_idx + lag * K for lag in range(k)]
             X = np.column_stack([lagged[:, own_cols], exog_eff])
+            ols_res = OLS(y[:, eq], X).fit()
+            coeffs[eq, own_cols] = ols_res.params[:k]
+            coeffs[eq, K_all_lags:K_all_lags + exog_k] = ols_res.params[k:]
         else:
             X = np.column_stack([lagged, exog_eff])
-        ols_res = OLS(y[:, eq], X).fit()
-        coeffs[eq, :X.shape[1]] = ols_res.params
+            ols_res = OLS(y[:, eq], X).fit()
+            coeffs[eq, :X.shape[1]] = ols_res.params
         resid[:, eq] = ols_res.resid
 
-    df = T - k - (K_all_lags + exog_k)
-    sigma_u = resid.T @ resid / df
+    n_params = np.full(K, K_all_lags + exog_k)
+    n_params[rest_idx] = k + exog_k
+    df_vec = T - k - n_params
+    sigma_u = resid.T @ resid / np.sqrt(np.outer(df_vec, df_vec))
+    df_unrestricted = T - k - (K_all_lags + exog_k)
 
     class RestrictedVARResults:
         def __init__(self):
@@ -183,7 +189,7 @@ def run_var(data, exog, restricted=True, k_ar=None):
             self.k_ma = 0
             self.n_totobs = T
             self.nobs = T - k
-            self.df_resid = df
+            self.df_resid = df_unrestricted
             self.df_model = K_all_lags + exog_k
             self.names = endog_names
             self.endog = endog
