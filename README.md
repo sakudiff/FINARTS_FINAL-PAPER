@@ -21,8 +21,8 @@ Submitted August 11, 2026 to Dr. Ray Anthony Almonares.
 | Juliana Patajo | Conclusion |
 | Enrique Lorenzo Galedo | Review of related literature |
 | Aimee Lorynne Opiana | Introduction |
-| Raphael Cuenca | Code and mathematics support |
-| Keira Ley Go | Code and mathematics support |
+| Raphael Cuenca | Data handling, retrieval, processing, methodology, coding, results |
+| Keira Ley Go | Data handling, retrieval, processing, methodology, coding, results |
 
 ## Quick start
 
