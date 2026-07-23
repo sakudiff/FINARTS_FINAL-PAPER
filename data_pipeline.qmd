@@ -1984,10 +1984,10 @@ crossval <- data.frame(
   Verdict = c("MATCH", "MISMATCH", "MATCH", "MATCH", "MATCH", "PARTIAL", "PARTIAL", "PARTIAL", "MISMATCH", "MATCH",
               "MISMATCH", "PARTIAL", "MATCH", "MATCH", "MATCH", "PARTIAL", "MATCH")
 ) |>
-  mutate(Verdict = kableExtra::cell_spec(Verdict, bold = TRUE,
-    color = case_when(Verdict == "MATCH" ~ "#1DC9A4",
-                      Verdict == "PARTIAL" ~ "#F97A1F",
-                      TRUE ~ "#C91D42")))
+  mutate(Verdict = case_when(
+    Verdict == "MATCH" ~ '<span style="color:#1DC9A4;font-weight:bold">MATCH</span>',
+    Verdict == "PARTIAL" ~ '<span style="color:#F97A1F;font-weight:bold">PARTIAL</span>',
+    TRUE ~ '<span style="color:#C91D42;font-weight:bold">MISMATCH</span>'))
 crossval |>
   knitr::kable(caption = "Cross-validation of IRF values: replication versus published paper", escape = FALSE) |>
   kableExtra::kable_styling(full_width = TRUE) |>
