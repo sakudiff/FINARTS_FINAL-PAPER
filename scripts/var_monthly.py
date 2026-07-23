@@ -50,8 +50,9 @@ def build_exog(df):
     month = df["date"].dt.month
     month_dummies = pd.get_dummies(month, prefix="M", drop_first=True).astype(np.float64)
     month_dummies.index = df.index
+    ones = np.ones((len(df), 1))
     time_trend = np.arange(len(df)).astype(np.float64).reshape(-1, 1)
-    return np.column_stack([time_trend, month_dummies.values])
+    return np.column_stack([ones, time_trend, month_dummies.values])
 
 def run_restricted_var(data, exog, k_ar):
     endog = data.values
@@ -100,7 +101,7 @@ def _compute_irf(results, periods=IRF_HORIZON):
     for i in range(periods + 1): irfs[i] = irfs[i] @ chol
     class IRF:
         def __init__(self):
-            self.irfs = irfs[1:]; self.periods = periods
+            self.irfs = irfs; self.periods = periods
             self.model = results; self.names = results.names
     return IRF()
 
@@ -193,13 +194,11 @@ nrows = int(np.ceil(len(KEY_VARS) / ncols))
 fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(10, 2.5*nrows),
                           sharex=False, sharey=False)
 axes_flat = axes.flatten()
-steps = np.arange(IRF_HORIZON)
+steps = np.arange(irf_r.shape[0])
 
-# Analytical CIs
-z = 1.96
-se = np.sqrt(np.diag(res_rest.sigma_u) / res_rest.nobs)
-lower = irf_r[:, :, shock_idx] - z * se[np.newaxis, :]
-upper = irf_r[:, :, shock_idx] + z * se[np.newaxis, :]
+# Delta-method CIs via bootstrap
+from var_analysis import _delta_irf_ci
+lower, upper = _delta_irf_ci(irf_rest, B=500)
 
 for i, (vname, vidx) in enumerate(zip(KEY_VARS, key_indices)):
     ax = axes_flat[i]

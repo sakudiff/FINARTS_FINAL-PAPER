@@ -104,8 +104,9 @@ def build_exog(df):
     month = df["date"].dt.month
     month_dummies = pd.get_dummies(month, prefix="M", drop_first=True).astype(np.float64)
     month_dummies.index = df.index
+    ones = np.ones((len(df), 1))
     time_trend = np.arange(len(df)).astype(np.float64).reshape(-1, 1)
-    return np.column_stack([time_trend, month_dummies.values])
+    return np.column_stack([ones, time_trend, month_dummies.values])
 
 
 def compute_orth_irf(coefs_arr, chol, periods):
@@ -118,7 +119,7 @@ def compute_orth_irf(coefs_arr, chol, periods):
             irfs[i] += irfs[i - j] @ coefs_arr[j - 1]
     for i in range(periods + 1):
         irfs[i] = irfs[i] @ chol
-    return irfs[1:]
+    return irfs
 
 
 def plot_irf_grid(irf_vals, lower_ci, upper_ci, period_label, lag, suffix, shock_idx=0):
@@ -176,18 +177,17 @@ def run_period(data, exog, period_label):
 
     k = order.bic
     print(f"\nEstimating unrestricted VAR (lag={k}, BIC-selected)...")
-    res = model.fit(maxlags=k, ic="aic", trend="n")
-    irf = res.irf(periods=IRF_HORIZON)
-    orth = irf.orth_irfs
+    res = model.fit(k, trend="n")
+    irf_obj = res.irf(periods=IRF_HORIZON)
+    orth = np.asarray(irf_obj.orth_irfs)
 
     coefs = np.asarray(res.coefs)
     chol = np.linalg.cholesky(np.asarray(res.sigma_u))
     irf_vals = compute_orth_irf(coefs, chol, IRF_HORIZON)
 
-    z = 1.96
-    se = np.sqrt(np.diag(np.asarray(res.sigma_u)) / res.nobs)
-    lower = irf_vals[:, :, 0] - z * se[np.newaxis, :]
-    upper = irf_vals[:, :, 0] + z * se[np.newaxis, :]
+    lower_mc, upper_mc = irf_obj.errband_mc(orth=True, repl=1000, signif=0.05, seed=42)
+    lower = np.asarray(lower_mc)[:, :, 0]
+    upper = np.asarray(upper_mc)[:, :, 0]
 
     # Print key IRF values
     print("\nIRF response to risk-off shock at selected horizons:")
@@ -207,7 +207,7 @@ def run_period(data, exog, period_label):
     # FEVD
     print(f"Computing FEVD ({IRF_HORIZON}-month horizon)...")
     fevd = res.fevd(periods=IRF_HORIZON)
-    fevd_values = fevd.decomp[:, 0, :]
+    fevd_values = fevd.decomp[:, :, 0]
     target_horizons = [h for h in [1, 3, 6, 12, 24, 40] if h <= fevd_values.shape[0]]
     fevd_rows = []
     for h in target_horizons:
@@ -224,8 +224,8 @@ def run_period(data, exog, period_label):
     # IRF peak table
     irf_peak = pd.DataFrame({
         "variable": VAR_ORDER,
-        "peak_response": [np.max(np.abs(irf_vals[:, 0, v])) for v in range(len(VAR_ORDER))],
-        "peak_month": [np.argmax(np.abs(irf_vals[:, 0, v])) for v in range(len(VAR_ORDER))],
+        "peak_response": [np.max(np.abs(irf_vals[:, v, 0])) for v in range(len(VAR_ORDER))],
+        "peak_month": [np.argmax(np.abs(irf_vals[:, v, 0])) for v in range(len(VAR_ORDER))],
     })
     peak_csv = f"irf_peak_unrestricted_{period_label.replace('-', '_')}.csv"
     irf_peak.to_csv(OUT_DIR / peak_csv, index=False)
@@ -261,7 +261,7 @@ def main():
         fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(10, 2.5 * nrows),
                                   sharex=False, sharey=False)
         axes_flat = axes.flatten()
-        steps = np.arange(IRF_HORIZON)
+        steps = np.arange(irf_p1.shape[0])
 
         for i, (vname, vidx) in enumerate(zip(KEY_VARS, key_indices)):
             ax = axes_flat[i]

@@ -124,9 +124,10 @@ def build_exog(df):
     month = df["date"].dt.month
     month_dummies = pd.get_dummies(month, prefix="M", drop_first=True).astype(np.float64)
     month_dummies.index = df.index
+    ones = np.ones((len(df), 1))
     time_trend = np.arange(len(df)).astype(np.float64).reshape(-1, 1)
-    exog = np.column_stack([time_trend, month_dummies.values])
-    exog_names = ["trend"] + [f"M{m}" for m in range(2, 13)]
+    exog = np.column_stack([ones, time_trend, month_dummies.values])
+    exog_names = ["const", "trend"] + [f"M{m}" for m in range(2, 13)]
     return exog, exog_names
 
 
@@ -215,7 +216,7 @@ def _compute_irf(results, periods=125):
         irfs_orth[i] = irfs[i] @ chol
     class IRAnalysis:
         def __init__(self):
-            self.irfs = irfs_orth[1:]
+            self.irfs = irfs_orth
             self.periods = periods
             self.model = results
             self.names = results.names
@@ -226,7 +227,7 @@ def _compute_irf(results, periods=125):
             T = self.irfs.shape[0]
             lower = self.irfs - z * se[np.newaxis, np.newaxis, :]
             upper = self.irfs + z * se[np.newaxis, np.newaxis, :]
-            return lower[:, 0, :], upper[:, 0, :]
+            return lower[:, :, 0], upper[:, :, 0]
         def plot(self, orth=True):
             pass
     return IRAnalysis()
@@ -237,12 +238,11 @@ def _compute_fevd(results, periods=125):
     irf_obj = results.irf(periods=periods)
     irfs = irf_obj.irfs
     msfe = np.cumsum(irfs ** 2, axis=0)
-    fevd = np.zeros((periods, K, K))
-    for i in range(periods):
+    fevd = np.zeros((irfs.shape[0], K, K))
+    for i in range(irfs.shape[0]):
         total = msfe[i].sum(axis=1, keepdims=True)
         total[total == 0] = 1
         fevd[i] = msfe[i] / total
-    chol = np.linalg.cholesky(results.sigma_u)
     class FEVD:
         def __init__(self):
             self.decomp = fevd
@@ -284,8 +284,8 @@ def plot_irf(irf, ax, label, color, ci_method="analytic", B=1000):
         ci_label = ""
 
     steps = np.arange(n_steps)
-    for v_idx in range(irf_values.shape[2]):
-        response = irf_values[:, shock_idx, v_idx]
+    for v_idx in range(irf_values.shape[1]):
+        response = irf_values[:, v_idx, shock_idx]
         ax[v_idx].plot(steps, response, color=color, linewidth=0.7, label=label)
         if lower is not None:
             ax[v_idx].fill_between(steps, lower[:, v_idx], upper[:, v_idx],
@@ -558,7 +558,7 @@ def main():
                 axes_flat = axes.flatten()
                 for v_idx, v_name in enumerate(VAR_ORDER):
                     ax = axes_flat[v_idx]
-                    response = irf_vals[:, 0, v_idx]
+                    response = irf_vals[:, v_idx, 0]
                     steps = np.arange(len(response))
                     ax.plot(steps, response, color=COLORS["paper"],
                             linewidth=0.8, label="Point estimate")
@@ -602,7 +602,7 @@ def main():
                 axes_flat = axes.flatten()
                 for v_idx, v_name in enumerate(VAR_ORDER):
                     if v_idx < len(axes_flat):
-                        response = irf_values[:, 0, v_idx]
+                        response = irf_values[:, v_idx, 0]
                         steps = np.arange(len(response))
                         axes_flat[v_idx].plot(steps, response,
                                               color=COLORS["paper"], linewidth=0.8,
@@ -638,7 +638,7 @@ def main():
 
             print(f"    Computing FEVD ({IRF_HORIZON}-day horizon)...")
             fevd = var_results.fevd(periods=IRF_HORIZON)
-            fevd_values = fevd.decomp[:, 0, :]
+            fevd_values = fevd.decomp[:, :, 0]
             target_horizons = [1, 5, 20, 60, 125]
             fevd_rows = []
             for h in target_horizons:
@@ -654,8 +654,8 @@ def main():
 
             irf_peak = pd.DataFrame({
                 "variable": VAR_ORDER,
-                "peak_response": [np.max(np.abs(irf.irfs[:, 0, v])) for v in range(len(VAR_ORDER))],
-                "peak_day": [np.argmax(np.abs(irf.irfs[:, 0, v])) for v in range(len(VAR_ORDER))],
+                "peak_response": [np.max(np.abs(irf.irfs[:, v, 0])) for v in range(len(VAR_ORDER))],
+                "peak_day": [np.argmax(np.abs(irf.irfs[:, v, 0])) for v in range(len(VAR_ORDER))],
             })
             peak_csv = f"irf_peak_{spec_label}_{period_label.replace('-', '_')}.csv"
             irf_peak.to_csv(OUT_DIR / peak_csv, index=False)
@@ -678,31 +678,26 @@ def main():
         res_p2_rest = run_var(data_p2, exog_p2, restricted=True, k_ar=k2)
         irf_p2 = res_p2_rest.irf(periods=IRF_HORIZON)
 
-        se_p1 = np.sqrt(np.diag(res_p1_rest.sigma_u) / res_p1_rest.nobs)
-        se_p2 = np.sqrt(np.diag(res_p2_rest.sigma_u) / res_p2_rest.nobs)
-        z = 1.96
-        lower1 = irf_p1.irfs - z * se_p1[np.newaxis, np.newaxis, :]
-        upper1 = irf_p1.irfs + z * se_p1[np.newaxis, np.newaxis, :]
-        lower2 = irf_p2.irfs - z * se_p2[np.newaxis, np.newaxis, :]
-        upper2 = irf_p2.irfs + z * se_p2[np.newaxis, np.newaxis, :]
+        lower1_mc, upper1_mc = _delta_irf_ci(irf_p1, B=500)
+        lower2_mc, upper2_mc = _delta_irf_ci(irf_p2, B=500)
 
         set_quant_style()
         fig, axes = plt.subplots(nrows=3, ncols=4, figsize=(16, 10))
         axes_flat = axes.flatten()
         for v_idx, v_name in enumerate(VAR_ORDER):
             if v_idx < len(axes_flat):
-                steps = np.arange(IRF_HORIZON)
-                axes_flat[v_idx].plot(steps, irf_p1.irfs[:, 0, v_idx],
+                steps = np.arange(irf_p1.irfs.shape[0])
+                axes_flat[v_idx].plot(steps, irf_p1.irfs[:, v_idx, 0],
                                       color=COLORS["paper"], linewidth=0.8,
                                       label="1999-2021")
-                axes_flat[v_idx].fill_between(steps, lower1[:, 0, v_idx],
-                                              upper1[:, 0, v_idx],
+                axes_flat[v_idx].fill_between(steps, lower1_mc[:, v_idx],
+                                              upper1_mc[:, v_idx],
                                               color=COLORS["paper"], alpha=0.12)
-                axes_flat[v_idx].plot(steps, irf_p2.irfs[:, 0, v_idx],
+                axes_flat[v_idx].plot(steps, irf_p2.irfs[:, v_idx, 0],
                                       color=COLORS["extended"], linewidth=0.8,
                                       label="1999-2026", linestyle="--")
-                axes_flat[v_idx].fill_between(steps, lower2[:, 0, v_idx],
-                                              upper2[:, 0, v_idx],
+                axes_flat[v_idx].fill_between(steps, lower2_mc[:, v_idx],
+                                              upper2_mc[:, v_idx],
                                               color=COLORS["extended"], alpha=0.08)
                 axes_flat[v_idx].axhline(y=0, color=COLORS["zero"],
                                          linewidth=0.4, linestyle="--")
@@ -720,7 +715,7 @@ def main():
                      fontsize=12, fontweight="bold", color=COLORS["text"],
                      y=0.98)
         fig.text(0.5, 0.01, "Solid line: 1999-2021. Dashed line: 1999-2026. "
-                 "Shaded bands are analytical 95% confidence intervals.",
+                 "Shaded bands are Monte Carlo 95% confidence intervals.",
                  ha="center", fontsize=8, color=COLORS["muted"])
         plt.tight_layout(rect=[0, 0.02, 1, 0.95])
         fig.savefig(FIG_DIR / "irf_period_comparison_restricted.png",
