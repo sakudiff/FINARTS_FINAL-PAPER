@@ -14,7 +14,7 @@ format:
     self-contained: true
     page-layout: full
     css: |2-
-      .main-container { max-width: 1400px !important; }
+      .main-container { max-width: 95% !important; }
       table { width: 100% !important; }
       .sourceCode .kw { color: #0066bb; font-weight: bold; }
       .sourceCode .dt { color: #902000; }
