@@ -123,14 +123,7 @@ def _period_keys(dates, key_fn):
 
 
 def quadratic_match_average(dates_low, values_low, dates_high, freq):
-    """EViews quadratic-match average interpolation with mean preservation.
-
-    Maps each low-frequency period to its high-frequency sub-grid and fits
-    a local quadratic through adjacent triples. The mean of the interpolated
-    values is preserved by a constant shift per period. Endpoint periods use
-    the nearest available triple. The EViews midpoint quadrature centres each
-    bin at i+0.5 before normalising to the [-0.5, 0.5] interval.
-    """
+    """EViews quadratic-match average interpolation with mean preservation."""
     dates_low = np.asarray(pd.to_datetime(dates_low))
     values_low = np.asarray(values_low, dtype=float)
     dates_high = np.asarray(pd.to_datetime(dates_high))
@@ -227,14 +220,7 @@ def build_exog(df):
 
 
 def run_var(data, exog, restricted=True, k_ar=None):
-    """Estimate restricted (block-exogenous) or unrestricted VAR.
-
-    The restricted model runs OLS per equation with the block-exogenous
-    variable depending only on its own lags. The coefficient indexing uses
-    per-lag stride K to map flat parameter vectors into (lag, variable, equation)
-    arrays. Per-equation degrees of freedom are used for sigma_u, not pooled.
-    The coefs array is reshaped to (k_ar, K, K) for the IRF computation.
-    """
+    # Block-exogenous VAR: risk_off depends on own lags only, others on all lags
     endog = data.values
     endog_names = data.columns.tolist()
     T, K = endog.shape
@@ -311,8 +297,7 @@ def run_var(data, exog, restricted=True, k_ar=None):
 
 
 def _compute_irf(results, periods=125):
-    # Recursive IRF: irf[i] = sum_{j=1}^{min(i, k)} irf[i-j] @ coefs[j-1]
-    # Orthogonalized via Cholesky factor of Sigma_u
+    # Recursive IRF with Cholesky orthogonalization
     K = results.coefs.shape[1]
     k_ar = results.k_ar
     irfs = np.zeros((periods + 1, K, K))
@@ -355,13 +340,7 @@ def _compute_fevd(results, periods=125):
 
 
 def _delta_irf_ci(irf_obj, B=1000, alpha=0.05):
-    """Monte Carlo delta method for IRF confidence bands via parametric bootstrap.
-
-    Synthetic data are generated from the estimated residuals, the VAR is
-    re-estimated on each draw, and IRFs are computed. Degenerate draws that
-    produce NaN are silently excluded via nanpercentile. This function handles
-    both RestrictedVARResults and statsmodels VARResults objects.
-    """
+    # Parametric bootstrap CI: draw shocks from N(0, Sigma_u), re-estimate, compute IRFs
     results = irf_obj.model
     resid = results.resid
     T_eff, K = resid.shape
