@@ -70,7 +70,7 @@ V1_SERIES = [
     ("log_wui_native.csv", "log_wui"),
 ]
 
-# qdmatch series: (native_stem, value_col, freq)
+# qdmatch series: (native_stem, value_col, freq)  M=monthly, Q=quarterly
 QDMATCH_SERIES = [
     ("log_reer", "log_reer", "M"),
     ("debtsec", "debtsec_pct", "M"),
@@ -123,7 +123,14 @@ def _period_keys(dates, key_fn):
 
 
 def quadratic_match_average(dates_low, values_low, dates_high, freq):
-    """EViews quadratic-match average interpolation with mean preservation."""
+    """EViews quadratic-match average interpolation with mean preservation.
+
+    Maps each low-frequency period to its high-frequency sub-grid and fits
+    a local quadratic through adjacent triples. The mean of the interpolated
+    values is preserved by a constant shift per period. Endpoint periods use
+    the nearest available triple. The EViews midpoint quadrature centres each
+    bin at i+0.5 before normalising to the [-0.5, 0.5] interval.
+    """
     dates_low = np.asarray(pd.to_datetime(dates_low))
     values_low = np.asarray(values_low, dtype=float)
     dates_high = np.asarray(pd.to_datetime(dates_high))
@@ -220,7 +227,14 @@ def build_exog(df):
 
 
 def run_var(data, exog, restricted=True, k_ar=None):
-    """Estimate restricted (block-exogenous) or unrestricted VAR."""
+    """Estimate restricted (block-exogenous) or unrestricted VAR.
+
+    The restricted model runs OLS per equation with the block-exogenous
+    variable depending only on its own lags. The coefficient indexing uses
+    per-lag stride K to map flat parameter vectors into (lag, variable, equation)
+    arrays. Per-equation degrees of freedom are used for sigma_u, not pooled.
+    The coefs array is reshaped to (k_ar, K, K) for the IRF computation.
+    """
     endog = data.values
     endog_names = data.columns.tolist()
     T, K = endog.shape
@@ -297,6 +311,8 @@ def run_var(data, exog, restricted=True, k_ar=None):
 
 
 def _compute_irf(results, periods=125):
+    # Recursive IRF: irf[i] = sum_{j=1}^{min(i, k)} irf[i-j] @ coefs[j-1]
+    # Orthogonalized via Cholesky factor of Sigma_u
     K = results.coefs.shape[1]
     k_ar = results.k_ar
     irfs = np.zeros((periods + 1, K, K))
@@ -339,7 +355,13 @@ def _compute_fevd(results, periods=125):
 
 
 def _delta_irf_ci(irf_obj, B=1000, alpha=0.05):
-    """Monte Carlo delta method for IRF confidence bands via parametric bootstrap."""
+    """Monte Carlo delta method for IRF confidence bands via parametric bootstrap.
+
+    Synthetic data are generated from the estimated residuals, the VAR is
+    re-estimated on each draw, and IRFs are computed. Degenerate draws that
+    produce NaN are silently excluded via nanpercentile. This function handles
+    both RestrictedVARResults and statsmodels VARResults objects.
+    """
     results = irf_obj.model
     resid = results.resid
     T_eff, K = resid.shape
@@ -477,6 +499,7 @@ def _load_qdmatch(stem, col_name):
 
 
 def _build_daily_paper(df_daily):
+    # ALFRED 2021-06-01 GDP and Wayback May 2021 REER for replication period
     daily = df_daily[["date", "risk_off", "spread", "log_nikkei"]].copy()
     daily = daily[daily["date"] <= PAPER_END].copy()
     qd_files = [("log_wui", "log_wui"), ("debtsec", "debtsec_pct"),
@@ -502,6 +525,7 @@ def _build_daily_paper(df_daily):
 
 
 def _build_daily_extended(df_daily):
+    # Current-vintage data for all series (no vintage substitution)
     daily = df_daily[["date", "risk_off", "spread", "log_nikkei"]].copy()
     qd_stems = [("log_reer", "log_reer"), ("debtsec", "debtsec_pct"),
                 ("equity", "equity_pct"), ("other", "other_pct"),
@@ -515,6 +539,7 @@ def _build_daily_extended(df_daily):
 
 
 def _build_monthly_paper_vintage(df_daily):
+    # Monthly aggregation then apply ALFRED 2021-06-01 GDP and Wayback May 2021 REER
     monthly = _agg_monthly(df_daily, PAPER_END)
     vint_rgdp = pd.read_csv(
         "data/raw/vintage/JPNRGDPEXP_vintage_2021-06-01.csv", parse_dates=["date"])
@@ -556,6 +581,7 @@ def _run_unrestricted_var(data, exog, lag, periods):
 
 
 def _ci_restricted(results, irf_vals, repl, seed=42):
+    # MC delta method for restricted model (own computation)
     np.random.seed(seed)
     dummy_irf = type("DummyIRF", (), {
         "irfs": irf_vals,
@@ -567,6 +593,7 @@ def _ci_restricted(results, irf_vals, repl, seed=42):
 
 
 def _ci_unrestricted(results, irf_obj, repl, seed=42):
+    # Asymptotic standard errors: matches EViews default, not MC bootstrap
     se = np.asarray(irf_obj.stderr(orth=True))
     orth = np.asarray(irf_obj.orth_irfs)
     z = 1.96
@@ -999,6 +1026,7 @@ def _plot_panel(ax, df, variable, color, x_max):
 def _grid(csv_path, out_name, title, color):
     df = pd.read_csv(csv_path)
     x_max = df["horizon"].max()
+    # Tighter ticks for monthly (<=60) vs sparser ticks for daily (>=125)
     x_ticks = list(range(0, int(x_max) + 1, 25)) if x_max > 60 else list(range(0, int(x_max) + 1, 5))
     last_ax_idx = None
     fig, axes = plt.subplots(5, 2, figsize=(10, 12))
@@ -1130,6 +1158,7 @@ def _plot_stylized_facts():
     df = pd.read_csv("data/processed/final_dataset.csv", parse_dates=["date"])
     df = df.sort_values("date")
     ro = df[df["risk_off"] > 0.5][["date"]].copy()
+    # Consecutive risk-off days grouped; gap > 3 trading days starts a new episode
     ro["block"] = (ro["date"].diff().dt.days > 3).cumsum()
     episodes = ro.groupby("block").agg(start=("date", "first"), end=("date", "last"))
 
@@ -1352,6 +1381,7 @@ def _reer_fetch_broad_xlsx(url):
 
 
 def _reer_extract_japan(data):
+    # BIS broad.xlsx layout: sheet "Real", row 5 is header, column 31 is Japan
     tmp = tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False)
     try:
         tmp.write(data)
