@@ -6,11 +6,11 @@ structural vector autoregression for Japan, extended from the paper's 1999–202
 sample through June 2026. Two-tier estimation with a dual-vintage data policy.
 
 Group 4, FINARTS C01, De La Salle University, Academic Year 2025–2026 Term 3.
-Submitted August 11, 2026 to Dr. Ray Anthony Almonares.
+Submitted August 7, 2026 to Dr. Ray Anthony Almonares.
 
 | Link | URL |
 |------|-----|
-| Paper | https://docs.google.com/document/d/1QgA4IIKhEE98QoKd5y7gf8wYRJq37_rhPo6yv2Y0p0o |
+| Paper | [main.pdf](main.pdf) |
 | Report | https://finalprojectfinartsg4.netlify.app |
 | Repository | https://github.com/sakudiff/FINARTS_FINAL-PAPER |
 
@@ -19,7 +19,6 @@ Submitted August 11, 2026 to Dr. Ray Anthony Almonares.
 | Member | Role |
 |--------|------|
 | Aaron Joshua Sison | Data handling, retrieval, processing, methodology, coding, results, lead |
-| Juliana Patajo | Conclusion |
 | Enrique Lorenzo Galedo | Review of related literature |
 | Aimee Lorynne Opiana | Introduction |
 | Raphael Cuenca | Data handling, retrieval, processing, methodology, coding, results |
@@ -209,7 +208,7 @@ finarts-final-paper/
 │   ├── FINARTS - Term Project Details - AY2526 T3.pdf
 │   ├── FINARTS - Progress Update Details - AY2526 T3.pdf
 │   └── ABDC-JQL-2025-v2-270526.xlsx
-└── drafts/                             # Paper sections, LaTeX tables, presentation materials
+└── drafts/                             # Regenerable LaTeX table sources (QMD outputs)
 ```
 
 ## Citation

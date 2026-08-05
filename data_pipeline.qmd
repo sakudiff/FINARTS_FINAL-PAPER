@@ -5,7 +5,6 @@ author:
   - "Galedo, Enrique Lorenzo"
   - "Go, Keira"
   - "Opiana, Aimee Lorynne A."
-  - "Patajo, Juliana"
   - "Sison, Aaron Joshua E."
 department: "Department of Financial Management"
 course: "FINARTS Section C01"
@@ -698,13 +697,13 @@ Three groups of variables tell three related stories. The first group covers
 the price channels through which risk-off shocks transmit. The VIX panel
 defines the episodes. Every shaded band corresponds to a VIX spike exceeding
 40, with peaks at roughly 80 during the global financial crisis in 2008 and
-85 during the initial COVID outbreak in early 2020. The bilateral USD/JPY
+near 83 during the initial COVID outbreak in early 2020. The bilateral USD/JPY
 exchange rate panel shows the yen strengthening sharply during every risk-off
-episode through 2020, dropping from 120 to roughly 75 between 2008 and 2011.
+episode through 2020, dropping from roughly 110 to 75 between 2008 and 2011.
 The REER panel tells the same story in trade-weighted terms, declining from
 120 in the late 1990s to roughly 70 by 2015. Both exchange rate measures then
 break pattern after 2021. The yen depreciates steadily from 105 to 160 against
-the dollar, and the REER falls from 80 to 50. This post-2021 divergence from
+the dollar, and the REER falls from the low 70s to roughly 50 by 2026. This post-2021 divergence from
 the safe-haven narrative is the single most important structural shift in the
 data, and it drives the extended-period VAR results in the Discussion of
 Results below.
@@ -724,11 +723,11 @@ knitr::include_graphics("data/processed/var_results/figures/stylized_us10y_risk_
 
 The JGB and US Treasury yield panels reveal the flight-to-safety mechanism
 in operation. US 10-year Treasury yields decline sharply during each risk-off
-episode, from 5 percent in 2000 to 2.5 percent in 2008 to near zero in 2020.
+episode, from above 6 percent in 2000 to near zero in 2020.
 Japanese government bond yields compress even further, falling from 2 percent
 in 1999 to near zero by 2010, staying there for over a decade, then rising
-sharply after 2023 to roughly 2.5 percent as the Bank of Japan began
-normalising policy. The paper's argument that risk-off shocks widen the
+sharply after 2023 to above 2.5 percent as the Bank of Japan normalised
+policy. The paper's argument that risk-off shocks widen the
 JGB-US Treasury spread through safe-haven demand for Japanese debt is clearly
 visible in the raw data through 2020. After 2021 the spread narrows not
 because risk-off dynamics have changed but because both yields are rising
@@ -743,10 +742,10 @@ knitr::include_graphics("data/processed/var_results/figures/stylized_nikkei225_r
 ```
 
 The Nikkei 225 panel encapsulates the post-2021 break most starkly. The
-index oscillates between 7,000 and 25,000 for two decades, collapsing during
-each major risk-off episode, then surges nearly vertically after 2023 to
-exceed 70,000. A market that spent 22 years recovering from its 1989 peak
-doubled in three years. This is not a risk-off dynamic. It is a structural
+index oscillates between 7,000 and roughly 30,000 for two decades, collapsing
+during each major risk-off episode, then surges nearly vertically after 2023
+to exceed 70,000. A market that spent more than three decades regaining its
+1989 peak doubled in three years. This is not a risk-off dynamic. It is a structural
 shift driven by corporate governance reforms, the Tokyo Stock Exchange's
 restructuring push, and the return of inflation to Japan after three decades
 of deflation. The VAR estimates for the extended period should be read with
@@ -882,7 +881,7 @@ variance_tests |>
   kable_styling(bootstrap_options = c("striped", "hover"))
 ```
 
-The F-test results confirm that the variance differences observed in the descriptive statistics are statistically significant across all five variables tested. Real GDP volatility in the paper period exceeds that of the extended period by a factor of 31, reflecting the inclusion of the global financial crisis, the 2011 Tohoku earthquake, and the COVID-19 pandemic within the original sample window. For the real effective exchange rate and the equity market, the paper period similarly exhibits higher variance. Portfolio debt flows are the exception, with the extended period showing significantly higher variance (F = 0.50, p < .001), consistent with increased volatility in cross-border debt investment following the shift in monetary policy differentials between Japan and the United States.
+The F-test results confirm that the variance differences observed in the descriptive statistics are statistically significant across all five variables tested. Real GDP volatility in the paper period exceeds that of the extended period by a factor of 27.8, reflecting the inclusion of the global financial crisis, the 2011 Tohoku earthquake, and the COVID-19 pandemic within the original sample window. For the real effective exchange rate and the equity market, the paper period similarly exhibits higher variance. Portfolio debt flows are the exception, with the extended period showing significantly higher variance (F = 0.41, p < .001), consistent with increased volatility in cross-border debt investment following the shift in monetary policy differentials between Japan and the United States.
 
 ```{r rolling-volatility}
 #| fig.height: 8
@@ -978,7 +977,7 @@ ggplot(full_dens, aes(x = value)) +
 
 ### Structural breaks in the extended sample
 
-The time-series plots provide a direct visual comparison of the paper period (1999-2021, blue) and the extended period (2021-2026, orange), separated by the vertical line marking 31 March 2021. A shaded region highlights the 2022 yen depreciation episode. Notable structural shifts include the increasing negativity of the yield spread as the Federal Reserve raised rates while the BOJ maintained its yield curve control framework, moving the mean spread from -2.44 to -2.70. Portfolio debt flows show increased dispersion in the extended period (SD: 1.72 to 2.42), while equity flow dispersion remained broadly comparable across the two periods.
+The time-series plots provide a direct visual comparison of the paper period (1999-2021, blue) and the extended period (2021-2026, orange), separated by the vertical line marking 31 March 2021. A shaded region highlights the 2022 yen depreciation episode. Notable structural shifts include the increasing negativity of the yield spread as the Federal Reserve raised rates while the BOJ maintained its yield curve control framework, moving the mean spread from -2.44 to -2.70. Portfolio debt flows show increased dispersion in the extended period (SD: 1.72 to 2.66), while equity flow dispersion rose modestly, from 1.16 to 1.33.
 
 ```{r viz-timeseries}
 #| fig.height: 12
@@ -1379,7 +1378,7 @@ Each was made after diagnostic testing against the paper's published figures.
 A risk-off event follows De Bock and De Carvalho
 Filho (2013): the VIX exceeds its 60-day backward-looking moving average by
 10 percentage points. The daily value is binary (1 on risk-off days, 0
-otherwise). This definition reproduces all 15 episode initial dates listed in
+otherwise). This definition reproduces all fifteen in-sample episode initial dates listed in
 the paper's Table 1 exactly to the day. At the monthly frequency the daily
 binary is aggregated as the proportion of risk-off days in each month. Summing
 risk-off days inflated the shock standard deviation to 2.23 and produced
@@ -1478,7 +1477,7 @@ function. It was a process of elimination across four candidate
 specifications, each eliminated by failure mode.
 
 The first attempt used AIC for both the daily and monthly tiers, following
-the paper's stated method. The daily AIC declined monotonically through every
+the paper's stated method. The daily AIC declined through the search range, with small local increases at the upper lags, through every
 lag from 1 through 20 and selected the boundary. Extending the search to 30
 lags produced the same behaviour. The penalty of 2 per parameter is
 meaningless in a ten-variable system with over 5,000 observations. Each
@@ -1495,13 +1494,13 @@ same reason.
 
 The third attempt switched the monthly tier to BIC. The Bayesian penalty
 ln(n) at the monthly frequency means approximately ln(300) or 5.7 per
-parameter rather than AIC's flat 2. The monthly BIC stabilises at lag 3.
-Lag 3 matches the paper's monthly figures in Appendix 4 on sign, shape, and
-peak timing. Lag 2 underfits and produces visibly smoother trajectories than
-the publication shows. Lag 4 widens the confidence intervals and adds a
-second oscillation that is not present in the paper's plots. Lag 3 is the
-unique local minimum of the information criterion surface, not a boundary
-artefact.
+parameter rather than AIC's flat 2. The monthly BIC selects lag 2 for the
+paper period and lag 3 for the extended sample. The two-lag paper-period
+specification reproduces the paper's monthly figures in Appendix 4 on sign,
+shape, and peak timing. Lag 4 widens the confidence intervals and adds a
+second oscillation that is not present in the paper's plots. Both selected
+lags are interior minima of the information criterion surface, not boundary
+artefacts.
 
 The fourth attempt tried BIC on the daily tier. It selected one or two lags
 depending on whether the maximum searched was 20 or 30. The resulting impulse
@@ -1604,8 +1603,8 @@ replication and original results are due to data, code, or configuration.
 
 #### L3. Restricted/Unrestricted Divergence
 
-The paper states the restricted and unrestricted specifications are
-consistent. On current-vintage data they diverge. This divergence is visible
+The paper reports both restricted and unrestricted forms without a
+consistency claim. On current-vintage data the two diverge. This divergence is visible
 in both the daily and monthly tiers and signals model sensitivity to GDP data
 revisions. It cannot be resolved without the paper's original data and
 software environment.
@@ -1695,7 +1694,7 @@ comparison      <- read_csv(file.path(TWOTIER, "comparison_paper_vs_extended.csv
 flow_sig        <- read_csv(file.path(TWOTIER, "flow_significance.csv"), show_col_types = FALSE)
 ```
 
-#### 1. Daily Restricted Grid, Paper Period (Figure A3.1)
+#### 1. Daily Restricted Grid, Paper Period (Figure A2.1)
 
 ```{r repl-fig-daily-restricted-paper}
 #| echo: false
@@ -1843,8 +1842,8 @@ paper's conclusion, and it replicates.
 
 Equity portfolio flows present a similar picture. The daily numbers diverge
 meaningfully. The paper troughs at -0.006 at day 40 and recovers to +0.001. Our
-estimate troughs at -0.038 at day 25 and recovers to -0.0017. A factor of six
-at the trough, same recovery direction, earlier timing. The monthly
+estimate troughs at -0.052 around day 16 and recovers to -0.0017. Roughly nine
+times deeper at the trough, same recovery direction, earlier timing. The monthly
 specification restores the pattern. The paper troughs at -0.065 at month 4 and
 rebounds to +0.025. Our estimate troughs at -0.055 at month 3 and rebounds to
 +0.026. The magnitudes align, the V-shape is identical, and the
@@ -1864,7 +1863,7 @@ short-term interbank lending, trade credit, and currency deposits. It is the
 most heterogeneous and highest-variance capital flow series in the model, with
 a standard deviation an order of magnitude larger than direct investment. The
 results reflect this. The paper dips then reaches a +0.010 peak at day 50. Our
-estimate does the opposite, spiking to +0.118 at day 5 and hitting -0.017 at
+estimate does the opposite, spiking to +0.163 at day 10 and hitting -0.017 at
 day 50. The phase reversal between
 the paper's late peak and our early spike is the most dramatic divergence in
 the entire replication. It happens in a variable that is not central to either
@@ -1893,7 +1892,7 @@ detectable response suggests that the uncertainty generated by risk-off
 shocks may affect long-horizon investment decisions even when short-horizon
 portfolio flows show no consistent pattern.
 
-#### 2. Daily Unrestricted Grid, Paper Period (Figure A2.1)
+#### 2. Daily Unrestricted Grid, Paper Period (Figure A3.1)
 
 ```{r repl-fig-daily-unrestricted-paper}
 #| echo: false
@@ -1901,7 +1900,7 @@ portfolio flows show no consistent pattern.
 knitr::include_graphics("data/processed/var_results/figures/irf_grid_daily_unrestricted_paper.png")
 ```
 
-The daily unrestricted grid corresponds to the paper's Appendix Figure A2.1.
+The daily unrestricted grid corresponds to the paper's Appendix Figure A3.1.
 Removing the block exogeneity constraint widens the confidence bands but does
 not change the directional patterns. The daily RGDP response remains negative
 and persistent. The unrestricted specification on current-vintage data
@@ -1982,9 +1981,8 @@ knitr::include_graphics("data/processed/var_results/figures/irf_grid_monthly_unr
 
 The extended period grids cover the full 1999 to 2026 sample using
 current-vintage data for all series. The daily restricted grid shows RGDP
-confidence intervals that are wider than the paper period, consistent with
-the GDP benchmark revisions that introduce additional uncertainty after 2022
-(L1). The directional responses remain consistent with the paper period. The
+confidence intervals that are narrower than the paper period. The
+directional responses remain consistent with the paper period. The
 daily unrestricted grid extends the analysis of the paper's Appendix Figure
 A2.1 beyond the original sample. The monthly restricted grid shows the RGDP
 response remaining negative through the first six months. The monthly
@@ -2018,9 +2016,18 @@ our_daily <- c(
   sprintf("%s at h=0, trough %s at h=50, %s at h=125 (no initial positive blip)",
     f(get_d("log_nikkei",0)), f(dp |> filter(variable=="log_nikkei") |> slice_min(response, n=1) |> pull(response)),
     f(get_d("log_nikkei",125))),
-  sprintf("trough %s at h=5, settles near %s at h=125 (noisy)", f(get_d("debtsec_pct",5)), f(get_d("debtsec_pct",125))),
-  sprintf("trough %s at h=25, recovers to %s at h=125", f(get_d("equity_pct",25)), f(get_d("equity_pct",125))),
-  sprintf("spike %s at h=5, then %s at h=50", f(get_d("other_pct",5)), f(get_d("other_pct",50))),
+  sprintf("trough %s at h=%d, settles near %s at h=125 (noisy)",
+    f(dp |> filter(variable=="debtsec_pct") |> slice_min(response, n=1) |> pull(response)),
+    dp |> filter(variable=="debtsec_pct") |> slice_min(response, n=1) |> pull(horizon),
+    f(get_d("debtsec_pct",125))),
+  sprintf("trough %s at h=%d, recovers to %s at h=125",
+    f(dp |> filter(variable=="equity_pct") |> slice_min(response, n=1) |> pull(response)),
+    dp |> filter(variable=="equity_pct") |> slice_min(response, n=1) |> pull(horizon),
+    f(get_d("equity_pct",125))),
+  sprintf("spike %s at h=%d, then %s at h=50",
+    f(dp |> filter(variable=="other_pct") |> slice_max(response, n=1) |> pull(response)),
+    dp |> filter(variable=="other_pct") |> slice_max(response, n=1) |> pull(horizon),
+    f(get_d("other_pct",50))),
   sprintf("trough %s at h=1, %s at h=50, %s at h=125",
     f(dp |> filter(variable=="direct_pct", horizon<=20) |> slice_min(response, n=1) |> pull(response)),
     f(get_d("direct_pct",50)), f(get_d("direct_pct",125)))

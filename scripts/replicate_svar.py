@@ -1,12 +1,4 @@
-"""
-Unified SVAR replication script for Beirne & Sugandi (2023).
-
-Usage:
-  uv run python scripts/replicate_svar.py                           # full pipeline
-  uv run python scripts/replicate_svar.py --interpolate-v1          # v1 daily only
-  uv run python scripts/replicate_svar.py --with-daily-ci --repl 1000  # with CIs
-  uv run python scripts/replicate_svar.py --verify                  # compare outputs
-"""
+# Unified SVAR replication for Beirne and Sugandi (2023). Run with --help for usage.
 
 import os
 import sys
@@ -82,8 +74,8 @@ QDMATCH_SERIES = [
 ]
 
 
+# Read native CSV, quadratic-interpolate to daily grid, write.
 def _v1_interpolate_series(in_path, value_col, out_path):
-    """Read native CSV, quadratic-interpolate to daily grid, write."""
     all_dates = pd.date_range(START_DATE_V1, END_DATE_V1, freq="D")
     df = pd.read_csv(in_path, parse_dates=["date"])
     df = df.set_index("date")
@@ -93,8 +85,8 @@ def _v1_interpolate_series(in_path, value_col, out_path):
     df.to_csv(out_path, index=False)
 
 
+# Regenerate data/tmp_quadratic/*_daily.csv from natives (v1 method).
 def run_interpolate_v1():
-    """Regenerate data/tmp_quadratic/*_daily.csv from natives (v1 method)."""
     TMP_DIR.mkdir(parents=True, exist_ok=True)
     for native_name, value_col in V1_SERIES:
         stem = native_name.replace("_native.csv", "")
@@ -122,8 +114,8 @@ def _period_keys(dates, key_fn):
         return list(zip(dt.year, ((dt.month - 1) // 3 + 1)))
 
 
+# EViews quadratic-match average interpolation with mean preservation.
 def quadratic_match_average(dates_low, values_low, dates_high, freq):
-    """EViews quadratic-match average interpolation with mean preservation."""
     dates_low = np.asarray(pd.to_datetime(dates_low))
     values_low = np.asarray(values_low, dtype=float)
     dates_high = np.asarray(pd.to_datetime(dates_high))
@@ -184,8 +176,8 @@ def quadratic_match_average(dates_low, values_low, dates_high, freq):
     return result
 
 
+# Interpolate a native series to trading-day grid using qdmatch.
 def _qdmatch_one(native_stem, value_col, freq):
-    """Interpolate a native series to trading-day grid using qdmatch."""
     native_path = TMP_DIR / f"{native_stem}_native.csv"
     out_path = V2_DIR / f"{native_stem}_qdmatch.csv"
 
@@ -219,8 +211,8 @@ def build_exog(df):
     return exog, exog_names
 
 
+# Block-exogenous VAR: risk_off depends on own lags only, others on all lags
 def run_var(data, exog, restricted=True, k_ar=None):
-    # Block-exogenous VAR: risk_off depends on own lags only, others on all lags
     endog = data.values
     endog_names = data.columns.tolist()
     T, K = endog.shape
@@ -296,8 +288,8 @@ def run_var(data, exog, restricted=True, k_ar=None):
     return RestrictedVARResults()
 
 
+# Recursive IRF with Cholesky orthogonalization
 def _compute_irf(results, periods=125):
-    # Recursive IRF with Cholesky orthogonalization
     K = results.coefs.shape[1]
     k_ar = results.k_ar
     irfs = np.zeros((periods + 1, K, K))
@@ -339,8 +331,8 @@ def _compute_fevd(results, periods=125):
     return FEVD()
 
 
+# Parametric bootstrap CI: draw shocks from N(0, Sigma_u), re-estimate, compute IRFs
 def _delta_irf_ci(irf_obj, B=1000, alpha=0.05):
-    # Parametric bootstrap CI: draw shocks from N(0, Sigma_u), re-estimate, compute IRFs
     results = irf_obj.model
     resid = results.resid
     T_eff, K = resid.shape
@@ -477,8 +469,8 @@ def _load_qdmatch(stem, col_name):
     return qd[["date", col_name]]
 
 
+# ALFRED 2021-06-01 GDP and Wayback May 2021 REER for replication period
 def _build_daily_paper(df_daily):
-    # ALFRED 2021-06-01 GDP and Wayback May 2021 REER for replication period
     daily = df_daily[["date", "risk_off", "spread", "log_nikkei"]].copy()
     daily = daily[daily["date"] <= PAPER_END].copy()
     qd_files = [("log_wui", "log_wui"), ("debtsec", "debtsec_pct"),
@@ -503,8 +495,8 @@ def _build_daily_paper(df_daily):
     return daily
 
 
+# Current-vintage data for all series (no vintage substitution)
 def _build_daily_extended(df_daily):
-    # Current-vintage data for all series (no vintage substitution)
     daily = df_daily[["date", "risk_off", "spread", "log_nikkei"]].copy()
     qd_stems = [("log_reer", "log_reer"), ("debtsec", "debtsec_pct"),
                 ("equity", "equity_pct"), ("other", "other_pct"),
@@ -517,8 +509,8 @@ def _build_daily_extended(df_daily):
     return daily
 
 
+# Monthly aggregation then apply ALFRED 2021-06-01 GDP and Wayback May 2021 REER
 def _build_monthly_paper_vintage(df_daily):
-    # Monthly aggregation then apply ALFRED 2021-06-01 GDP and Wayback May 2021 REER
     monthly = _agg_monthly(df_daily, PAPER_END)
     vint_rgdp = pd.read_csv(
         "data/raw/vintage/JPNRGDPEXP_vintage_2021-06-01.csv", parse_dates=["date"])
@@ -559,8 +551,8 @@ def _run_unrestricted_var(data, exog, lag, periods):
     return results, irf_vals
 
 
+# MC delta method for restricted model (own computation)
 def _ci_restricted(results, irf_vals, repl, seed=42):
-    # MC delta method for restricted model (own computation)
     np.random.seed(seed)
     dummy_irf = type("DummyIRF", (), {
         "irfs": irf_vals,
@@ -571,8 +563,8 @@ def _ci_restricted(results, irf_vals, repl, seed=42):
     return lower, upper
 
 
+# Asymptotic standard errors: matches EViews default, not MC bootstrap
 def _ci_unrestricted(results, irf_obj, repl, seed=42):
-    # Asymptotic standard errors: matches EViews default, not MC bootstrap
     se = np.asarray(irf_obj.stderr(orth=True))
     orth = np.asarray(irf_obj.orth_irfs)
     z = 1.96
@@ -773,8 +765,8 @@ def print_flow_verdict(flow_df):
                   f"resp={r['response']:.6f} [{r['lower']:.6f}, {r['upper']:.6f}]")
 
 
+# Regenerate ADF test and lag selection CSVs for both periods.
 def _run_adf_and_lag(df_daily):
-    """Regenerate ADF test and lag selection CSVs for both periods."""
     periods_info = [
         ("1999_2021", df_daily[df_daily["date"] <= PAPER_END]),
         ("1999_2026", df_daily),
@@ -806,8 +798,8 @@ def _run_adf_and_lag(df_daily):
         print(f"  Saved: {lag_path.name}")
 
 
+# Regenerate v2 quadratic-match CSVs from natives.
 def _regenerate_qdmatch():
-    """Regenerate v2 quadratic-match CSVs from natives."""
     V2_DIR.mkdir(parents=True, exist_ok=True)
     for stem, col, freq in QDMATCH_SERIES:
         print(f"  QDMatch: {stem}_native.csv -> v2/{stem}_qdmatch.csv")
@@ -815,8 +807,8 @@ def _regenerate_qdmatch():
 
 
 
+# Run the pipeline in-place and compare outputs against git-HEAD references.
 def _verify():
-    """Run the pipeline in-place and compare outputs against git-HEAD references."""
     import subprocess
     import tempfile
     from io import StringIO
@@ -1056,16 +1048,16 @@ def run_figures():
     grids = [
         (TWOTIER_DIR / "daily_paper_irf.csv",
          "irf_grid_daily_restricted_paper.png",
-         "Figure A3.1, Real and Financial Spillovers in Japan (Restricted), 1999-2021", PAPER_COLOR),
+         "Figure A2.1, Real and Financial Spillovers in Japan (Restricted), 1999-2021", PAPER_COLOR),
         (TWOTIER_DIR / "daily_paper_unrestricted_irf.csv",
          "irf_grid_daily_unrestricted_paper.png",
-         "Figure A2.1, Real and Financial Spillovers in Japan (Unrestricted), 1999-2021", PAPER_COLOR),
+         "Figure A3.1, Real and Financial Spillovers in Japan (Unrestricted), 1999-2021", PAPER_COLOR),
         (TWOTIER_DIR / "monthly_paper_restricted_irf.csv",
          "irf_grid_monthly_restricted_paper.png",
          "Figure A4, Real and Financial Spillovers in Japan, Monthly (Restricted), 1999-2021", PAPER_COLOR),
         (TWOTIER_DIR / "monthly_paper_unrestricted_irf.csv",
          "irf_grid_monthly_unrestricted_paper.png",
-         "Figure A4, Real and Financial Spillovers in Japan, Monthly (Unrestricted), 1999-2021", PAPER_COLOR),
+         "Real and Financial Spillovers in Japan, Monthly (Unrestricted), 1999-2021", PAPER_COLOR),
         (TWOTIER_DIR / "daily_extended_irf.csv",
          "irf_grid_daily_restricted_extended.png",
          "Real and Financial Spillovers in Japan (Restricted), 1999-2026", EXT_COLOR),
@@ -1132,8 +1124,8 @@ def _plot_adf_results():
     print("Saved: infographics_adf_stationarity.png")
 
 
+# Time series of financial variables with risk-off episode shading.
 def _plot_stylized_facts():
-    """Time series of financial variables with risk-off episode shading."""
     df = pd.read_csv("data/processed/final_dataset.csv", parse_dates=["date"])
     df = df.sort_values("date")
     ro = df[df["risk_off"] > 0.5][["date"]].copy()
@@ -1163,6 +1155,7 @@ def _plot_stylized_facts():
         "jgb10y": (jgb, "JGB 10-year yield"),
         "nikkei225": (nikkei, "Nikkei 225 index"),
         "us10y": (us10y, "US 10-year Treasury yield"),
+        "spread": (df, "Yield spread (10Y JGB minus 10Y US, %)"),
         "debtsec_pct": (df, "Debt portfolio flows (% GDP)"),
         "equity_pct": (df, "Equity portfolio flows (% GDP)"),
         "other_pct": (df, "Other investment flows (% GDP)"),
@@ -1187,6 +1180,112 @@ def _plot_stylized_facts():
             print(f"Saved: stylized_{slug}_risk_off.png")
         except Exception as e:
             print(f"WARNING: stylized_{slug} failed ({e})")
+
+
+# Full two-tier estimation pipeline, writing all outputs in place.
+def _run_pipeline(with_daily_ci=False, repl=MC_REPL_DEFAULT):
+    print("Running pipeline...")
+    print(f"Daily CIs:     {'YES' if with_daily_ci else 'point estimates only'}")
+    print(f"MC repl:       {repl}")
+    print()
+
+    t_start = time.time()
+
+    df_daily = pd.read_csv("data/processed/final_dataset.csv", parse_dates=["date"])
+    df_daily = df_daily.sort_values("date").reset_index(drop=True)
+    print(f"Daily data: {len(df_daily)} rows, {df_daily['date'].min()} to {df_daily['date'].max()}")
+    print()
+
+    print("STEP 1: Quadratic-match interpolation (v2)")
+    print(60 * "-")
+    _regenerate_qdmatch()
+
+    print()
+    print("STEP 2: Stationarity tests and lag selection")
+    print(60 * "-")
+    _run_adf_and_lag(df_daily)
+
+    all_runs = {}
+
+    print()
+    print("STEP 3: DAILY RESTRICTED VAR")
+    print(60 * "-")
+
+    print()
+    print("  Building daily paper-period dataset (vintage)...")
+    daily_paper = _build_daily_paper(df_daily)
+    exog_p, _ = build_exog(daily_paper.loc[daily_paper[VAR_ORDER].dropna().index])
+    data_p = daily_paper[VAR_ORDER].dropna()
+    res_daily_paper = _estimate_daily(
+        data_p, exog_p, "Daily paper (restricted)",
+        with_ci=with_daily_ci, repl=repl)
+    _save_irf_csv(res_daily_paper["rows_r"], "daily_paper_irf.csv")
+    _save_irf_csv(res_daily_paper["rows_u"], "daily_paper_unrestricted_irf.csv")
+    all_runs["daily_paper"] = res_daily_paper
+
+    print()
+    print("  Building daily extended-period dataset...")
+    daily_ext = _build_daily_extended(df_daily)
+    exog_e, _ = build_exog(daily_ext.loc[daily_ext[VAR_ORDER].dropna().index])
+    data_e = daily_ext[VAR_ORDER].dropna()
+    res_daily_ext = _estimate_daily(
+        data_e, exog_e, "Daily extended (restricted)",
+        with_ci=with_daily_ci, repl=repl)
+    _save_irf_csv(res_daily_ext["rows_r"], "daily_extended_irf.csv")
+    _save_irf_csv(res_daily_ext["rows_u"], "daily_extended_unrestricted_irf.csv")
+    all_runs["daily_extended"] = res_daily_ext
+
+    print()
+    print("STEP 4: MONTHLY RESTRICTED + UNRESTRICTED VAR")
+    print(60 * "-")
+
+    print()
+    print("  Building monthly paper-period dataset (vintage)...")
+    monthly_paper = _build_monthly_paper_vintage(df_daily)
+    exog_mp, _ = build_exog(monthly_paper.loc[monthly_paper[VAR_ORDER].dropna().index])
+    data_mp = monthly_paper[VAR_ORDER].dropna()
+    res_monthly_paper = _estimate_monthly(
+        data_mp, exog_mp, "Monthly paper (vintage)",
+        repl=repl)
+    _save_irf_csv(res_monthly_paper["rows_r"], "monthly_paper_restricted_irf.csv")
+    _save_irf_csv(res_monthly_paper["rows_u"], "monthly_paper_unrestricted_irf.csv")
+    all_runs["monthly_paper"] = res_monthly_paper
+
+    print()
+    print("  Building monthly extended-period dataset...")
+    monthly_ext = _build_monthly_extended(df_daily)
+    exog_me, _ = build_exog(monthly_ext.loc[monthly_ext[VAR_ORDER].dropna().index])
+    data_me = monthly_ext[VAR_ORDER].dropna()
+    res_monthly_ext = _estimate_monthly(
+        data_me, exog_me, "Monthly extended",
+        repl=repl)
+    _save_irf_csv(res_monthly_ext["rows_r"], "monthly_extended_restricted_irf.csv")
+    _save_irf_csv(res_monthly_ext["rows_u"], "monthly_extended_unrestricted_irf.csv")
+    all_runs["monthly_extended"] = res_monthly_ext
+
+    print()
+    print("STEP 5: COMPARISON AND FLOW SIGNIFICANCE TABLES")
+    print(60 * "-")
+    comp_df = _build_comparison_table(all_runs)
+    comp_df.to_csv(str(TWOTIER_DIR / "comparison_paper_vs_extended.csv"), index=False)
+    print(f"  Saved: comparison_paper_vs_extended.csv ({len(comp_df)} rows)")
+
+    flow_df = _build_flow_significance("monthly_paper", all_runs)
+    if flow_df is not None:
+        flow_df.to_csv(str(TWOTIER_DIR / "flow_significance.csv"), index=False)
+        print(f"  Saved: flow_significance.csv ({len(flow_df)} rows)")
+    else:
+        print("  (flow_significance not available)")
+
+    print()
+    print(60 * "=")
+    print("FLOW SIGNIFICANCE VERDICT (monthly paper)")
+    print(60 * "=")
+    print_flow_verdict(flow_df)
+
+    elapsed = time.time() - t_start
+    print(f"\nTotal time: {elapsed:.1f}s ({elapsed/60:.1f} min)")
+    print(f"All outputs in: {TWOTIER_DIR.resolve()}")
 
 
 def main():
@@ -1319,8 +1418,8 @@ def _alfred_save_csv(filepath, observations):
             writer.writerow([d, observations[d]])
 
 
+# Fetch ALFRED vintage JPNRGDPEXP if the CSV does not exist.
 def fetch_vintage_gdp():
-    """Fetch ALFRED vintage JPNRGDPEXP if the CSV does not exist."""
     for vintage in ALFRED_VINTAGES:
         out_path = ALFRED_OUTPUT_DIR / f"{ALFRED_SERIES_ID}_vintage_{vintage}.csv"
         if out_path.exists():
@@ -1359,8 +1458,8 @@ def _reer_fetch_broad_xlsx(url):
         return resp.read()
 
 
+# BIS broad.xlsx layout: sheet "Real", row 5 is header, column 31 is Japan
 def _reer_extract_japan(data):
-    # BIS broad.xlsx layout: sheet "Real", row 5 is header, column 31 is Japan
     tmp = tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False)
     try:
         tmp.write(data)
@@ -1402,8 +1501,8 @@ def _reer_verify(result, source_data):
     return info
 
 
+# Fetch 2021-vintage BIS REER from Wayback Machine if the CSV does not exist.
 def fetch_vintage_reer():
-    """Fetch 2021-vintage BIS REER from Wayback Machine if the CSV does not exist."""
     if REER_OUTPUT_FILE.exists():
         print(f"  {REER_OUTPUT_FILE.name} already exists — skipping")
         return
