@@ -63,10 +63,10 @@ uv run python scripts/replicate_svar.py --with-daily-ci --repl 1000
 | REER | Appreciation (positive) | Positive in all specs | MATCH |
 | Spread | Widening (positive) | Positive in all specs | MATCH |
 | Nikkei | Immediate positive, then negative | Negative from h=0 in every spec | PARTIAL |
-| WUI | Smooth positive, then negative | Oscillates more in unrestricted | PARTIAL |
+| WUI | Smooth positive, then negative | Negative daily trough, positive monthly peak, sign unstable across frequencies | MISMATCH |
 | Capital flows | Insignificant | Mostly insignificant, 2 significant cells (direct_pct h=3) | MATCH |
-| Risk-off episodes | 15 episodes listed in Table 1 | All 15 dates exact to the day | MATCH |
-| Restricted vs unrestricted | "Fully consistent" (paper's claim) | Diverge on current-vintage data | PARTIAL |
+| Risk-off episodes | Fifteen in-sample dates in Table 1 | All fifteen reproduced exactly | MATCH |
+| Restricted vs unrestricted | Paper reports both forms, no consistency claim | Diverge on current-vintage data | PARTIAL |
 
 ## What the paper did not disclose
 
@@ -105,11 +105,9 @@ sign, spread widening, and REER appreciation are replicated. The Nikkei
 immediate-positive impact effect is not reproduced. The daily RGDP trough is
 deeper than the paper's charts (-0.00074 versus -0.0006 at day 45-50), and the
 monthly trough is approximately twice as deep (-0.004 versus -0.002). The
-restricted and unrestricted
-specifications diverge on current-vintage data, contrary to the paper's
-claim of full consistency. This divergence is presented as a finding about
-sensitivity to GDP data revisions rather than a failure of either
-specification.
+restricted and unrestricted specifications diverge on current-vintage
+data. This divergence is presented as a finding about sensitivity to GDP
+data revisions rather than a failure of either specification.
 
 ## Limitations
 
@@ -141,13 +139,19 @@ estimates and Monte Carlo bands between x86 and ARM machines.
 
 ```
 finarts-final-paper/
+├── main.tex                           # LaTeX manuscript root
+├── main.pdf                           # Compiled paper (77 pages)
+├── chapters/                          # LaTeX manuscript sections (00-06)
+├── guidelines.md                      # Course project guidelines summary
 ├── data_pipeline.qmd                  # Quarto document: data construction, narrative, and results
 ├── index.html                         # Rendered HTML (hosted via Netlify)
 ├── README.md                          # This file
+├── LICENSE                            # MIT license
 ├── netlify.toml                       # Netlify deployment configuration
 ├── pyproject.toml                     # Python project metadata and dependencies
 ├── uv.lock                            # Deterministic dependency lock file
 ├── references.bib                     # BibTeX references
+├── dlsu_logo.png                      # Title page logo
 ├── .gitignore
 ├── articles/                          # Reference PDFs and paper full-text markdown
 │   ├── Beirne_Sugandi_2023.pdf
@@ -192,11 +196,10 @@ finarts-final-paper/
 │   │       ├── adf_tests_1999_2026.csv
 │   │       ├── lag_selection_1999_2021.csv
 │   │       ├── lag_selection_1999_2026.csv
-│   │       └── figures/               # QMD-generated figures (10 PNG files)
-│   │           ├── fig1_vix_risk_off.png
-│   │           ├── fig2_usdjpy_risk_off.png
-│   │           ├── fig3_reer_risk_off.png
-│   │           └── figA1_1_jgb_risk_off.png through figA1_7_spread_risk_off.png
+│   │       └── figures/               # Generated figures (21 PNG files)
+│   │           ├── stylized_*_risk_off.png     # Stylized facts panels (11)
+│   │           ├── irf_grid_*.png              # Impulse response grids (8)
+│   │           └── infographics_*.png          # ADF and lag diagnostics (2)
 │   └── tmp_quadratic/                 # Interpolation intermediates
 │       ├── *_native.csv               # Native-frequency series (7 files, QMD output)
 │       ├── *_daily.csv                # Pandas-spline daily interpolation (7 files, QMD+v1 output)
@@ -211,7 +214,32 @@ finarts-final-paper/
 └── drafts/                             # Regenerable LaTeX table sources (QMD outputs)
 ```
 
+## Configuration
+
+The pipeline runs on Python 3.10 or newer, managed with `uv`. The estimation
+uses a dual-vintage data policy. The paper period, 14 January 1999 to 31 March
+2021, uses the ALFRED 2021-06-01 GDP vintage and the Wayback Machine BIS REER
+snapshot of 24 May 2021. The extended period, through 30 June 2026, uses
+current-vintage data. The policy is documented in
+`docs/methodology_dual_vintage.md`.
+
+## Contributing
+
+This repository is a course replication project. Forks are welcome for
+verification and extension. Pull requests that reproduce or extend the
+analysis are reviewed on a best-effort basis. For questions about the
+replication, open an issue in the repository.
+
+## License
+
+MIT. See the `LICENSE` file.
+
 ## Citation
 
 Beirne, J. and Sugandi, E. (2023). Risk-off shocks and spillovers in safe
 havens. *Pacific-Basin Finance Journal*, 80, 102103.
+
+To cite this replication, Sison, A. J., Galedo, E. L., Opiana, A. L., Cuenca,
+R., and Go, K. L. (2026). Risk-off shocks and spillovers in safe havens,
+replication and extension [Manuscript and code]. De La Salle University.
+https://github.com/sakudiff/FINARTS_FINAL-PAPER
