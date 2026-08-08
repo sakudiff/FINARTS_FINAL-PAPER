@@ -8,9 +8,33 @@ Three developments since the paper's sample ended in March 2021 limit what the p
 
 This study replicates \textcite{beirne_sugandi_2023} for Japan and extends the sample through June 2026. The replication rebuilds the paper's recursively restricted VAR with a Cholesky identification scheme, adds the unrestricted specification as a robustness check, and estimates both at the daily and monthly frequencies. The data follow a dual-vintage policy. The paper period from 14 January 1999 to 31 March 2021 uses the 2021-era vintages of real GDP and the REER, and the extension from April 2021 to 30 June 2026 uses current-vintage data. The daily financial market series were downloaded from LSEG Workspace, and the macroeconomic series were collected via automated Python API scripts from the Federal Reserve Bank of St.\ Louis ALFRED archive, the BIS, the Bank of Japan, and the World Uncertainty Index database.
 
-Three research questions guide the analysis. First, \textit{does the paper's qualitative structure for Japan reproduce when the model is re-estimated independently on the original sample}? Second, \textit{do the estimated relationships survive into the post-2021 regime}? Third, \textit{which results are robust to data revisions, and which depend on the exact data vintage}?
+To address these empirical and methodological challenges, the primary objective of this study is
 
-Three objectives follow. The first is to \textit{rebuild the restricted and unrestricted SVARs for Japan over the paper period with vintage data and compare the impulse responses against the published figures}. The second is to \textit{re-estimate both specifications over the extended sample and document the differences}. The third is to \textit{disclose every specification choice, including the code defects found and corrected during the replication, so that the boundary between data effects and implementation effects is explicit}.
+\vspace{1em}
+\noindent\textit{To evaluate the empirical validity, temporal generalizability, and data-vintage sensitivity of risk-off spillover dynamics in Japan by independently replicating and extending the structural vector autoregression framework of Beirne and Sugandi (2023).}
+\vspace{1em}
+
+To achieve this overarching aim, the research addresses three central research questions
+
+\begin{itemize}
+    \item \textit{Baseline Qualitative Structure}
+\newline Does the paper's qualitative structure for Japan reproduce when the structural vector autoregression is re-estimated independently on the original sample period?
+    \item \textit{Post-2021 Regime Generalizability}
+\newline Do the estimated macroeconomic and financial relationships survive into the post-2021 regime of monetary policy divergence and yen depreciation?
+    \item \textit{Data Vintage Sensitivity}
+\newline Which empirical findings remain robust to historical data revisions, and which results depend strictly on the historical data vintage observed by the original authors?
+\end{itemize}
+
+To answer these research questions, the study pursues three specific secondary objectives
+
+\begin{itemize}
+    \item \textit{Rebuild Baseline SVAR Models}
+\newline To rebuild the restricted and unrestricted structural VAR models for Japan over the original 1999 to 2021 sample using period-appropriate data vintages and compare the estimated impulse responses directly against published benchmarks.
+    \item \textit{Evaluate Out-of-Sample Generalizability}
+\newline To re-estimate both econometric specifications over the extended sample through June 2026 using current-vintage data and document the resulting regime shifts in exchange rate and output spillovers.
+    \item \textit{Disclose Specification and Calibration Choices}
+\newline To disclose every specification choice, model calibration procedure, and software implementation detail so that the boundary between empirical data effects and configuration choices is completely explicit.
+\end{itemize}
 
 The study contributes in three ways. It validates the paper's core results for Japan, since the daily restricted VAR reproduces the negative real GDP response, the REER appreciation, the bond spread widening, and the null capital flow responses. It extends the evidence into a regime in which the yen's safe-haven status is disputed, where the real GDP response weakens toward zero. And it demonstrates a data-vintage problem that is material to replication, since the restricted model's GDP response flips sign when current-vintage data replace the 2021-era series.
 
