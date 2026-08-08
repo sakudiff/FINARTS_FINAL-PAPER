@@ -36,7 +36,7 @@ To ensure complete empirical transparency without artificial sub-labeling, each 
 
 \subsubsection{Risk-off Shock Indicator}
 
-Beirne and Sugandi (2023) define the risk-off shock as a daily binary indicator equal to one when the VIX exceeds its 60-day moving average by at least 10 percentage points, reporting an impulse self-response that starts at 0.10 and decays to zero within 25 trading days. Our daily risk-off rule reproduces all fifteen in-sample episode start dates from the paper's Table 1 exactly to the day, while identifying six additional episodes in the extended sample including the November 2021 Omicron variant, the March 2022 Russia-Ukraine shock, the August 2024 carry trade unwind, the April 2025 tariff shock, and the March 2026 Middle East escalation. The estimated impulse response starts at 0.098 and decays to zero by day 125, completing the bulk of its decay within 25 days. Because the risk-off equation is block-exogenous and depends only on its own lags, the exogenous shock trajectory reproduces the published paper to three decimal places, confirming that the shock identification properties established by De Bock and de Carvalho Filho (2013) remain invariant across sample periods.
+Beirne and Sugandi (2023) define the risk-off shock as a daily binary indicator equal to one when the VIX exceeds its 60-day moving average by at least 10 percentage points, reporting an impulse self-response that starts at 0.10 and decays to zero within 25 trading days. Our daily risk-off rule identifies twenty in-sample episode start dates over the 1999 to 2021 period while adding nine out-of-sample episodes in the extended sample including the November 2021 Omicron variant, the March 2022 Russia-Ukraine shock, the August 2024 carry trade unwind, the April 2025 tariff shock, and the March 2026 Middle East escalation. The estimated impulse response starts at 0.098 and decays to zero by day 125, completing the bulk of its decay within 25 days. Because the risk-off equation is block-exogenous and depends only on its own lags, the exogenous shock trajectory reproduces the published paper to three decimal places, confirming that the shock identification properties established by De Bock and de Carvalho Filho (2013) remain invariant across sample periods.
 
 \subsubsection{World Uncertainty Index}
 
@@ -86,7 +86,7 @@ Research Question 3 asked which empirical results are robust to data revisions a
 
 \subsection{Hypotheses Assessment}
 
-The five hypotheses formulated in Section 2 are evaluated against the empirical results across both estimation tiers and sample periods. Table 8 consolidates the statistical decisions and empirical verdicts for each transmission channel.
+The five hypotheses formulated in Section 2 are evaluated against the empirical results across both estimation tiers and sample periods. Table~\ref{tab:hypotheses_verdict} consolidates the statistical decisions and empirical verdicts for each transmission channel.
 
 \begin{table}[H]
   \centering
@@ -123,7 +123,7 @@ Each of the five formal hypothesis pairs is evaluated against the empirical impu
 \newline The null hypothesis $H_{0,3}$ of no significant sovereign yield spread widening is rejected across all specifications. A one-standard-deviation risk-off shock induces a persistent spread expansion of +0.015 percentage points at the daily frequency and +0.115 percentage points at the monthly frequency, supporting flight-to-safety demand for JGBs relative to US Treasuries.
 
     \item \textit{Hypothesis 4: Capital Flow Neutrality Channel}
-\newline The null hypothesis $H_{0,4}$ of no significant portfolio capital flow response fails to be rejected for portfolio debt (-0.0755) and portfolio equity (-0.0553) flows, as all 95 percent confidence bands span zero across forecast horizons. The channel is qualified by net direct investment, which exhibits a statistically significant positive response of +0.0431 at month 3 under the restricted model.
+\newline The null hypothesis $H_{0,4}$ of no significant portfolio capital flow response fails to be rejected for portfolio debt (+0.0755) and portfolio equity (-0.0553) flows, as all 95 percent confidence bands span zero across forecast horizons. The channel is qualified by net direct investment, which exhibits a statistically significant positive response of +0.0431 at month 3 under the restricted model.
 
     \item \textit{Hypothesis 5: Domestic Policy Uncertainty Channel}
 \newline The null hypothesis $H_{0,5}$ of no significant domestic policy uncertainty response fails to be rejected across both estimation tiers. The World Uncertainty Index confidence envelopes span zero at all forecast horizons, confirming that global risk-off events do not produce systematic policy uncertainty spikes in Japan.
