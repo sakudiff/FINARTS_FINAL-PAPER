@@ -51,6 +51,7 @@ data_pipeline_cache/
 ***REMOVED***
 
 ***REMOVED***# Internal audit reports and working notes (not submission material)
+drafts/
 docs/*.md
 docs/figures-audit.md
 docs/paper-figures-audit.md
