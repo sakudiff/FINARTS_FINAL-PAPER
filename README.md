@@ -8,7 +8,7 @@ sample through June 2026. Two-tier estimation with a dual-vintage data policy.
 Group 4, FINARTS C01, De La Salle University, Academic Year 2025–2026 Term 3.
 Submitted August 7, 2026 to Dr. Ray Anthony Almonares.
 
-**[📄 Paper PDF](main.pdf)** | **[🌐 Web Report (Netlify)](https://finalprojectfinartsg4.netlify.app)** | **[💻 GitHub Repository](https://github.com/sakudiff/FINARTS_FINAL-PAPER)**
+**[ Paper PDF](main.pdf)** | **[ Web Report (Netlify)](https://finalprojectfinartsg4.netlify.app)** | **[ GitHub Repository](https://github.com/sakudiff/FINARTS_FINAL-PAPER)**
 
 | Key Resource | Link |
 |---|---|
@@ -87,7 +87,7 @@ flowchart TD
     Interp --> Restricted
     Interp --> Unrestricted
     Restricted --> Bootstrap
-    
+
     Bootstrap --> PDF
     Unrestricted --> PDF
     QMD --> HTML
@@ -99,9 +99,9 @@ flowchart TD
 
 ```bash
 uv sync
-uv run python scripts/replicate_svar.py          # full pipeline (~4 min)
+uv run python scripts/replicate_svar.py # full pipeline (~4 min)
 uv run python scripts/replicate_svar.py --verify # checks against committed references
-quarto render data_pipeline.qmd                   # rebuilds index.html
+quarto render data_pipeline.qmd # rebuilds index.html
 ```
 
 With daily confidence bands
@@ -245,79 +245,79 @@ estimates and Monte Carlo bands between x86 and ARM machines.
 
 ```
 finarts-final-paper/
-├── main.tex                           # LaTeX manuscript root
-├── main.pdf                           # Compiled paper (77 pages)
-├── chapters/                          # LaTeX manuscript sections (00-06)
-├── guidelines.md                      # Course project guidelines summary
-├── data_pipeline.qmd                  # Quarto document: data construction, narrative, and results
-├── index.html                         # Rendered HTML (hosted via Netlify)
-├── README.md                          # This file
-├── LICENSE                            # MIT license
-├── netlify.toml                       # Netlify deployment configuration
-├── pyproject.toml                     # Python project metadata and dependencies
-├── uv.lock                            # Deterministic dependency lock file
-├── references.bib                     # BibTeX references
-├── dlsu_logo.png                      # Title page logo
+├── main.tex # LaTeX manuscript root
+├── main.pdf # Compiled paper (77 pages)
+├── chapters/ # LaTeX manuscript sections (00-06)
+├── guidelines.md # Course project guidelines summary
+├── data_pipeline.qmd # Quarto document: data construction, narrative, and results
+├── index.html # Rendered HTML (hosted via Netlify)
+├── README.md # This file
+├── LICENSE # MIT license
+├── netlify.toml # Netlify deployment configuration
+├── pyproject.toml # Python project metadata and dependencies
+├── uv.lock # Deterministic dependency lock file
+├── references.bib # BibTeX references
+├── dlsu_logo.png # Title page logo
 ├── .gitignore
-├── articles/                          # Reference PDFs and paper full-text markdown
-│   ├── Beirne_Sugandi_2023.pdf
-│   ├── Beirne_Sugandi_2023.md
-│   └── Japan brands yen falls as speculative as Iran war ignites sell-off By Reuters.pdf
+├── articles/ # Reference PDFs and paper full-text markdown
+│ ├── Beirne_Sugandi_2023.pdf
+│ ├── Beirne_Sugandi_2023.md
+│ └── Japan brands yen falls as speculative as Iran war ignites sell-off By Reuters.pdf
 ├── scripts/
-│   └── replicate_svar.py              # Unified A-Z replication pipeline
+│ └── replicate_svar.py # Unified A-Z replication pipeline
 ├── data/
-│   ├── raw/                           # Raw input data (15 files)
-│   │   ├── VIX.csv                    # CBOE Volatility Index (daily)
-│   │   ├── NIKKEI225.csv              # Nikkei 225 index (daily)
-│   │   ├── US10Y.csv                  # US 10-year Treasury yield (daily)
-│   │   ├── USDJPY.csv                 # USD/JPY exchange rate (daily)
-│   │   ├── jgbcme_all.csv             # JGB yield curve (daily)
-│   │   ├── REER.xlsx                  # BIS broad real effective exchange rate (monthly)
-│   │   ├── JAPAN_RGDP.csv             # Japan real GDP (quarterly, FRED JPNRGDPEXP)
-│   │   ├── JAPAN_NOMINAL_GDP.csv      # Japan nominal GDP (quarterly, FRED)
-│   │   ├── WUI_JPN.csv                # World Uncertainty Index for Japan (quarterly)
-│   │   ├── BOJ_6pi-1_portfolio_summary.csv  # BOJ portfolio investment (pre-2014)
-│   │   ├── BOJ_BPPI6E3N5.csv          # BOJ long-term debt securities (post-2014)
-│   │   ├── BOJ_BPPI6E4N5.csv          # BOJ short-term debt securities (post-2014)
-│   │   ├── BOJ_BPPI6E2N5.csv          # BOJ equity securities (post-2014)
-│   │   ├── BOJ_BPBP6JYNFL3.csv        # BOJ other investment (post-2014)
-│   │   ├── BOJ_BPBP6JYNFL13.csv       # BOJ direct investment (post-2014)
-│   │   └── vintage/                   # Period-appropriate data vintages
-│   │       ├── JPNRGDPEXP_vintage_2021-06-01.csv   # ALFRED vintage GDP
-│   │       └── REER_JPN_BIS_vintage.csv            # Wayback Machine BIS REER snapshot
-│   ├── processed/
-│   │   ├── final_dataset.csv          # Daily panel of all 10 endogenous variables (1999-2026)
-│   │   ├── descriptive_stats.csv      # Variable descriptive statistics
-│   │   └── var_results/               # Estimation outputs
-│   │       ├── twotier/               # Two-tier final IRF results (8 CSV files)
-│   │       │   ├── daily_paper_irf.csv
-│   │       │   ├── daily_extended_irf.csv
-│   │       │   ├── monthly_paper_restricted_irf.csv
-│   │       │   ├── monthly_paper_unrestricted_irf.csv
-│   │       │   ├── monthly_extended_restricted_irf.csv
-│   │       │   ├── monthly_extended_unrestricted_irf.csv
-│   │       │   ├── comparison_paper_vs_extended.csv
-│   │       │   └── flow_significance.csv
-│   │       ├── adf_tests_1999_2021.csv
-│   │       ├── adf_tests_1999_2026.csv
-│   │       ├── lag_selection_1999_2021.csv
-│   │       ├── lag_selection_1999_2026.csv
-│   │       └── figures/               # Generated figures (21 PNG files)
-│   │           ├── stylized_*_risk_off.png     # Stylized facts panels (11)
-│   │           ├── irf_grid_*.png              # Impulse response grids (8)
-│   │           └── infographics_*.png          # ADF and lag diagnostics (2)
-│   └── tmp_quadratic/                 # Interpolation intermediates
-│       ├── *_native.csv               # Native-frequency series (7 files, QMD output)
-│       ├── *_daily.csv                # Pandas-spline daily interpolation (7 files, QMD+v1 output)
-│       └── v2/                        # Quadratic-match daily interpolation (7 files, Python output)
-│           └── *_qdmatch.csv
+│ ├── raw/ # Raw input data (15 files)
+│ │ ├── VIX.csv # CBOE Volatility Index (daily)
+│ │ ├── NIKKEI225.csv # Nikkei 225 index (daily)
+│ │ ├── US10Y.csv # US 10-year Treasury yield (daily)
+│ │ ├── USDJPY.csv # USD/JPY exchange rate (daily)
+│ │ ├── jgbcme_all.csv # JGB yield curve (daily)
+│ │ ├── REER.xlsx # BIS broad real effective exchange rate (monthly)
+│ │ ├── JAPAN_RGDP.csv # Japan real GDP (quarterly, FRED JPNRGDPEXP)
+│ │ ├── JAPAN_NOMINAL_GDP.csv # Japan nominal GDP (quarterly, FRED)
+│ │ ├── WUI_JPN.csv # World Uncertainty Index for Japan (quarterly)
+│ │ ├── BOJ_6pi-1_portfolio_summary.csv # BOJ portfolio investment (pre-2014)
+│ │ ├── BOJ_BPPI6E3N5.csv # BOJ long-term debt securities (post-2014)
+│ │ ├── BOJ_BPPI6E4N5.csv # BOJ short-term debt securities (post-2014)
+│ │ ├── BOJ_BPPI6E2N5.csv # BOJ equity securities (post-2014)
+│ │ ├── BOJ_BPBP6JYNFL3.csv # BOJ other investment (post-2014)
+│ │ ├── BOJ_BPBP6JYNFL13.csv # BOJ direct investment (post-2014)
+│ │ └── vintage/ # Period-appropriate data vintages
+│ │ ├── JPNRGDPEXP_vintage_2021-06-01.csv # ALFRED vintage GDP
+│ │ └── REER_JPN_BIS_vintage.csv # Wayback Machine BIS REER snapshot
+│ ├── processed/
+│ │ ├── final_dataset.csv # Daily panel of all 10 endogenous variables (1999-2026)
+│ │ ├── descriptive_stats.csv # Variable descriptive statistics
+│ │ └── var_results/ # Estimation outputs
+│ │ ├── twotier/ # Two-tier final IRF results (8 CSV files)
+│ │ │ ├── daily_paper_irf.csv
+│ │ │ ├── daily_extended_irf.csv
+│ │ │ ├── monthly_paper_restricted_irf.csv
+│ │ │ ├── monthly_paper_unrestricted_irf.csv
+│ │ │ ├── monthly_extended_restricted_irf.csv
+│ │ │ ├── monthly_extended_unrestricted_irf.csv
+│ │ │ ├── comparison_paper_vs_extended.csv
+│ │ │ └── flow_significance.csv
+│ │ ├── adf_tests_1999_2021.csv
+│ │ ├── adf_tests_1999_2026.csv
+│ │ ├── lag_selection_1999_2021.csv
+│ │ ├── lag_selection_1999_2026.csv
+│ │ └── figures/ # Generated figures (21 PNG files)
+│ │ ├── stylized_*_risk_off.png # Stylized facts panels (11)
+│ │ ├── irf_grid_*.png # Impulse response grids (8)
+│ │ └── infographics_*.png # ADF and lag diagnostics (2)
+│ └── tmp_quadratic/ # Interpolation intermediates
+│ ├── *_native.csv # Native-frequency series (7 files, QMD output)
+│ ├── *_daily.csv # Pandas-spline daily interpolation (7 files, QMD+v1 output)
+│ └── v2/ # Quadratic-match daily interpolation (7 files, Python output)
+│ └── *_qdmatch.csv
 ├── docs/
-│   └── methodology_dual_vintage.md     # Dual-vintage data policy with citations
-├── guidelines/                         # Course project guidelines and journal ranking
-│   ├── FINARTS - Term Project Details - AY2526 T3.pdf
-│   ├── FINARTS - Progress Update Details - AY2526 T3.pdf
-│   └── ABDC-JQL-2025-v2-270526.xlsx
-└── drafts/                             # Regenerable LaTeX table sources (QMD outputs)
+│ └── methodology_dual_vintage.md # Dual-vintage data policy with citations
+├── guidelines/ # Course project guidelines and journal ranking
+│ ├── FINARTS - Term Project Details - AY2526 T3.pdf
+│ ├── FINARTS - Progress Update Details - AY2526 T3.pdf
+│ └── ABDC-JQL-2025-v2-270526.xlsx
+└── drafts/ # Regenerable LaTeX table sources (QMD outputs)
 ```
 
 ## Configuration
