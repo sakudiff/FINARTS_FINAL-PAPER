@@ -8,6 +8,28 @@ The replication validates the central qualitative findings of Beirne and Sugandi
 
 The extended sample reveals a structural attenuation in real economy spillovers alongside the post-2021 regime shift in Japanese monetary policy. While the daily real GDP response retains a statistically significant negative trajectory over the full 1999 to 2026 sample, the monthly extended GDP response attenuates to statistical indistinguishability from zero at every forecast horizon. The price channels survive in weakened form as the Bank of Japan exited yield curve control and normalized policy rates toward 1.00 percent while the Federal Reserve maintained higher policy rates, opening an unprecedented interest rate differential that dominated yen valuation dynamics outside acute risk-off episodes.
 
+\subsection{Econometric Diagnostics, Model Selection, and Statistical Significance}
+
+To ensure complete technical precision beyond visual plots, all underlying econometric diagnostics, test p-values, information criteria, and residual covariance properties are explicitly integrated into the evaluation.
+
+\subsubsection{Stationarity and Augmented Dickey-Fuller Test P-Values}
+
+The estimation specification requires identifying the integration properties of the ten endogenous variables. Table 5 documents the Augmented Dickey-Fuller (ADF) unit root statistics and exact p-values across both sample periods against the 5 percent critical value of -2.8621. Six variables reject the null hypothesis of a unit root at the 1 percent level ($p < .001$) in both periods, confirming stationarity in levels. These are the risk-off shock indicator ($t = -10.4830$, $p = 0.0000$), the World Uncertainty Index ($t = -7.2948$, $p = 0.0000$), portfolio debt inflows ($t = -10.4345$, $p = 0.0000$), portfolio equity inflows ($t = -9.3888$, $p = 0.0000$), other investment inflows ($t = -10.0058$, $p = 0.0000$), and direct investment inflows ($t = -8.9080$, $p = 0.0000$).
+
+The remaining four level variables fail to reject the unit root null hypothesis at conventional levels. These are the sovereign yield spread ($t = -2.0508$, $p = 0.2648$), log real GDP ($t = -1.8444$, $p = 0.3586$), log REER ($t = -1.0876$, $p = 0.7200$), and log Nikkei 225 ($t = -0.8748$, $p = 0.7962$). Following standard macroeconomic VAR literature (Lütkepohl, 2005; Sims, 1980), the system is estimated in levels with a linear time trend and eleven monthly seasonal indicators. The trend term captures deterministic drifts, ensuring consistent coefficient estimation without losing long-run cointegrating information through unnecessary differencing.
+
+\subsubsection{Lag Selection Criteria and Residual Autocorrelation}
+
+Model selection diagnostics reported in Table 6 explain the asymmetric lag policy adopted across tiers. For the daily tier, the Akaike Information Criterion (AIC) exhibits monotonic boundary selection, dropping from -73.8544 at lag 1 to -81.2686 at lag 20 (and continuing to -81.52 at lag 30). Because each additional lag adds 100 parameters in a ten-variable system with 5,199 observations, the likelihood gain from absorbing residual autocorrelation swamps the AIC penalty of 2 per parameter. The daily tier retains the search boundary of 20 lags to match the paper's stated specification.
+
+For the monthly tier, the Bayesian Information Criterion (BIC) imposes a stronger parameter penalty of roughly 5.7 per parameter ($\ln(264) \approx 5.58$). The monthly BIC avoids boundary selection, reaching well-defined interior minima at lag 2 for the paper period (BIC = -48.12) and lag 3 for the extended sample (BIC = -47.85). Estimating the monthly tier at lag 2 eliminates residual serial correlation while reproducing the paper's published monthly impulse response trajectories.
+
+\subsubsection{Residual Covariance Structure and Monte Carlo Confidence Bounds}
+
+The structural identification scheme relies on Cholesky orthogonalization of the reduced-form residual covariance matrix $\hat{\Sigma}_u$. Parameter uncertainty is propagated through 1,000 Monte Carlo bootstrap draws, sampling synthetic residuals $\hat{\varepsilon}_t^* \sim \mathcal{N}(0, \hat{\Sigma}_u)$ to generate 95 percent confidence envelopes. Table 8 details the complete numerical significance record for all capital flow responses across 40 specification-horizon entries.
+
+Out of 40 evaluated flow-horizon combinations, exactly two reach 95 percent statistical significance. Both occur for net direct investment at the three-month horizon under the restricted specification ($+0.0431$, 95\% CI $[+0.0143, +0.0673]$, $p < .05$) and the unrestricted specification ($+0.0362$, 95\% CI $[+0.0117, +0.0607]$, $p < .05$). In contrast, portfolio debt inflows at month 3 (+0.0755, 95\% CI [-0.0466, +0.2190]) and portfolio equity inflows at month 3 (-0.0553, 95\% CI [-0.1226, +0.0268]) span zero, confirming that portfolio flows remain statistically null across forecast horizons.
+
 \subsection{Variable-by-Variable Contrast: Paper Claims, Data Evidence, Inferences, and Literature}
 
 To ensure complete empirical transparency, each of the ten endogenous variables is evaluated by contrasting what Beirne and Sugandi (2023) claimed, what our empirical data and code produced, what we infer from the differences, and how the results connect to the surrounding literature.
@@ -99,7 +121,6 @@ To ensure complete empirical transparency, each of the ten endogenous variables 
 
 \textit{Our Inferences and Literature Context}
 \newline The daily equity comparison is a partial match due to an earlier trough (-0.052 at day 16), while the monthly comparison is an exact match (-0.055 versus -0.065 trough, +0.026 versus +0.025 rebound). The evidence confirms portfolio rebalancing theory \parencite{hau_rey_2006}, showing that equity capital flows remain statistically unresponsive over medium horizons.
-
 
 \subsubsection{Other Investment Flows}
 
