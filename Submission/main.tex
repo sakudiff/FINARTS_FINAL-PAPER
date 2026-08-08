@@ -1,0 +1,241 @@
+\documentclass[12pt]{article}
+
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\let\Bbbk\relax
+\usepackage{newtxtext,newtxmath}
+\usepackage{tikz}
+\usetikzlibrary{calc, arrows.meta, shapes.geometric, positioning, fit, backgrounds}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\graphicspath{{figures/}{.}}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{siunitx}
+\usepackage{threeparttable}
+\usepackage{rotating}
+\usepackage{adjustbox}
+\usepackage{pdflscape}
+\usepackage{float}
+\usepackage{placeins}
+\usepackage{tablefootnote}
+\usepackage{listings}
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{ragged2e}
+\usepackage{indentfirst}
+\usepackage{csquotes}
+\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+\usepackage[style=apa, backend=biber]{biblatex}
+\addbibresource{references.bib}
+
+\definecolor{ecored}{HTML}{E3120B}
+\definecolor{chi20}{HTML}{141F52}
+\definecolor{chi30}{HTML}{1F2E7A}
+\definecolor{chi45}{HTML}{2E45B8}
+\definecolor{chi90}{HTML}{D6DBF5}
+\definecolor{chi95}{HTML}{EBEDFA}
+\definecolor{hk45}{HTML}{1DC9A4}
+\definecolor{hk90}{HTML}{D2F9F0}
+\definecolor{sg55}{HTML}{F97A1F}
+\definecolor{sg90}{HTML}{FEE1CD}
+\definecolor{ny55}{HTML}{F9C31F}
+\definecolor{lg05}{HTML}{0D0D0D}
+\definecolor{lg20}{HTML}{333333}
+\definecolor{lg35}{HTML}{595959}
+\definecolor{lg70}{HTML}{B3B3B3}
+\definecolor{lg95}{HTML}{F2F2F2}
+\definecolor{la95}{HTML}{F5F4EF}
+\definecolor{lasallegreen}{HTML}{087830}
+\colorlet{dlsugreen}{lasallegreen}
+\colorlet{dlsugreen!8}{lasallegreen!8}
+\colorlet{dlsugreen!85!black}{lasallegreen!85!black}
+
+\newcommand{\safeincludegraphics}[2][]{%
+  \adjustimage{max width=\textwidth, #1}{#2}%
+}
+
+\lstset{
+  language=R,
+  basicstyle=\small\ttfamily,
+  breaklines=true,
+  breakatwhitespace=true,
+  keepspaces=true,
+  columns=flexible,
+  showstringspaces=false,
+  keywordstyle=\color{blue},
+  commentstyle=\color{dlsugreen},
+  stringstyle=\color{purple},
+  backgroundcolor=\color{gray!5},
+  frame=single,
+  framerule=0pt,
+  xleftmargin=10pt,
+  xrightmargin=10pt,
+  aboveskip=15pt,
+  belowskip=15pt
+}
+
+\tikzset{
+  archbox/.style={
+    rectangle, draw=dlsugreen, fill=dlsugreen!8,
+    rounded corners=4pt, text width=3.0cm, align=center,
+    minimum height=1.1cm, inner sep=4pt
+  },
+  archboxw/.style={
+    rectangle, draw=dlsugreen, fill=dlsugreen!8,
+    rounded corners=4pt, text width=4.5cm, align=center,
+    minimum height=1.1cm, inner sep=4pt
+  },
+  headerbox/.style={
+    rectangle, draw=dlsugreen, fill=dlsugreen, text=white,
+    rounded corners=4pt, text width=3.0cm, align=center,
+    minimum height=0.9cm, inner sep=4pt, font=\small\bfseries
+  },
+  flowbox/.style={
+    rectangle, draw=dlsugreen, fill=dlsugreen!8,
+    rounded corners=4pt, text width=5.5cm, align=center,
+    minimum height=1.0cm, inner sep=5pt, font=\small
+  },
+  arrowstyle/.style={-Stealth, thick, color=dlsugreen!85!black}
+}
+
+\titleformat{\section}{\normalfont\Large\bfseries\centering}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\normalfont\normalsize\bfseries}{\thesubsubsection}{1em}{}
+\titlespacing*{\section}{0pt}{18pt}{6pt}
+\titlespacing*{\subsection}{0pt}{12pt}{6pt}
+\titlespacing*{\subsubsection}{0pt}{10pt}{4pt}
+\setlength{\bibhang}{0.5in}
+
+\renewcommand{\TPTnoteSettings}{\parshape 1 0pt \linewidth\footnotesize\itshape}
+\newenvironment{safetable}[1][\textwidth]{\begin{adjustbox}{max width=#1,center}}{\end{adjustbox}}
+\newenvironment{largetable}{\begin{landscape}\begin{adjustbox}{max width=\textwidth,center}}{\end{adjustbox}\end{landscape}}
+
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.9}
+\renewcommand{\textfraction}{0.1}
+\setcounter{topnumber}{3}
+\setcounter{bottomnumber}{3}
+\setcounter{totalnumber}{5}
+
+\clubpenalty=10000
+\widowpenalty=10000
+\displaywidowpenalty=10000
+\urlstyle{same}
+\setcounter{biburlnumpenalty}{100}
+\setcounter{biburlucpenalty}{100}
+\setcounter{biburllcpenalty}{100}
+\allowdisplaybreaks
+\captionsetup{font={small,singlespacing}, labelfont=bf}
+\AtBeginBibliography{\singlespacing}
+
+\begin{document}
+\sloppy
+\doublespacing
+\RaggedRight
+\setlength{\parindent}{0.5in}
+
+\begin{titlepage}
+  \centering
+
+  % 1. DLSU Logo
+  \IfFileExists{dlsu_logo.png}{\includegraphics[width=0.14\textwidth]{dlsu_logo.png}}{\color{dlsugreen}\rule{0.14\textwidth}{0.14\textwidth}} \\[0.25cm]
+
+  % 2. De La Salle University
+  {\normalsize \textbf{\color{dlsugreen} De La Salle University}} \\[0.1cm]
+
+  % 3. College
+  {\normalsize \textbf{Ramon V. del Rosario College of Business}} \\[0.15cm]
+
+  \vfill
+
+  % 4. Title
+  {\large \textbf{Risk-Off Shocks and Spillovers in Safe Havens}} \\[0.15cm]
+  {\normalsize \textbf{Replication and Extension}} \\[0.15cm]
+
+  \vfill
+
+  % 5. In partial fulfillment
+  {\normalsize In partial fulfillment of the requirements for} \\[0.1cm]
+
+  % 6. Subject Code and Section
+  {\normalsize \textbf{FINARTS Section C01}} \\[0.1cm]
+
+  % 7. Department
+  {\normalsize Department of Financial Management} \\[0.1cm]
+
+  % 8. Term, Academic Year
+  {\normalsize Term 3, Academic Year 2025--2026} \\[0.15cm]
+
+  \vfill
+
+  % 9. Submitted by
+  {\normalsize Submitted by} \\[0.1cm]
+
+  % 10. Surname, First Name
+  {\normalsize \textbf{Cuenca, Raphael}} \\[0.04cm]
+  {\normalsize \textbf{Galedo, Enrique Lorenzo}} \\[0.04cm]
+  {\normalsize \textbf{Go, Keira Ley}} \\[0.04cm]
+  {\normalsize \textbf{Opiana, Aimee Lorynne A.}} \\[0.04cm]
+  {\normalsize \textbf{Sison, Aaron Joshua E.}} \\[0.2cm]
+
+  % 11. Submitted to
+  {\normalsize Submitted to} \\[0.1cm]
+
+  % 12. Professor Title and Name
+  {\normalsize \textbf{Dr. Ray Anthony Almonares}} \\[0.2cm]
+
+  % 13. Date Submitted on
+  {\normalsize Date Submitted on} \\[0.1cm]
+
+  % 14. Complete Date
+  {\normalsize \textbf{7 August 2026}}
+
+  \vfill
+\end{titlepage}
+
+\newpage
+\thispagestyle{empty}
+\begin{center}
+  {\large \textbf{Abstract}}
+\end{center}
+
+\vspace{0.8em}
+
+This study replicates Beirne and Sugandi (2023) for Japan and extends the sample through June 2026. A structural vector autoregression with Cholesky identification and a block-exogenous risk-off equation is estimated at the daily and monthly frequencies over the paper period with 2021-era data vintages, and again over the extended sample with current-vintage data, under a dual-vintage policy that separates the replication from the extension. Nine of the seventeen variable-frequency impulse response comparisons against the published figures are matches, five are partial matches, and three are mismatches. The paper's core results reproduce over the original sample. The yen appreciates in real effective terms after a risk-off shock, the JGB spread widens, real GDP declines with a lag, and portfolio flows do not respond significantly. The mismatches are confined to the uncertainty index at both frequencies and to other investment at the daily frequency. The extension shows the output channel weakening, with the monthly real GDP response statistically indistinguishable from zero after 2021 while the price channels persist. The restricted model's output response flips sign when current-vintage data replace the 2021-era series, which makes data vintage a first-order replication choice. Direct investment is the only capital flow with a statistically significant response, at the three-month horizon. The findings imply that the yen's safe-haven mechanism has become conditional on the monetary policy constellation and that a faithful replication of the paper requires the data as the original authors observed them in 2021.
+
+\vspace{1em}
+\noindent\textit{Keywords:} safe haven currencies, risk-off episodes, structural VAR, Japan, yen, capital flows
+
+\newpage
+\tableofcontents
+\newpage
+
+\input{chapters/00_introduction}
+\clearpage
+\input{chapters/01_literature}
+\clearpage
+\input{chapters/02_methodology}
+\clearpage
+\input{chapters/03_results}
+\clearpage
+\input{chapters/04_discussion}
+\clearpage
+\input{chapters/05_conclusion}
+
+\clearpage
+\printbibliography[title={References}]
+
+\appendix
+\clearpage
+\input{chapters/06_appendix}
+
+\end{document}
