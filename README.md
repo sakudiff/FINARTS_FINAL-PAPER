@@ -14,6 +14,25 @@ Submitted August 7, 2026 to Dr. Ray Anthony Almonares.
 | Report | https://finalprojectfinartsg4.netlify.app |
 | Repository | https://github.com/sakudiff/FINARTS_FINAL-PAPER |
 
+## Table of Contents
+
+- [Group Members](#group-members)
+- [Pipeline Architecture](#pipeline-architecture)
+- [Quick Start](#quick-start)
+- [Their Methods vs Our Methods](#their-methods-vs-our-methods)
+- [FINARTS Course Guidelines Compliance Matrix](#finarts-course-guidelines-compliance-matrix)
+- [Complete Decision, Operation, & Transformation Comparison Table](#complete-decision-operation--transformation-comparison-table)
+- [What Matches and What Does Not](#what-matches-and-what-does-not)
+- [What the Paper Did Not Disclose](#what-the-paper-did-not-disclose)
+- [Why Each Decision Was Made](#why-each-decision-was-made)
+- [Replication Fidelity](#replication-fidelity)
+- [Limitations](#limitations)
+- [CLI Reference](#cli-reference)
+- [Repository Layout](#repository-layout)
+- [Configuration](#configuration)
+- [Contributing & License](#contributing--license)
+- [Citation](#citation)
+
 ## Group members
 
 | Member | Role |
@@ -23,6 +42,56 @@ Submitted August 7, 2026 to Dr. Ray Anthony Almonares.
 | Aimee Lorynne Opiana | Introduction |
 | Raphael Cuenca | Data handling, retrieval, processing, methodology, coding, results |
 | Keira Ley Go | Data handling, retrieval, processing, methodology, coding, results |
+
+## Pipeline architecture
+
+```mermaid
+flowchart TD
+    subgraph Ingestion ["Data Sources & Ingestion"]
+        LSEG["LSEG Workspace (VIX, Nikkei 225, USD/JPY, US10Y)"]
+        MoF["Japan Ministry of Finance (JGB 10Y Yield)"]
+        BOJ["Bank of Japan BPM6 (Portfolio, Other, Direct Flows)"]
+        FRED["FRED ALFRED (2021-06-01 Vintage Real & Nominal GDP)"]
+        BIS["Wayback Machine (2021-05-24 BIS REER Snapshot)"]
+        WUI["World Uncertainty Index (WUI Quarterly Series)"]
+    end
+
+    subgraph Preprocessing ["Data Pipeline & Preprocessing"]
+        QMD["data_pipeline.qmd (R Tidyverse & Python Bridge)"]
+        Clean["Working-Days Calendar & VIX Risk-Off Anchor"]
+        Interp["EViews Mean-Preserving Quadratic Match Average"]
+    end
+
+    subgraph Econometrics ["Unified SVAR Engine (replicate_svar.py)"]
+        Restricted["Tier 1: Block-Restricted Daily VAR (1999-2021 & 1999-2026)"]
+        Unrestricted["Tier 2: Monthly Restricted & Unrestricted Robustness VAR"]
+        Bootstrap["Monte Carlo Bootstrap Delta Band Generator (B=1000)"]
+    end
+
+    subgraph Deliverables ["Final Deliverables"]
+        PDF["main.pdf (77-Page LaTeX Master Thesis)"]
+        HTML["index.html (Interactive Netlify Web Report)"]
+    end
+
+    LSEG --> QMD
+    MoF --> QMD
+    BOJ --> QMD
+    FRED --> QMD
+    BIS --> QMD
+    WUI --> QMD
+
+    QMD --> Clean
+    Clean --> Interp
+    Interp --> Restricted
+    Interp --> Unrestricted
+    Restricted --> Bootstrap
+    
+    Bootstrap --> PDF
+    Unrestricted --> PDF
+    QMD --> HTML
+```
+
+
 
 ## Quick start
 
