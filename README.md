@@ -8,12 +8,14 @@ sample through June 2026. Two-tier estimation with a dual-vintage data policy.
 Group 4, FINARTS C01, De La Salle University, Academic Year 2025–2026 Term 3.
 Submitted August 7, 2026 to Dr. Ray Anthony Almonares.
 
-**[ Paper PDF](main.pdf)** | **[ Web Report (Netlify)](https://finalprojectfinartsg4.netlify.app)** | **[ GitHub Repository](https://github.com/sakudiff/FINARTS_FINAL-PAPER)**
+**[ Paper PDF](main.pdf)** | **[ Web Report (Netlify)](https://finalprojectfinartsg4.netlify.app)** | **[ Quarto Notebook](data_pipeline.qmd)** | **[ Python Replication Engine](scripts/replicate_svar.py)** | **[ GitHub Repository](https://github.com/sakudiff/FINARTS_FINAL-PAPER)**
 
 | Key Resource | Link |
 |---|---|
 | Paper Manuscript (LaTeX PDF) | [main.pdf](main.pdf) |
 | Interactive Web Data Pipeline Report | [finalprojectfinartsg4.netlify.app](https://finalprojectfinartsg4.netlify.app) |
+| Quarto Data Pipeline Notebook | [data_pipeline.qmd](data_pipeline.qmd) |
+| Unified SVAR Replication Script | [scripts/replicate_svar.py](scripts/replicate_svar.py) |
 | GitHub Repository | [sakudiff/FINARTS_FINAL-PAPER](https://github.com/sakudiff/FINARTS_FINAL-PAPER) |
 
 ## Table of Contents
@@ -311,13 +313,10 @@ finarts-final-paper/
 │ ├── *_daily.csv # Pandas-spline daily interpolation (7 files, QMD+v1 output)
 │ └── v2/ # Quadratic-match daily interpolation (7 files, Python output)
 │ └── *_qdmatch.csv
-├── docs/
-│ └── methodology_dual_vintage.md # Dual-vintage data policy with citations
 ├── guidelines/ # Course project guidelines and journal ranking
 │ ├── FINARTS - Term Project Details - AY2526 T3.pdf
 │ ├── FINARTS - Progress Update Details - AY2526 T3.pdf
 │ └── ABDC-JQL-2025-v2-270526.xlsx
-└── drafts/ # Regenerable LaTeX table sources (QMD outputs)
 ```
 
 ## Configuration
@@ -326,8 +325,7 @@ The pipeline runs on Python 3.10 or newer, managed with `uv`. The estimation
 uses a dual-vintage data policy. The paper period, 14 January 1999 to 31 March
 2021, uses the ALFRED 2021-06-01 GDP vintage and the Wayback Machine BIS REER
 snapshot of 24 May 2021. The extended period, through 30 June 2026, uses
-current-vintage data. The policy is documented in
-`docs/methodology_dual_vintage.md`.
+current-vintage data.
 
 ## Contributing
 
