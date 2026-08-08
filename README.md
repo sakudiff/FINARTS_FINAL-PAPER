@@ -8,11 +8,13 @@ sample through June 2026. Two-tier estimation with a dual-vintage data policy.
 Group 4, FINARTS C01, De La Salle University, Academic Year 2025–2026 Term 3.
 Submitted August 7, 2026 to Dr. Ray Anthony Almonares.
 
-| Link | URL |
-|------|-----|
-| Paper | [main.pdf](main.pdf) |
-| Report | https://finalprojectfinartsg4.netlify.app |
-| Repository | https://github.com/sakudiff/FINARTS_FINAL-PAPER |
+**[📄 Paper PDF](main.pdf)** | **[🌐 Web Report (Netlify)](https://finalprojectfinartsg4.netlify.app)** | **[💻 GitHub Repository](https://github.com/sakudiff/FINARTS_FINAL-PAPER)**
+
+| Key Resource | Link |
+|---|---|
+| Paper Manuscript (LaTeX PDF) | [main.pdf](main.pdf) |
+| Interactive Web Data Pipeline Report | [finalprojectfinartsg4.netlify.app](https://finalprojectfinartsg4.netlify.app) |
+| GitHub Repository | [sakudiff/FINARTS_FINAL-PAPER](https://github.com/sakudiff/FINARTS_FINAL-PAPER) |
 
 ## Table of Contents
 
