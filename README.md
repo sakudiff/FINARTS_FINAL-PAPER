@@ -87,7 +87,7 @@ flowchart TD
     end
 
     subgraph Deliverables ["Final Deliverables"]
-        PDF["main.pdf (90-Page LaTeX Paper)"]
+        PDF["main.pdf (92-Page LaTeX Paper)"]
         HTML["index.html (Interactive Netlify Web Report)"]
     end
 
@@ -221,11 +221,9 @@ The paper's EViews interpolation settings are unreported. The BIS REER vintage r
 
 ## Repository layout
 
-The repository has two branches. `main` is the clean submission surface, everything needed to audit and rerun the analysis. `dev` carries the working sources, the LaTeX manuscript, the rendered web report, and the course guidelines.
-
 ```
 FINARTS_FINAL-PAPER (main)
-├── main.pdf # Compiled paper (90 pages)
+├── main.pdf # Compiled paper (92 pages)
 ├── data_pipeline.qmd # Quarto document: data construction, narrative, and results
 ├── scripts/
 │   └── replicate_svar.py # Unified A-Z replication pipeline
@@ -271,14 +269,6 @@ FINARTS_FINAL-PAPER (main)
 ├── pyproject.toml # Python project metadata and dependencies
 ├── uv.lock # Deterministic dependency lock file
 └── .gitignore
-
-FINARTS_FINAL-PAPER (dev, additional)
-├── main.tex # LaTeX manuscript root
-├── chapters/ # LaTeX manuscript sections (00-06)
-├── references.bib # BibTeX references
-├── index.html # Rendered web report, deployed via Netlify from dev
-├── dlsu_logo.png # Title page logo
-└── guidelines/ # Course guidelines and journal ranking
 ```
 
 ## Configuration
