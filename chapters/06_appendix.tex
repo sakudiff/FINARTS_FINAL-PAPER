@@ -1,6 +1,6 @@
 \section{Replication Materials}
 
-\newcommand{\plurl}[1]{\textcolor{chi45}{\url{#1}}}
+\newcommand{\plurl}[1]{\textcolor{chi45}{\urlstyle{tt}\url{#1}}}
 \newcommand{\plink}[2]{\textcolor{chi45}{\href{#1}{\underline{#2}}}}
 \newcommand{\plref}[2]{\textcolor{chi45}{\hyperref[#1]{\underline{#2}}}}
 
@@ -21,7 +21,7 @@ All data processing pipelines, estimation scripts, and interactive visualization
 
 \subsection{Repository Permalinks}
 
-The permalinks below pin the submission state to the release tag \texttt{submission-2026-08-10} on the main branch, so every linked resource resolves to the exact files submitted. The figures folder contains the 24 full-resolution graphics reproduced in the paper, and the data folders contain the raw input files, the historical as-of-date snapshots, and the processed datasets.
+The permalinks below pin the submission state to the release tag on the main branch, \texttt{submission-2026-08-10}, so every linked resource resolves to the exact files submitted. The figures folder contains the 24 full-resolution graphics reproduced in the paper, and the data folders contain the raw input files, the historical as-of-date snapshots, and the processed datasets.
 
 \FloatBarrier
 \begin{table}[H]
@@ -29,40 +29,39 @@ The permalinks below pin the submission state to the release tag \texttt{submiss
   \caption{Repository Permalinks at the Submission Tag}
   \label{tab:permalinks}
   \scriptsize
-  \renewcommand{\arraystretch}{1.45}%
-  \begin{tabular}{@{}p{4.8cm} p{10.2cm}@{}}
+  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{4.8cm} >{\raggedright\arraybackslash}p{10.2cm}@{}}
     \toprule
     Resource & Permalink \\
     \midrule
-    \plink{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/main.pdf}{Paper manuscript} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/main.pdf} \\
-    \plref{tab:figure_index}{Figures folder} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/tree/submission-2026-08-10/data/processed/var_results/figures} \\
-    \plink{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/scripts/replicate_svar.py}{Python replication script} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/scripts/replicate_svar.py} \\
-    \plink{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data_pipeline.qmd}{Quarto data pipeline notebook} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data_pipeline.qmd} \\
-    \plref{tab:datasources}{Data folder} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/tree/submission-2026-08-10/data/raw} \\
-    \plink{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/VIX.csv}{\texttt{VIX.csv}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/VIX.csv} \\
-    \plink{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/NIKKEI225.csv}{\texttt{NIKKEI225.csv}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/NIKKEI225.csv} \\
-    \plink{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/USDJPY.csv}{\texttt{USDJPY.csv}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/USDJPY.csv} \\
-    \plink{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/US10Y.csv}{\texttt{US10Y.csv}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/US10Y.csv} \\
-    \plref{tab:datasources}{\seqsplit{jgbcme\_all.csv}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/jgbcme_all.csv} \\
-    \plink{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/REER.xlsx}{\texttt{REER.xlsx}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/REER.xlsx} \\
-    \plref{tab:datasources}{\seqsplit{JAPAN\_RGDP.csv}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/JAPAN_RGDP.csv} \\
-    \plref{tab:datasources}{\seqsplit{JAPAN\_NOMINAL\_GDP.csv}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/JAPAN_NOMINAL_GDP.csv} \\
-    \plref{tab:datasources}{\seqsplit{WUI\_JPN.csv}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/WUI_JPN.csv} \\
-    \plref{tab:datasources}{\seqsplit{BOJ\_6pi-1\_portfolio\_summary.csv}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/BOJ_6pi-1_portfolio_summary.csv} \\
-    \plref{tab:datasources}{\seqsplit{BOJ\_BPPI6E3N5.csv}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/BOJ_BPPI6E3N5.csv} \\
-    \plref{tab:datasources}{\seqsplit{BOJ\_BPPI6E4N5.csv}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/BOJ_BPPI6E4N5.csv} \\
-    \plref{tab:datasources}{\seqsplit{BOJ\_BPPI6E2N5.csv}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/BOJ_BPPI6E2N5.csv} \\
-    \plref{tab:datasources}{\seqsplit{BOJ\_BPBP6JYNFL3.csv}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/BOJ_BPBP6JYNFL3.csv} \\
-    \plref{tab:datasources}{\seqsplit{BOJ\_BPBP6JYNFL13.csv}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/BOJ_BPBP6JYNFL13.csv} \\
-    \plref{tab:datasources}{Vintage folder} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/tree/submission-2026-08-10/data/raw/vintage} \\
-    \plref{tab:datasources}{\seqsplit{JPNRGDPEXP\_vintage\_2021-06-01.csv}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/vintage/JPNRGDPEXP_vintage_2021-06-01.csv} \\
-    \plref{tab:datasources}{\seqsplit{REER\_JPN\_BIS\_vintage.csv}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/vintage/REER_JPN_BIS_vintage.csv} \\
-    \plref{tab:desc}{Final dataset (\seqsplit{final\_dataset.csv})} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/processed/final_dataset.csv} \\
-    \plref{tab:desc}{Descriptive statistics (\seqsplit{descriptive\_stats.csv})} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/processed/descriptive_stats.csv} \\
-    \plref{tab:crossval}{Estimation outputs folder} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/tree/submission-2026-08-10/data/processed/var_results} \\
+    Paper manuscript & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/main.pdf} \\
+    Figures folder & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/tree/submission-2026-08-10/data/processed/var_results/figures} \\
+    Python replication script & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/scripts/replicate_svar.py} \\
+    Quarto data pipeline notebook & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data_pipeline.qmd} \\
+    Data folder & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/tree/submission-2026-08-10/data/raw} \\
+    \texttt{VIX.csv} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/VIX.csv} \\
+    \texttt{NIKKEI225.csv} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/NIKKEI225.csv} \\
+    \texttt{USDJPY.csv} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/USDJPY.csv} \\
+    \texttt{US10Y.csv} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/US10Y.csv} \\
+    \seqsplit{jgbcme\_all.csv} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/jgbcme_all.csv} \\
+    \texttt{REER.xlsx} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/REER.xlsx} \\
+    \seqsplit{JAPAN\_RGDP.csv} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/JAPAN_RGDP.csv} \\
+    \seqsplit{JAPAN\_NOMINAL\_GDP.csv} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/JAPAN_NOMINAL_GDP.csv} \\
+    \seqsplit{WUI\_JPN.csv} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/WUI_JPN.csv} \\
+    \seqsplit{BOJ\_6pi-1\_portfolio\_summary.csv} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/BOJ_6pi-1_portfolio_summary.csv} \\
+    \seqsplit{BOJ\_BPPI6E3N5.csv} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/BOJ_BPPI6E3N5.csv} \\
+    \seqsplit{BOJ\_BPPI6E4N5.csv} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/BOJ_BPPI6E4N5.csv} \\
+    \seqsplit{BOJ\_BPPI6E2N5.csv} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/BOJ_BPPI6E2N5.csv} \\
+    \seqsplit{BOJ\_BPBP6JYNFL3.csv} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/BOJ_BPBP6JYNFL3.csv} \\
+    \seqsplit{BOJ\_BPBP6JYNFL13.csv} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/BOJ_BPBP6JYNFL13.csv} \\
+    Vintage folder & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/tree/submission-2026-08-10/data/raw/vintage} \\
+    \seqsplit{JPNRGDPEXP\_vintage\_2021-06-01.csv} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/vintage/JPNRGDPEXP_vintage_2021-06-01.csv} \\
+    \seqsplit{REER\_JPN\_BIS\_vintage.csv} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/raw/vintage/REER_JPN_BIS_vintage.csv} \\
+    Final dataset (\seqsplit{final\_dataset.csv}) & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/processed/final_dataset.csv} \\
+    Descriptive statistics (\seqsplit{descriptive\_stats.csv}) & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/processed/descriptive_stats.csv} \\
+    Estimation outputs folder & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/tree/submission-2026-08-10/data/processed/var_results} \\
     \bottomrule
   \end{tabular}
-  \caption*{\textit{Note.} Resource names on the left link to the tables and figures in this paper that describe the data; the permalink column links to the repository files at the submission tag.}
+  \caption*{\textit{Note.} The permalink column links to the repository files at the submission tag.}
 \end{table}
 \FloatBarrier
 
@@ -76,34 +75,34 @@ Table~\ref{tab:figure_index} indexes every figure in the main text, with the rep
   \caption{Figure Index}
   \label{tab:figure_index}
   \small
-  \begin{tabular}{@{}p{0.7cm} p{8.8cm} p{6.0cm}@{}}
+  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.7cm} >{\raggedright\arraybackslash}p{8.8cm} >{\raggedright\arraybackslash}p{6.0cm}@{}}
     \toprule
     Figure & Caption & Repository file \\
     \midrule
-    1 & Full-Sample Correlation Matrix of the Ten Endogenous Variables & \textcolor{chi45}{\hyperref[fig:corr_matrix]{\seqsplit{infographics\_correlation\_matrix.png}}} \\
-    2 & Distribution of Each Variable in the Paper Period and the Extension, 1999--2026 & \textcolor{chi45}{\hyperref[fig:density_shift]{\seqsplit{infographics\_density\_shift.png}}} \\
-    3 & Full-Sample Distributions of the Ten Endogenous Variables, 1999--2026 & \textcolor{chi45}{\hyperref[fig:density_full]{\seqsplit{infographics\_density\_full\_sample.png}}} \\
-    4 & VIX and Risk-off Episodes, 1999--2026 & \textcolor{chi45}{\hyperref[fig:vix]{\seqsplit{stylized\_vix\_risk\_off.png}}} \\
-    5 & USD/JPY Exchange Rate and Risk-off Episodes, 1999--2026 & \textcolor{chi45}{\hyperref[fig:usdjpy]{\seqsplit{stylized\_usdjpy\_risk\_off.png}}} \\
-    6 & Japan's Real Effective Exchange Rate and Risk-off Episodes, 1999--2026 & \textcolor{chi45}{\hyperref[fig:reer]{\seqsplit{stylized\_reer\_risk\_off.png}}} \\
-    7 & 10-Year JGB Yield and Risk-off Episodes, 1999--2026 & \textcolor{chi45}{\hyperref[fig:jgb]{\seqsplit{stylized\_jgb10y\_risk\_off.png}}} \\
-    8 & US 10-Year Treasury Yield and Risk-off Episodes, 1999--2026 & \textcolor{chi45}{\hyperref[fig:us10y]{\seqsplit{stylized\_us10y\_risk\_off.png}}} \\
-    9 & Yield Spread and Risk-off Episodes, 1999--2026 & \textcolor{chi45}{\hyperref[fig:spread]{\seqsplit{stylized\_spread\_risk\_off.png}}} \\
-    10 & Nikkei 225 Index and Risk-off Episodes, 1999--2026 & \textcolor{chi45}{\hyperref[fig:nikkei]{\seqsplit{stylized\_nikkei225\_risk\_off.png}}} \\
-    11 & Portfolio Debt Flows and Risk-off Episodes, 1999--2026 & \textcolor{chi45}{\hyperref[fig:debtsec]{\seqsplit{stylized\_debtsecpct\_risk\_off.png}}} \\
-    12 & Portfolio Equity Flows and Risk-off Episodes, 1999--2026 & \textcolor{chi45}{\hyperref[fig:equity]{\seqsplit{stylized\_equitypct\_risk\_off.png}}} \\
-    13 & Other Investment Flows and Risk-off Episodes, 1999--2026 & \textcolor{chi45}{\hyperref[fig:other]{\seqsplit{stylized\_otherpct\_risk\_off.png}}} \\
-    14 & Direct Investment Flows and Risk-off Episodes, 1999--2026 & \textcolor{chi45}{\hyperref[fig:direct]{\seqsplit{stylized\_directpct\_risk\_off.png}}} \\
-    15 & Stationarity Diagnostics & \textcolor{chi45}{\hyperref[fig:adf_diag]{\seqsplit{infographics\_adf\_stationarity.png}}} \\
-    16 & Lag Selection Diagnostics & \textcolor{chi45}{\hyperref[fig:lag_diag]{\seqsplit{infographics\_lag\_selection.png}}} \\
-    17 & Daily Restricted Impulse Responses, Paper Period & \textcolor{chi45}{\hyperref[fig:irf_daily_paper]{\seqsplit{irf\_grid\_daily\_restricted\_paper.png}}} \\
-    18 & Monthly Restricted Impulse Responses, Paper Period & \textcolor{chi45}{\hyperref[fig:irf_monthly_paper]{\seqsplit{irf\_grid\_monthly\_restricted\_paper.png}}} \\
-    19 & Daily Unrestricted Impulse Responses, Paper Period & \textcolor{chi45}{\hyperref[fig:irf_daily_unrestricted_paper]{\seqsplit{irf\_grid\_daily\_unrestricted\_paper.png}}} \\
-    20 & Monthly Unrestricted Impulse Responses, Paper Period & \textcolor{chi45}{\hyperref[fig:irf_monthly_unrestricted_paper]{\seqsplit{irf\_grid\_monthly\_unrestricted\_paper.png}}} \\
-    21 & Daily Restricted Impulse Responses, Extended Sample & \textcolor{chi45}{\hyperref[fig:irf_daily_extended]{\seqsplit{irf\_grid\_daily\_restricted\_extended.png}}} \\
-    22 & Monthly Restricted Impulse Responses, Extended Sample & \textcolor{chi45}{\hyperref[fig:irf_monthly_extended]{\seqsplit{irf\_grid\_monthly\_restricted\_extended.png}}} \\
+    1 & \textcolor{chi45}{\hyperref[fig:corr_matrix]{\uline{Full-Sample Correlation Matrix of the Ten Endogenous Variables}}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/processed/var_results/figures/infographics_correlation_matrix.png} \\
+    2 & \textcolor{chi45}{\hyperref[fig:density_shift]{\uline{Distribution of Each Variable in the Paper Period and the Extension, 1999--2026}}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/processed/var_results/figures/infographics_density_shift.png} \\
+    3 & \textcolor{chi45}{\hyperref[fig:density_full]{\uline{Full-Sample Distributions of the Ten Endogenous Variables, 1999--2026}}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/processed/var_results/figures/infographics_density_full_sample.png} \\
+    4 & \textcolor{chi45}{\hyperref[fig:vix]{\uline{VIX and Risk-off Episodes, 1999--2026}}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/processed/var_results/figures/stylized_vix_risk_off.png} \\
+    5 & \textcolor{chi45}{\hyperref[fig:usdjpy]{\uline{USD/JPY Exchange Rate and Risk-off Episodes, 1999--2026}}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/processed/var_results/figures/stylized_usdjpy_risk_off.png} \\
+    6 & \textcolor{chi45}{\hyperref[fig:reer]{\uline{Japan's Real Effective Exchange Rate and Risk-off Episodes, 1999--2026}}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/processed/var_results/figures/stylized_reer_risk_off.png} \\
+    7 & \textcolor{chi45}{\hyperref[fig:jgb]{\uline{10-Year JGB Yield and Risk-off Episodes, 1999--2026}}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/processed/var_results/figures/stylized_jgb10y_risk_off.png} \\
+    8 & \textcolor{chi45}{\hyperref[fig:us10y]{\uline{US 10-Year Treasury Yield and Risk-off Episodes, 1999--2026}}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/processed/var_results/figures/stylized_us10y_risk_off.png} \\
+    9 & \textcolor{chi45}{\hyperref[fig:spread]{\uline{Yield Spread and Risk-off Episodes, 1999--2026}}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/processed/var_results/figures/stylized_spread_risk_off.png} \\
+    10 & \textcolor{chi45}{\hyperref[fig:nikkei]{\uline{Nikkei 225 Index and Risk-off Episodes, 1999--2026}}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/processed/var_results/figures/stylized_nikkei225_risk_off.png} \\
+    11 & \textcolor{chi45}{\hyperref[fig:debtsec]{\uline{Portfolio Debt Flows and Risk-off Episodes, 1999--2026}}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/processed/var_results/figures/stylized_debtsecpct_risk_off.png} \\
+    12 & \textcolor{chi45}{\hyperref[fig:equity]{\uline{Portfolio Equity Flows and Risk-off Episodes, 1999--2026}}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/processed/var_results/figures/stylized_equitypct_risk_off.png} \\
+    13 & \textcolor{chi45}{\hyperref[fig:other]{\uline{Other Investment Flows and Risk-off Episodes, 1999--2026}}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/processed/var_results/figures/stylized_otherpct_risk_off.png} \\
+    14 & \textcolor{chi45}{\hyperref[fig:direct]{\uline{Direct Investment Flows and Risk-off Episodes, 1999--2026}}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/processed/var_results/figures/stylized_directpct_risk_off.png} \\
+    15 & \textcolor{chi45}{\hyperref[fig:adf_diag]{\uline{Stationarity Diagnostics}}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/processed/var_results/figures/infographics_adf_stationarity.png} \\
+    16 & \textcolor{chi45}{\hyperref[fig:lag_diag]{\uline{Lag Selection Diagnostics}}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/processed/var_results/figures/infographics_lag_selection.png} \\
+    17 & \textcolor{chi45}{\hyperref[fig:irf_daily_paper]{\uline{Daily Restricted Impulse Responses, Paper Period}}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/processed/var_results/figures/irf_grid_daily_restricted_paper.png} \\
+    18 & \textcolor{chi45}{\hyperref[fig:irf_monthly_paper]{\uline{Monthly Restricted Impulse Responses, Paper Period}}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/processed/var_results/figures/irf_grid_monthly_restricted_paper.png} \\
+    19 & \textcolor{chi45}{\hyperref[fig:irf_daily_unrestricted_paper]{\uline{Daily Unrestricted Impulse Responses, Paper Period}}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/processed/var_results/figures/irf_grid_daily_unrestricted_paper.png} \\
+    20 & \textcolor{chi45}{\hyperref[fig:irf_monthly_unrestricted_paper]{\uline{Monthly Unrestricted Impulse Responses, Paper Period}}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/processed/var_results/figures/irf_grid_monthly_unrestricted_paper.png} \\
+    21 & \textcolor{chi45}{\hyperref[fig:irf_daily_extended]{\uline{Daily Restricted Impulse Responses, Extended Sample}}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/processed/var_results/figures/irf_grid_daily_restricted_extended.png} \\
+    22 & \textcolor{chi45}{\hyperref[fig:irf_monthly_extended]{\uline{Monthly Restricted Impulse Responses, Extended Sample}}} & \plurl{https://github.com/sakudiff/FINARTS_FINAL-PAPER/blob/submission-2026-08-10/data/processed/var_results/figures/irf_grid_monthly_restricted_extended.png} \\
     \bottomrule
   \end{tabular}
-  \caption*{\textit{Note.} The repository file names are hyperlinked to the corresponding figure in the paper.}
+  \caption*{\textit{Note.} The caption links to the figure in the paper; the repository file name links to the file at the submission tag.}
 \end{table}
 \FloatBarrier
