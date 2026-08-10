@@ -1033,6 +1033,8 @@ def _grid(csv_path, out_name, title, color):
 
 
 def run_figures():
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    TWOTIER_DIR.mkdir(parents=True, exist_ok=True)
     FIG_DIR.mkdir(parents=True, exist_ok=True)
     plt.rcParams.update({
         "axes.grid": True,
@@ -1199,6 +1201,8 @@ def _plot_stylized_facts():
 
 # Full two-tier estimation pipeline, writing all outputs in place.
 def _run_pipeline(with_daily_ci=False, repl=MC_REPL_DEFAULT):
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    TWOTIER_DIR.mkdir(parents=True, exist_ok=True)
     print("Running pipeline...")
     print(f"Daily CIs:     {'YES' if with_daily_ci else 'point estimates only'}")
     print(f"MC repl:       {repl}")
