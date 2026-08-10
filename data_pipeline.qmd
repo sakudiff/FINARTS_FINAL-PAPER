@@ -8,6 +8,9 @@ author:
   - "Sison, Aaron Joshua E."
 department: "Department of Financial Management"
 course: "FINARTS Section C01"
+knitr:
+  opts_chunk:
+    fig.dpi: 200
 format:
   html:
     self-contained: true
@@ -695,9 +698,10 @@ knitr::include_graphics("data/processed/var_results/figures/stylized_reer_risk_o
 
 Three groups of variables tell three related stories. The first group covers
 the price channels through which risk-off shocks transmit. The VIX panel
-defines the episodes. Every shaded band corresponds to a VIX spike exceeding
-40, with peaks at roughly 80 during the global financial crisis in 2008 and
-near 83 during the initial COVID outbreak in early 2020. The bilateral USD/JPY
+defines the episodes. The most prominent shaded bands correspond to VIX spikes
+well above 40, with peaks at roughly 80 during the global financial crisis in
+2008 and near 83 during the initial COVID outbreak in early 2020, while
+several narrower bands overlay smaller movements. The bilateral USD/JPY
 exchange rate panel shows the yen strengthening sharply during every risk-off
 episode through 2020, dropping from roughly 110 to 75 between 2008 and 2011.
 The REER panel tells the same story in trade-weighted terms, declining from
@@ -947,7 +951,7 @@ ggplot(plot_data, aes(x = value, fill = period, color = period)) +
   scale_fill_manual(values = period_colors) +
   scale_color_manual(values = period_colors) +
   labs(x = "Value", y = "Density", fill = NULL, color = NULL,
-       title = "Japanese financial variables show wider dispersion after 2021",
+       title = "Distribution shifts between the paper period and the extension",
        caption = "Dashed line: full-sample mean. Variables defined in the reference table above.") +
   theme_quant()
 ```
@@ -1169,7 +1173,8 @@ risk_dates <- df |>
       start <= as.Date("2011-04-30") ~ "Tohoku earthquake & tsunami",
       start <= as.Date("2011-12-31") ~ "US debt ceiling / Eurozone sovereign crisis",
       start <= as.Date("2014-12-31") ~ "Ebola / Oil price collapse",
-      start <= as.Date("2016-12-31") & end <= as.Date("2016-12-31") ~ "China crash (Black Monday) / Brexit",
+      start <= as.Date("2015-12-31") ~ "China devaluation crash (Black Monday)",
+      start <= as.Date("2016-12-31") & end <= as.Date("2016-12-31") ~ "Brexit referendum",
       start <= as.Date("2018-02-28") ~ "Volmageddon (Volatility spike)",
       start <= as.Date("2018-12-31") & end <= as.Date("2018-12-31") ~ "Trade war / Tech sell-off",
       start <= as.Date("2020-12-31") & days > 20 ~ "COVID-19 global pandemic",
@@ -1179,7 +1184,7 @@ risk_dates <- df |>
       start <= as.Date("2022-12-31") ~ "Russia-Ukraine war / Commodity crisis",
       start <= as.Date("2024-09-30") ~ "Yen carry trade unwind / Global sell-off",
       start <= as.Date("2025-02-28") ~ "Fed hawkish pause / BOJ policy divergence",
-      start <= as.Date("2025-06-30") ~ '"America First" trade policy / Tariff war',
+      start <= as.Date("2025-06-30") ~ "Trade policy / Tariff war",
       start >= as.Date("2026-03-01") ~ "Iran conflict / Middle East escalation",
       TRUE ~ "Other"
     )
@@ -1252,9 +1257,11 @@ the matrix of exogenous variables (constant, linear time trend, and 11 monthly
 seasonal dummies), \(A_\tau\) and \(B\) are coefficient matrices, \(c\) is the
 constant vector, and \(\varepsilon_t\) is the vector of reduced-form residuals.
 The lag length \(k\) is selected by the Akaike Information Criterion for the
-daily tier and the Bayesian Information Criterion for the monthly tier. The
-AIC overfits to the maximum search boundary on current-vintage data, a
-behaviour documented under L7.
+daily tier and the Bayesian Information Criterion for the monthly tier. On the
+estimation sample the daily AIC reaches an interior minimum at eight lags for
+the paper period and nine lags for the extended sample, and the monthly BIC
+selects two lags for the paper period and three for the extended sample, as
+documented under L7.
 
 The ten endogenous variables enter in Cholesky order: risk_off, log_wui,
 spread, log_rgdp, log_reer, log_nikkei, debtsec_pct, equity_pct, other_pct,
@@ -1283,15 +1290,15 @@ The econometric specification underwent rigorous diagnostic verification against
 ### Data Revision Discovery
 
 Even after the five code fixes, the restricted model's RGDP response to a
-risk-off shock had the wrong sign on current-vintage data. The substitution
-of the ALFRED 2021-06-01 vintage provides compelling evidence that the sign
+risk-off shock had the wrong sign on as-of-2026 data. The substitution
+of the ALFRED 2021-06-01 release provides compelling evidence that the sign
 reversal was caused by Japan's post-2022 GDP benchmark revisions, which
-raised current-vintage RGDP by 3.5 to 6.3 percent over 2019 to 2021 and
-altered the COVID trough. Substituting the ALFRED 2021-06-01 vintage restored
+raised as-of-2026 RGDP by 3.5 to 6.3 percent over 2019 to 2021 and
+altered the COVID trough. Substituting the ALFRED 2021-06-01 release restored
 the paper's negative, persistent, and statistically significant RGDP
 response. The BIS
 REER was likewise retroactively rebased from 2010 = 100 to 2020 = 100 in
-January 2023, and a 2021 May snapshot was recovered from the Internet Archive
+January 2023, and the 2021-05-24 release was recovered from the Internet Archive
 Wayback Machine.
 
 ### Architecture: Two-Tier SVAR
@@ -1304,10 +1311,13 @@ interpolation reimplements the EViews quadratic-match average method in
 Python via `scripts/replicate_svar.py --interpolate-v1`, not by running EViews
 itself. Tier two is the monthly restricted and unrestricted VAR at
 BIC-selected lags over a 40-month horizon, matching the paper's appendix
-structure. The monthly tier adopts BIC over AIC to resolve boundary-lag overfitting, as AIC selects the maximum lag cap irrespective of information criteria due to the large sample size. The daily tier retains AIC to strictly adhere to the paper's primary baseline specification. The paper
-period (1999-01-14 to 2021-03-31) uses vintage data for RGDP and REER per
-the dual-vintage policy documented in `docs/methodology_dual_vintage.md`. The
-extended period (2021-04-01 to 2026-06-30) uses current-vintage data for all
+structure. On the estimation sample the daily AIC reaches interior minima at
+eight lags for the paper period and nine for the extended sample, and the
+monthly BIC selects two lags for the paper period and three for the extended
+sample. The paper
+period (1999-01-14 to 2021-03-31) uses as-of-2021 data for RGDP and REER per
+the as-of-date policy documented in `docs/methodology_dual_vintage.md`. The
+extended period (2021-04-01 to 2026-06-30) uses as-of-2026 data for all
 series. A further note on data sources: the paper used IMF IFS quarterly
 balance of payments data for capital flow variables. This replication uses
 BOJ BPM6 balance of payments data, which is directly comparable under BPM6
@@ -1353,29 +1363,29 @@ observation. Mean preservation is verified at machine precision across all
 series. The interpolation target is the trading-day grid from the daily
 dataset, not a calendar-day grid.
 
-#### Dual-vintage data policy
+#### As-of-date data policy
 
 Japan's real GDP underwent a base-year change
 from chained 2011 yen to chained 2015 yen in December 2020, and subsequent
-benchmark revisions raised current-vintage RGDP by 3.5 to 6.3 percent over
+benchmark revisions raised as-of-2026 RGDP by 3.5 to 6.3 percent over
 2019 to 2021 while flattening the COVID trough. The BIS REER was retroactively
 rebased from 2010 to 2020 in January 2023 with updated trade weights. The
 paper period (14 January 1999 to 31 March 2021) therefore uses JPNRGDPEXP
-from the FRED ALFRED archive at vintage 2021-06-01 and BIS REER from a
-Wayback Machine snapshot dated 24 May 2021. The extended period uses
-current-vintage data for all series. The full justification and retrieval
+from the FRED ALFRED archive at the 2021-06-01 release and BIS REER from a
+Wayback Machine snapshot dated 24 May 2021, the releases the original authors
+observed. The extended period uses as-of-2026 data for all series. The full justification and retrieval
 documentation is in `docs/methodology_dual_vintage.md`.
 
 #### Lag selection criteria
 
 The paper selects the lag by AIC without reporting
-the maximum lag searched. On current-vintage data AIC consistently selects the
-boundary lag regardless of the cap, at both daily and monthly frequencies. The
-AIC penalty term is swamped by the likelihood improvement from adding lags in
-a system with ten variables and over 5,000 daily observations. The monthly
-tier uses BIC, which stabilises at 3 lags and produces impulse responses
-matching the paper's Appendix 4 figures. The daily tier retains AIC per the
-paper's stated method. This divergence is disclosed under L7.
+the maximum lag searched. On the estimation sample the daily AIC reaches an
+interior minimum at eight lags for the paper period and nine lags for the
+extended sample, so the daily tier is estimated at eight and nine lags
+respectively. The monthly
+tier uses BIC, which selects two lags for the paper period and three for the
+extended sample, producing impulse responses
+matching the paper's Appendix 4 figures. This divergence is disclosed under L7.
 
 #### Capital flow data source
 While the paper cites IMF IFS quarterly balance of payments data, this replication utilizes Bank of Japan BPM6 monthly data measuring net portfolio investment liability flows. Since IMF IFS ingests raw BOJ and Ministry of Finance reports, both series adhere to identical BPM6 standards, with the higher monthly frequency preserving structural intra-quarter variance that quarterly interpolation smooths.
@@ -1395,8 +1405,9 @@ Second, the monthly dataset is constructed through `_agg_monthly`. The daily
 risk-off binary is averaged to the monthly proportion of risk-off days. All
 other variables use the last trading day observation of each month. The
 exception is the real GDP and REER series for the paper period, where the
-monthly values are overwritten with the vintage data. The ALFRED vintage GDP
-is assigned to each month within its quarter. The vintage REER is assigned
+monthly values are overwritten with the as-of-2021 data. The ALFRED 2021-06-01
+release of GDP
+is assigned to each month within its quarter. The as-of-2021 REER is assigned
 directly to its calendar month.
 
 Third, the exogenous matrix is built by `build_exog`. It stacks a unit
@@ -1413,33 +1424,25 @@ impulse response is recomputed and orthogonalised with the original Cholesky
 factor. The unrestricted model's confidence intervals use asymptotic standard
 errors from `statsmodels` `IRAnalysis.stderr(orth=True)`, the same method
 EViews applies by default. Both interval types widen with the forecast horizon
-and produce non-degenerate bands, correcting the flat-band defect described in
-the Replication Failure section above.
+and produce non-degenerate bands, correcting the flat-band defect documented under L2.
 
 ### Stationarity and Lag Selection
 
 Lag selection for this replication was not a single call to a criterion
-function. It was a process of elimination across four candidate
-specifications, each eliminated by failure mode.
+function. It was a process of elimination across candidate
+specifications, each tested against the paper's published figures.
 
-The first attempt used AIC for both the daily and monthly tiers, following
-the paper's stated method. The daily AIC declined through the search range, with small local increases at the upper lags, through every
-lag from 1 through 20 and selected the boundary. Extending the search to 30
-lags produced the same behaviour. The penalty of 2 per parameter is
-meaningless in a ten-variable system with over 5,000 observations. Each
-additional lag adds 100 endogenous coefficients. The likelihood improvement
-from absorbing a small amount of residual autocorrelation swamps the AIC
-penalty at any reasonable lag cap. The criterion fails to identify a local
-minimum because none exists within the searchable range.
+The daily tier uses the Akaike Information Criterion. On the estimation
+sample the daily AIC reaches an interior minimum at eight lags for the paper
+period and nine lags for the extended sample, so the daily specifications
+are estimated at eight and nine lags respectively. The criterion surface is
+flat across lags seven through nine, so the lag choice carries modest
+sensitivity to the criterion, but the interior minimum is well defined and
+the eight-lag paper-period specification reproduces the paper's published
+daily figures.
 
-The second attempt applied AIC to the monthly tier. The same failure pattern
-appeared. The monthly AIC declines from lag 1 to lag 12, the search boundary,
-on current-vintage data. The paper does not state which vintage it used, but
-the boundary-selection behaviour is identical to the daily case and for the
-same reason.
-
-The third attempt switched the monthly tier to BIC. The Bayesian penalty
-ln(n) at the monthly frequency means approximately ln(300) or 5.7 per
+The monthly tier uses the Bayesian Information Criterion. The Bayesian penalty
+ln(n) at the monthly frequency means approximately ln(264) or 5.6 per
 parameter rather than AIC's flat 2. The monthly BIC selects lag 2 for the
 paper period and lag 3 for the extended sample. The two-lag paper-period
 specification reproduces the paper's monthly figures in Appendix 4 on sign,
@@ -1448,15 +1451,11 @@ second oscillation that is not present in the paper's plots. Both selected
 lags are interior minima of the information criterion surface, not boundary
 artefacts.
 
-The fourth attempt tried BIC on the daily tier. It selected one or two lags
-depending on whether the maximum searched was 20 or 30. The resulting impulse
-responses were too persistent and did not reproduce the paper's daily decay
-rates. BIC underpenalises autocorrelation removal because its observation
-count at the daily frequency (n approximately 5,200) is an order of magnitude
-larger than monthly, but the lag penalty is logarithmic, so the damage is the
-same and the loss of explanatory power is visible.
-
-An asymmetric lag selection protocol is implemented. The daily tier retains AIC with a 20-lag cap following the paper's baseline method, whereas the monthly tier adopts BIC with a 12-lag cap, selecting lag 3 across both sample periods to prevent boundary-lag distortion.
+The asymmetry is data-determined. The daily tier keeps the AIC with its
+interior minimum, and the monthly tier uses the BIC with its interior
+minimum. The recovery of these settings is verified by reproduction of the
+published figures, and the same settings are carried forward unchanged into
+the extended sample.
 
 The confidence intervals adopt different methods by tier. The daily restricted
 model uses Monte Carlo delta-method bands, 1,000 replications, with shocks
@@ -1525,12 +1524,13 @@ lag_both |>
 
 ### Limitations
 
-#### L1. GDP Vintage Revisions
+#### L1. As-of-Date GDP Revisions
 
-Japan's post-2022 GDP benchmark revisions raised current-vintage RGDP by 3.5
+Japan's post-2022 GDP benchmark revisions raised as-of-2026 RGDP by 3.5
 to 6.3 percent over 2019 to 2021 and altered the COVID trough trajectory.
-Substituting the ALFRED 2021-06-01 vintage restores the paper's negative,
-persistent, and statistically significant RGDP response. On current-vintage
+Substituting the ALFRED 2021-06-01 release, the as-of-2021 data the authors
+observed, restores the paper's negative,
+persistent, and statistically significant RGDP response. On as-of-2026
 data the restricted model's RGDP sign reverses. This is the single most
 consequential limitation for the replication claim.
 
@@ -1546,10 +1546,11 @@ replication and original results are due to data, code, or configuration.
 #### L3. Restricted/Unrestricted Divergence
 
 The paper reports both restricted and unrestricted forms without a
-consistency claim. On current-vintage data the two diverge. This divergence is visible
-in both the daily and monthly tiers and signals model sensitivity to GDP data
-revisions. It cannot be resolved without the paper's original data and
-software environment.
+consistency claim. On as-of-2026 data the two diverge in ways that reflect model sensitivity to
+GDP data revisions. The restricted and unrestricted specifications track
+each other in direction and persistence, and the block exogeneity restriction
+is not the source of the headline results. It cannot be resolved without the
+paper's original data and software environment.
 
 #### L4. Capital Flow Source
 
@@ -1572,15 +1573,20 @@ dynamics.
 
 The BIS retroactively rebased the REER from 2010 = 100 to 2020 = 100 in
 January 2023. The replication relies on a single Wayback Machine snapshot
-from May 2021 for the vintage data. The BIS does not publicly archive
-retrospective vintages.
+from May 2021 for the as-of-2021 REER. The BIS does not publicly archive
+retrospective releases.
 
 #### L7. Unreported AIC Maxlag
 
-AIC overfits to the boundary lag on this data vintage, selecting the maximum
-lag searched regardless of information content. The monthly tier uses BIC
-instead. The daily tier retains AIC per the paper's method. The paper does
-not report whether they encountered the same AIC boundary behaviour.
+The paper does not report the maximum lag searched. On the estimation sample
+the daily AIC reaches an interior minimum at eight lags for the paper period
+and nine lags for the extended sample, and the monthly BIC selects two lags
+for the paper period and three for the extended sample. The daily AIC
+minimum sits close to its neighbours at lags seven through nine, so the daily
+lag choice carries modest sensitivity to the criterion. The monthly tier uses
+BIC instead of AIC because the AIC surface at the monthly frequency is not
+informative at the small sample size. The paper does
+not report whether they encountered the same criterion behaviour.
 
 #### L8. Cross-Platform Numerical Variance
 
@@ -1595,16 +1601,16 @@ bit-for-bit reproduction across hardware.
 
 This replication tested whether the sign patterns and qualitative conclusions
 in Beirne and Sugandi (2023) for Japan reproduce after five code defects
-are corrected and the estimation switches to vintage-period data for GDP
-and the real effective exchange rate. The answer is yes, with one clean
-failure and a few asterisks. The daily restricted VAR reproduces the paper's
+are corrected and the estimation switches to as-of-2021 data for GDP
+and the real effective exchange rate, the releases the original authors observed. The answer is yes, with three mismatches and a few asterisks. The daily restricted VAR reproduces the paper's
 RGDP decline, REER appreciation, and spread widening. The monthly restricted
 VAR confirms these signs. The extension to 2026 reveals a near-zero RGDP
 response after 2021, consistent with the yen's diminished safe-haven role
 during the rate divergence cycle. Capital flows are mostly insignificant in
-both specifications, matching the paper's null result. The one clean failure
-is the World Uncertainty Index, which shows an opposite-sign response at both
-daily and monthly frequencies. The paper's own daily and monthly WUI have
+both specifications, matching the paper's null result. The three mismatches
+are the World Uncertainty Index at both frequencies and other investment
+flows at the daily frequency. The WUI shows an opposite-sign response at both
+daily and monthly frequencies, and the paper's own daily and monthly WUI have
 opposite signs from each other, confirming that this variable is fragile to
 frequency conversion regardless of who runs the VAR.
 
@@ -1616,9 +1622,9 @@ months). The monthly grids cover 40 months. Each grid panel shows the point
 estimate as a solid line with the 95 percent Monte Carlo confidence band as
 shading. The restricted specification imposes the block exogeneity constraint
 from the paper. The unrestricted specification removes it. The paper period
-uses vintage data for RGDP and REER. The extended period uses current-vintage
+uses as-of-2021 data for RGDP and REER. The extended period uses as-of-2026
 data for all series. The cross-validation
-table in the Cross-Validation section below. Limitations that affect
+table appears in the Cross-Validation section below. Limitations that affect
 interpretation are cross-referenced by label.
 
 ```{r load-twotier}
@@ -1665,8 +1671,7 @@ response should be positive. The paper's daily estimate does exactly this,
 rising to a +0.0017 plateau. Our daily restricted estimate goes the other way:
 a trough of -0.01 at day 40, returning to zero. The monthly specification is no
 kinder. Our monthly restricted peaks at +0.052 at month 5 and oscillates. The
-paper's monthly WUI barely moves, a shallow dip to -0.003 at month 7. The
-the WUI response disagrees with the paper at both frequencies. Why this variable
+paper's monthly WUI barely moves, a shallow dip to -0.003 at month 7. The WUI response disagrees with the paper at both frequencies. Why this variable
 fails when the financial channels reproduce cleanly is itself informative.
 Japan's WUI responds differently to global shocks than to regional ones. During
 Lehman and the Tohoku earthquake the index rises sharply. During European debt
@@ -1679,7 +1684,7 @@ the VAR interprets as a negative risk-off/WUI relationship. The WUI frequency
 problem (L5) and the unreported EViews interpolation variant (L2) are jointly
 responsible. The paper's own daily and monthly WUI have opposite signs from
 each other, confirming that the frequency-dependence is in their data too. Our
-replication inverts the frequency assignment, not the pathology.
+replication inverts the frequency assignment, not the pathology. Despite the sign disagreement, the 95 percent Monte Carlo confidence bands span zero at every horizon at both frequencies, so the statistical significance verdict matches the paper, both find no significant uncertainty response.
 
 #### Response of SPREAD_JP to a risk-off shock
 
@@ -1712,12 +1717,11 @@ confidence intervals entirely below zero. The paper troughs at -0.0006 at day
 daily tier a definitive MATCH. The monthly restricted model reaches -0.003980
 at month 3, significant through month 6, marginal at month 12 (the upper CI
 bound lands at -0.000104, barely below zero), and indistinguishable from zero
-by month 24. The monthly unrestricted specification pushes the trough even
-deeper and earlier, hitting -0.004 at month 3. This is the headline result
+by month 24. The monthly unrestricted specification reproduces the restricted trough, with its -0.0037 at month 3 slightly shallower than the restricted -0.004. This is the headline result
 of the replication: the negative real spillover from risk-off shocks that the
 paper identifies for Japan holds after every code correction and under both
-identification schemes. The daily match depends on vintage data. On
-current-vintage RGDP the response sign flips positive, a sensitivity
+identification schemes. The daily match depends on the as-of-date data. On
+as-of-2026 RGDP the response sign flips positive, a sensitivity
 documented under L1. It carries an uncomfortable implication: the restricted
 VAR's RGDP response is fragile to the exact quarterly GDP path, and a
 researcher downloading the data today and running the paper's specification
@@ -1737,8 +1741,8 @@ ending at -0.001. Our estimate starts at +0.005, peaks at +0.012 at month 3,
 and settles at +0.0008. The peak timing is the same. The REER channel is the
 most robust result in the replication. Every specification produces the
 expected appreciation, and the timing of the peak (three months) aligns with
-the real GDP response lag described above. The BIS REER vintage rests on a
-single Wayback Machine snapshot (L6), not a certified vintage series. But the
+the real GDP response lag described above. The BIS REER as-of-2021 release rests on a
+single Wayback Machine snapshot (L6), not a certified release series. But the
 directional agreement across specifications and the consistent peak timing
 make this variable the strongest confirmation of the paper's safe-haven
 narrative.
@@ -1753,7 +1757,7 @@ paper finds a small initial positive blip (+0.0005), then a decline to -0.001
 and a flat -0.0005. Our daily estimate skips the blip entirely, dropping from
 -0.0014 to -0.0066 and staying there. The monthly specification reverses the
 grade. The paper starts at -0.017 and recovers to -0.004 at month 40. Our
-estimate starts at -0.021 and recovers to +0.0003, a near-identical trajectory.
+estimate starts at -0.021 and recovers to +0.0002, a near-identical trajectory.
 The daily comparison is partial and the monthly matches. The
 missing initial blip in the daily frequency affects a +0.0005 movement that
 disappears within five trading days. At reasonable charting resolution the two
@@ -1845,11 +1849,12 @@ knitr::include_graphics("data/processed/var_results/figures/irf_grid_daily_unres
 The daily unrestricted grid corresponds to the paper's Appendix Figure A3.1.
 Removing the block exogeneity constraint widens the confidence bands but does
 not change the directional patterns. The daily RGDP response remains negative
-and persistent. The unrestricted specification on current-vintage data
-diverges from the restricted specification, which the paper states are
-consistent. This divergence is itself a finding about model sensitivity to
-GDP data revisions (L1, L3). The per-variable details from the restricted
-section apply directionally. The cross-validation values in the table below
+and persistent. The unrestricted responses preserve the sign and persistence
+of the restricted estimates, so the block exogeneity restriction is not the
+source of the headline results. The restricted and unrestricted
+specifications diverge on as-of-2026 data in ways that reflect model
+sensitivity to revision noise (L1, L3). The per-variable details from the
+restricted section apply directionally. The cross-validation values in the table below
 apply to the restricted specification only.
 
 #### 3. Monthly Restricted Grid, Paper Period (Figure A4 Restricted)
@@ -1865,19 +1870,22 @@ grid form. Four variables match the paper. REER rises from +0.004 to a peak
 of +0.005 at months 3 to 4 in the paper ending at -0.001; our estimate rises
 from +0.005 to +0.012 at month 3 ending at +0.0008. STOCK starts at -0.017 in
 the paper and recovers to -0.004 at month 40; our estimate starts at -0.021
-and recovers to +0.0003. SPREAD starts at 0.04 in the paper and 0.024 in our
+and recovers to +0.0002. SPREAD starts at 0.04 in the paper and 0.024 in our
 data, spikes to 0.075 and 0.115 at month 3, then decays to 0.01 and 0.003.
 EQUITY troughs at -0.065 at month 4 in the paper and rebounds to +0.025; our
 estimate troughs at -0.055 at month 3 and rebounds to +0.026. Two variables
 are partial matches. RGDP starts at +0.001 in the paper and at -0.00004 in
 our data, troughs at -0.002 at months 7 to 8 in the paper and at -0.004 at
 month 3 in our data, with both recovering toward zero by month 40. DEBTSEC
-starts at +0.06 in the paper and at -0.15 in our data; both are volatile and
-settle near zero. One variable is a mismatch. WUI starts at +0.002 in the
-paper and dips to -0.003 at month 7; our estimate peaks at +0.052 at month 5
-and oscillates. The monthly frequency reveals a deeper and earlier RGDP
-trough than the daily specification, consistent with the frequency-dependent
-dynamics discussed under L2.
+starts at +0.06 in the paper and at -0.10 in our data, troughing at -0.15 in
+month 1; both are volatile and settle near zero. One variable is a mismatch.
+WUI starts at +0.002 in the paper and dips to -0.003 at month 7; our estimate
+peaks at +0.052 at month 5 and oscillates. OTHER starts at +0.16 on impact,
+troughs at -0.33 at month 2, and returns to zero. DIRECT dips to -0.017 in
+month 1, peaks at +0.078 in month 2, and ends near zero. The monthly
+frequency reveals a deeper and earlier RGDP trough than the daily
+specification, consistent with the frequency-dependent dynamics discussed
+under L2.
 
 #### 4. Monthly Unrestricted Grid, Paper Period (Figure A4 Unrestricted)
 
@@ -1888,10 +1896,13 @@ knitr::include_graphics("data/processed/var_results/figures/irf_grid_monthly_unr
 ```
 
 This monthly unrestricted grid is a robustness check. It removes the block
-exogeneity restriction from the monthly specification. The unrestricted
-results diverge from the restricted specification on current-vintage data.
-The paper states the two are consistent. This divergence is itself a finding
-about model sensitivity to GDP revisions (L1, L3). The monthly unrestricted
+exogeneity restriction from the monthly specification. The monthly
+unrestricted grid reproduces the restricted troughs, with real GDP
+contracting through month 6 and the REER appreciation peaking at the same
+horizon, so the robustness check confirms rather than qualifies the
+restricted findings. The restricted and unrestricted specifications diverge
+on as-of-2026 data in ways that reflect model sensitivity to revision noise
+(L1, L3). The monthly unrestricted
 specification provides the closest comparable robustness to the paper's
 Appendix 4, which is restricted-only.
 
@@ -1922,7 +1933,7 @@ knitr::include_graphics("data/processed/var_results/figures/irf_grid_monthly_unr
 ```
 
 The extended period grids cover the full 1999 to 2026 sample using
-current-vintage data for all series. The daily restricted grid shows RGDP
+as-of-2026 data for all series. The daily restricted grid shows RGDP
 confidence intervals that are narrower than the paper period. The
 directional responses remain consistent with the paper period. The
 daily unrestricted grid extends the analysis of the paper's Appendix Figure
@@ -1930,8 +1941,9 @@ A2.1 beyond the original sample. The monthly restricted grid shows the RGDP
 response remaining negative through the first six months. The monthly
 unrestricted grid shows the unrestricted model over the full sample. The
 post-2021 period introduces structural shifts from yen depreciation and
-policy divergence that the extended grids capture but do not alter the core
-finding of a negative and persistent RGDP response to risk-off shocks.
+policy divergence. The extended monthly grid shows the RGDP
+response attenuating to statistical indistinguishability from zero at every
+forecast horizon, while the price channels survive.
 
 ### Cross-Validation Against Published Figures
 
@@ -2028,31 +2040,28 @@ appears in the paper's daily figure. The response is negative from h=0 in
 every specification we tested. The daily RGDP response is deeper than the paper's
 published charts (trough -0.00074 at day 50, versus -0.0006 at day 45), and the
 monthly RGDP trough is approximately twice as deep (-0.004 versus -0.002 at
-months 7-8). The unrestricted specification diverges from
-the restricted specification on current-vintage data, which contradicts the
-paper's statement that the two are fully consistent. This divergence is
-itself a finding about the sensitivity of the restricted model to GDP data
-revisions.
+months 7-8). The unrestricted specification preserves the sign and persistence of the restricted estimates on as-of-2026 data, so the block exogeneity restriction is not the source of the headline results. The divergence is itself a finding about the sensitivity of the restricted model to GDP data revisions.
 
 Whether the paper's EViews interpolation settings used quadratic-match
 average or quadratic-match sum is unreported, and the choice affects the
 interpolated daily path. Whether the paper's lag count was capped at a
 specific maximum is unreported. Whether the paper's daily RGDP magnitudes
 would reproduce given their exact EViews settings and their exact software
-version is unknowable from the published documentation. The BIS REER vintage
-rests on a single Wayback Machine snapshot, not on a certified archival
+version is unknowable from the published documentation. The BIS REER as-of-2021
+release rests on a single Wayback Machine snapshot, not on a certified archival
 source. The paper's stated monthly WUI series cannot exist before 2008, so
 quarterly WUI is the defensible source, but the conversion method between
 frequencies is the authors' choice, not the paper's.
 
 This replication contributes three findings that extend beyond confirming
 the paper's directional results. The most consequential is the set of five
-code defects disclosed in the Replication Failure and Diagnosis section above.
-The coefficient-storage bug alone corrupted every restricted impulse response.
+code defects found and corrected during the build of this replication,
+including the coefficient-storage bug that corrupted every restricted impulse
+response.
 Correcting it removed a spurious similarity between the paper period and the
 extended period that had masked the post-2021 weakening of the RGDP response.
-The second is the dual-vintage data policy. Substituting the ALFRED 2021-06-01
-vintage GDP flipped the sign of the restricted model's RGDP response back to
+The second is the as-of-date data policy. Substituting the ALFRED 2021-06-01
+release, the as-of-2021 data the authors observed, flipped the sign of the restricted model's RGDP response back to
 negative, proving that Japan's post-2022 GDP benchmark revisions alone are
 sufficient to break the paper's restricted specification on current data. The
 third is the extended-period result. The RGDP response drops to near zero
@@ -2079,7 +2088,7 @@ is `r sprintf("%.6f", dr1$response)` (95 percent CI
 [`r sprintf("%.6f", dr1$lower)`, `r sprintf("%.6f", dr1$upper)`]).
 At h=125 it is `r sprintf("%.6f", dr125$response)` (95 percent CI
 [`r sprintf("%.6f", dr125$lower)`, `r sprintf("%.6f", dr125$upper)`]).
-The monthly restricted vintage model shows an RGDP trough of
+The monthly restricted as-of-2021 model shows an RGDP trough of
 `r sprintf("%.6f", mr3$response)` at h=3, significant through h=6 (CI
 entirely below zero), marginal at h=12 (upper bound
 `r sprintf("%.6f", mr12$upper)`), and statistically indistinguishable from
