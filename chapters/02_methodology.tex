@@ -16,41 +16,79 @@ The macroeconomic series were collected via automated Python API scripts from th
 
 The capital flow extraction is the most demanding part of the data preparation. Pre-2014 observations come from the Bank of Japan's 6pi-1 portfolio summary, a Shift-JIS encoded CSV with a mixed layout that requires reading the raw lines, locating the monthly figures section, and parsing a 29-column table in which the equity, long-term debt, and short-term debt net liability columns sit at fixed positions. The values are comma-formatted and use a dash placeholder for missing observations, and the dates are written in Japanese era format, which is converted to the Gregorian calendar with the Heisei era offset of 1988 and the Reiwa offset of 2018. Post-2014 observations come from the Bank of Japan's BPM6 API files, which are simple two-column CSVs in units of 100 million yen. The debt securities series is the sum of the long-term and short-term debt securities components, consistent with the Bank of Japan's D-04 reporting convention, and the pre-2014 and post-2014 segments are concatenated into continuous series for each flow category.
 
-Table~\ref{tab:variables} defines each variable, its frequency, and its source. The vintage arrangements for the paper period are described in the next subsection.
+Table~\ref{tab:datasources} inventories the raw datasets and files behind the model. The as-of-date arrangements for the paper period are described in the next subsection.
+
+\FloatBarrier
+\begin{table}[H]
+  \centering
+  \caption{Raw Data Sources by Dataset or File}
+  \label{tab:datasources}
+  \small
+  \begin{tabularx}{\textwidth}{@{}p{3.0cm} X p{3.0cm} p{1.6cm} p{2.8cm}@{}}
+    \toprule
+    Dataset or file & Description & Source & Native frequency & As-of for paper period \\
+    \midrule
+    \texttt{VIX.csv} & CBOE VIX volatility index, basis of the risk-off indicator & LSEG Workspace & Daily & Current \\
+    \texttt{NIKKEI225.csv} & Nikkei 225 index & LSEG Workspace & Daily & Current \\
+    \texttt{USDJPY.csv} & USD/JPY bilateral rate, end-of-month values convert flows to dollars & LSEG Workspace & Daily & Current \\
+    \texttt{US10Y.csv} & 10-year US Treasury yield & LSEG Workspace & Daily & Current \\
+    \texttt{jgbcme\_all.csv} & 10-year JGB yield, column 11 of the curve file & LSEG Workspace & Daily & Current \\
+    \texttt{JAPAN\_RGDP.csv} & Constant-price real GDP, FRED series JPNRGDPEXP & FRED ALFRED, Federal Reserve Bank of St.\ Louis & Quarterly & As-of 2021-06-01 release \\
+    \texttt{JAPAN\_NOMINAL\_GDP.csv} & Nominal GDP, FRED series JPNNGDP, denominator for flow shares & FRED, Federal Reserve Bank of St.\ Louis & Quarterly & Current \\
+    \texttt{WUI\_JPN.csv} & World Uncertainty Index for Japan, FRED series WUIJPN & World Uncertainty Index database via FRED & Quarterly & Current \\
+    \texttt{REER.xlsx} & Real effective exchange rate, broad index & BIS & Monthly & Wayback snapshot 2021-05-24 \\
+    \texttt{BOJ\_6pi-1\_portfolio\_summary.csv} & Pre-2014 portfolio liability components & Bank of Japan BPM6 statistics & Monthly & Current \\
+    BOJ BPM6 API files & Post-2014 debt, equity, other, and direct liability components & Bank of Japan BPM6 statistics & Monthly & Current \\
+    \bottomrule
+  \end{tabularx}
+  \caption*{\textit{Note.} The extended period uses current as-of data for every series. Retrieval details, the six-column LSEG parser, the JGB column position, the ALFRED release date parameter, the Wayback snapshot, and the Shift-JIS era-date conversion, are documented in the text and in the estimation script.}
+\end{table}
+\FloatBarrier
+
+\subsection{As-of-Date Data Policy}
+
+The data follow an as-of-date policy because the published sample has been retroactively revised since 2021. Japan's real GDP underwent a base-year change from chained 2011 yen to chained 2015 yen in December 2020, and subsequent benchmark revisions raised the as-of-2026 output estimates by 3.5 to 6.3 percent over 2019 to 2021 while flattening the COVID-19 trough. The BIS rebased its REER from 2010 equal to 100 to 2020 equal to 100 in January 2023, revising the entire historical series and trade weights.
+
+The paper period uses as-of-2021 data, the releases the original authors observed. The real GDP series is the release of 1 June 2021 from the FRED ALFRED archive, retrieved through the FRED API with the release date parameter set to 2021-06-01. The REER series is the release of 24 May 2021 from the BIS broad index, recovered through the Internet Archive Wayback Machine from the archived BIS file, because the BIS does not publicly archive retrospective releases and the Wayback snapshot is the closest approximation of the file the original authors observed. The extended period uses as-of-2026 data, the latest available release, for all series. Replication requires the data as they stood in 2021, while extension requires the best available current estimates, and the two goals impose incompatible data demands that the as-of-date policy resolves explicitly.
+
+The as-of-date choice is not only a replication-fidelity concern, it is the precondition for the reverse engineering described below. The paper reports its econometric results but does not state several settings that produced them, the quadratic interpolation variant, the maximum lag searched, the form of the seasonal and time dummies, the confidence interval method, and the monthly aggregation of the risk-off indicator. Because those settings are unidentified, they have to be recovered by testing candidate implementations against the paper's published impulse response figures and identifying, as closely as possible, the configuration the authors actually used. Reproducing the published figures is the verification that the recovery succeeded, not the objective itself. The recovered settings are then carried forward unchanged into the extended sample, so the full-sample estimates inherit the authors' configuration rather than an arbitrary one. Three consequences follow
+
+\begin{itemize}
+    \item \textit{The data must match the authors' data.}
+\newline Such a comparison is valid only if the data fed into the candidates are the data the original authors fed into their model. Had the paper period been estimated on as-of-2026 data instead, any discrepancy between our responses and the published figures could be attributed either to a wrong setting or to the benchmark revisions, and the two causes could not be separated.
+    \item \textit{The Wayback snapshot is the identification instrument.}
+\newline The BIS does not publicly archive retrospective releases, so the only recoverable trace of what the authors downloaded in mid-2021 is the Wayback Machine snapshot of 24 May 2021. It exists precisely to let the reverse engineering isolate the unreported settings rather than confound them with data revisions.
+    \item \textit{The extended period is free of this constraint.}
+\newline No as-of-2021 release exists for observations after March 2021, and the extension tests generalizability rather than replication, so it uses as-of-2026 data while applying the settings recovered from the paper period unchanged.
+\end{itemize}
+
+\subsection{Variables}
+
+The model contains ten endogenous variables in the Cholesky ordering of the paper, all drawn from the series described above. The risk-off indicator enters first because it is the exogenous shock of interest. It is followed by the log of the WUI, the JGB yield spread relative to the 10-year US Treasury yield, the log of real GDP, the log of the REER, the log of the Nikkei 225 index, and the four capital flow variables expressed as percentages of nominal GDP, as defined in Table~\ref{tab:variables}.
 
 \begin{table}[H]
   \centering
   \caption{Endogenous Variables, Definitions, and Sources}
   \label{tab:variables}
   \small
-  \begin{tabularx}{\textwidth}{@{}p{2.3cm} X p{2.5cm} p{3.7cm}@{}}
+  \begin{tabularx}{\textwidth}{@{}p{1.9cm} p{2.0cm} X p{1.9cm} p{3.1cm}@{}}
     \toprule
-    Variable & Definition & Frequency & Source \\
+    Code name & Paper label & Definition & Frequency & Source \\
     \midrule
-    Risk-off & Indicator equal to 1 when the VIX exceeds its 60-day moving average by at least 10 points & Daily & LSEG Workspace, authors' calculation \\
-    Log (WUI) & Log of the World Uncertainty Index for Japan & Quarterly to daily & World Uncertainty Index database \\
-    Spread & 10-year JGB yield minus 10-year US Treasury yield & Daily & LSEG Workspace \\
-    Log (RGDP) & Log of constant-price real GDP & Quarterly to daily & FRED ALFRED (vintage 2021-06-01) \\
-    Log (REER) & Log of the real effective exchange rate, broad index & Monthly to daily & BIS (Wayback 2021-05-24) \\
-    Log (Nikkei) & Log of the Nikkei 225 index & Daily & LSEG Workspace \\
-    Debtsec & Net portfolio investment inflows to debt securities, percent of nominal GDP & Monthly to daily & Bank of Japan \\
-    Equity & Net portfolio investment inflows to equity, percent of nominal GDP & Monthly to daily & Bank of Japan \\
-    Other & Net other investment inflows, percent of nominal GDP & Monthly to daily & Bank of Japan \\
-    Direct & Net direct investment inflows, percent of nominal GDP & Monthly to daily & Bank of Japan \\
+    \texttt{risk\_off} & \texttt{RISK} & Indicator equal to 1 when the VIX exceeds its 60-day moving average by at least 10 points & Daily & LSEG Workspace, authors' calculation \\
+    \texttt{log\_wui} & \texttt{LOG(WUI\_JP)} & Log of the World Uncertainty Index for Japan & Quarterly to daily & World Uncertainty Index database \\
+    \texttt{spread} & \texttt{SPREAD\_JP} & 10-year JGB yield minus 10-year US Treasury yield & Daily & LSEG Workspace \\
+    \texttt{log\_rgdp} & \texttt{LOG(RGDP\_JP)} & Log of constant-price real GDP & Quarterly to daily & FRED ALFRED (as-of 2021-06-01) \\
+    \texttt{log\_reer} & \texttt{LOG(REER\_JP)} & Log of the real effective exchange rate, broad index & Monthly to daily & BIS (Wayback 2021-05-24) \\
+    \texttt{log\_nikkei} & \texttt{LOG(STOCK\_IDX\_JP)} & Log of the Nikkei 225 index & Daily & LSEG Workspace \\
+    \texttt{debtsec\_pct} & \texttt{DEBTSEC\_JP} & Net portfolio investment inflows to debt securities, percent of nominal GDP & Monthly to daily & Bank of Japan \\
+    \texttt{equity\_pct} & \texttt{EQUITY\_JP} & Net portfolio investment inflows to equity, percent of nominal GDP & Monthly to daily & Bank of Japan \\
+    \texttt{other\_pct} & \texttt{OTHER\_JP} & Net other investment inflows, percent of nominal GDP & Monthly to daily & Bank of Japan \\
+    \texttt{direct\_pct} & \texttt{DIRECT\_JP} & Net direct investment inflows, percent of nominal GDP & Monthly to daily & Bank of Japan \\
     \bottomrule
   \end{tabularx}
-  \caption*{\textit{Note.} Capital flow variables follow BPM6 conventions. Positive values indicate capital inflows. The nominal GDP denominator is current-vintage throughout.}
+  \caption*{\textit{Note.} Code names are the series identifiers used in the estimation script and the model equations. Capital flow variables follow BPM6 conventions. Positive values indicate capital inflows. The nominal GDP denominator is as-of-2026 throughout.}
 \end{table}
-
-\subsection{Dual-Vintage Data Policy}
-
-The data follow a dual-vintage policy because the published sample has been retroactively revised since 2021. Japan's real GDP underwent a base-year change from chained 2011 yen to chained 2015 yen in December 2020, and subsequent benchmark revisions raised current-vintage output by 3.5 to 6.3 percent over 2019 to 2021 while flattening the COVID-19 trough. The BIS rebased its REER from 2010 equal to 100 to 2020 equal to 100 in January 2023, revising the entire historical series and trade weights.
-
-The paper period therefore uses the real GDP vintage of 1 June 2021 from the FRED ALFRED archive, retrieved through the FRED API with the vintage date parameter set to 2021-06-01. The REER for the paper period uses the BIS broad index snapshot of 24 May 2021, recovered through the Internet Archive Wayback Machine from the archived BIS file, because the BIS does not publicly archive retrospective vintages and the Wayback snapshot is the closest approximation of the file the original authors observed. The extended period uses current-vintage data for all series. Replication requires the data as the original authors observed them, while extension requires the best available current estimates, and the two goals impose incompatible data demands that the dual-vintage policy resolves explicitly.
-
-\subsection{Variables}
-
-The model contains ten endogenous variables in the Cholesky ordering of the paper, all drawn from the series described above. The risk-off indicator enters first because it is the exogenous shock of interest. It is followed by the log of the WUI, the JGB yield spread relative to the 10-year US Treasury yield, the log of real GDP, the log of the REER, the log of the Nikkei 225 index, and the four capital flow variables expressed as percentages of nominal GDP, as defined in Table~\ref{tab:variables}.
 
 A risk-off event is defined following \textcite{debock_carvalhofilho_2013} as a day on which the VIX exceeds its 60-day backward-looking moving average by 10 percentage points, and the daily risk-off variable is a binary indicator for such days. This definition reproduces all fifteen in-sample episode initial dates from the paper's Table 1 exactly to the day. At the monthly frequency the daily binary is aggregated as the proportion of risk-off days in the month, which preserves the signs of the impulse responses, whereas summing the daily values inflates the shock standard deviation to 2.23 and produces excessively sharp response curves, and a binary indicator for any risk-off day in the month reverses the output sign. The paper does not state its monthly aggregation method.
 
@@ -115,12 +153,13 @@ The estimation dataset for the specifications above passes through three transfo
 
 In the second stage, the lower-frequency series are interpolated to the daily trading-day grid using quadratic-match average interpolation. The method fits a local quadratic through each triplet of adjacent source observations, constrained so that the mean of the interpolated high-frequency values within each low-frequency period equals the source observation. This reimplements the documented EViews default for frequency conversion, which the paper does not name, and the mean-preservation property is verified at machine precision across all series. The interpolation runs over the trading-day grid directly rather than over calendar days with subsequent subsetting, because the quadratic polynomial differs across grids, and it does not extrapolate beyond the last source observation, so trailing missing values for the quarterly series are forward-filled to carry them through the end of the sample. The interpolation is implemented in Python with pandas, because R has no native quadratic spline with the required boundary behavior.
 
-In the third stage, the daily and monthly estimation datasets are assembled. The daily dataset joins all ten variables on the date in Cholesky order and filters to the working-days calendar, with the risk-off indicator, the spread, and the log stock index entering directly from the daily financial series and the remaining seven variables entering from the interpolated series. The monthly dataset takes the last trading day observation of each month for the financial variables and the proportion of risk-off days for the risk-off indicator. The real GDP and REER series for the paper period are overwritten with the vintage data, with the ALFRED vintage GDP assigned to each month within its quarter and the vintage REER assigned to its calendar month. The exogenous matrix stacks the constant, the linear time trend, and the eleven monthly indicators, and the same matrix enters both the daily and monthly specifications.
+In the third stage, the daily and monthly estimation datasets are assembled. The daily dataset joins all ten variables on the date in Cholesky order and filters to the working-days calendar, with the risk-off indicator, the spread, and the log stock index entering directly from the daily financial series and the remaining seven variables entering from the interpolated series. The monthly dataset takes the last trading day observation of each month for the financial variables and the proportion of risk-off days for the risk-off indicator. The real GDP and REER series for the paper period are overwritten with the as-of-2021 data, with the ALFRED as-of-2021 GDP assigned to each month within its quarter and the as-of-2021 REER assigned to its calendar month. The exogenous matrix stacks the constant, the linear time trend, and the eleven monthly indicators, and the same matrix enters both the daily and monthly specifications.
 
 \subsection{Contrast with the Paper's Methods and Unreported Settings}
 
-The implementation choices made above are contrasted with the paper's methods in Table~\ref{tab:contrast}. Every row in which the paper is silent on a setting records what had to be reconstructed and the basis for the reconstruction. The paper states its frequency structure, its Cholesky ordering, and its recursive restriction. It does not state the quadratic interpolation variant, the maximum lag searched, the form of the seasonal and time dummies, the confidence interval method, or the monthly aggregation of the risk-off indicator. Each of these settings was reverse-engineered by testing the candidates against the paper's published figures and keeping the version that reproduced them, with the divergence disclosed in the table.
+The implementation choices made above are contrasted with the paper's methods in Table~\ref{tab:contrast}. Every row in which the paper is silent on a setting records what had to be reconstructed and the basis for the reconstruction. The paper states its frequency structure, its Cholesky ordering, and its recursive restriction. It does not state the quadratic interpolation variant, the maximum lag searched, the form of the seasonal and time dummies, the confidence interval method, or the monthly aggregation of the risk-off indicator. Each of these settings was recovered by testing candidate implementations against the paper's published figures and identifying the configuration that best matches what the authors used, with the reproduction serving as the verification and the divergence disclosed in the table. The same recovered settings are then applied to the extended sample.
 
+\FloatBarrier
 \begin{table}[H]
   \centering
   \caption{Contrast with the Paper's Methods and Unreported Settings}
@@ -139,20 +178,21 @@ The implementation choices made above are contrasted with the paper's methods in
     Confidence intervals & Method unreported & Monte Carlo delta (restricted), asymptotic (unrestricted) & Both widen with the horizon, unlike the paper's published bands \\
     Monthly risk-off aggregation & Unreported & Proportion of risk-off days & Summing inflates the shock variance, a binary flips the output sign \\
     Capital flows & IMF IFS quarterly & Bank of Japan BPM6 monthly & BPM6-comparable, higher frequency \\
-    Data vintage & Mid-2021 downloads & ALFRED 2021-06-01 GDP and Wayback 2021-05-24 REER for the paper period & Benchmark revisions retroactively change historical values \\
+    Data as-of-date & Mid-2021 releases & ALFRED 2021-06-01 GDP and Wayback 2021-05-24 REER for the paper period & Benchmark revisions retroactively change historical values \\
     Software & EViews, inferred from figure styling & Python, statsmodels, custom OLS & Independent reimplementation \\
     Sample & 14 January 1999 to 31 March 2021 & Same, extended through 30 June 2026 & Generalizability test \\
     \bottomrule
   \end{tabularx}
 \end{table}
+\FloatBarrier
 
 The reverse engineering was not arbitrary. For the interpolation, the paper names quadratic interpolation without a variant, and quadratic-match average is the documented EViews default for converting between frequencies, so it was adopted and its mean-preservation property verified at machine precision. For the lag selection, the daily AIC reaches interior minima at eight lags for the paper period and nine lags for the extended sample on the estimation builds, and the monthly BIC selects two lags for the paper period and three for the extended sample, both reproducing the paper's published figures. For the risk-off aggregation, summing the daily values inflated the shock standard deviation to 2.23 and produced excessively sharp impulse responses, a binary indicator for any risk-off day in the month reversed the output sign, and the proportion of risk-off days preserved the signs and matched the paper's appendix figures. Each choice is therefore documented as a test outcome rather than a preference.
 
 \subsection{Model Calibration and Verification}
 
-The econometric specification underwent rigorous diagnostic verification against published benchmarks to ensure exact structural identification. Verification confirmed the inclusion of deterministic intercepts in every equation, precise matrix indexing for orthogonalized impulse responses, and full parameter uncertainty propagation for Monte Carlo error bands. Subsequent diagnostic testing revealed that Japan's post-2022 GDP benchmark revisions altered historical output levels, establishing the empirical necessity of the dual-vintage data policy to reproduce the original paper's estimation sample.
+The econometric specification underwent rigorous diagnostic verification against published benchmarks to ensure exact structural identification. Verification confirmed the inclusion of deterministic intercepts in every equation, precise matrix indexing for orthogonalized impulse responses, and full parameter uncertainty propagation for Monte Carlo error bands. Subsequent diagnostic testing revealed that Japan's post-2022 GDP benchmark revisions altered historical output levels, establishing the empirical necessity of the as-of-date data policy to reproduce the original paper's estimation sample.
 
 
 \subsection{Limitations of the Methodology}
 
-The design carries limitations that bound the interpretation of the results. The paper does not report which quadratic-match variant EViews used, what lag maximum was searched, or how its confidence intervals were computed, so every independent replication of the paper carries irreducible uncertainty about whether differences originate in data, code, or configuration. The BIS does not publicly archive retrospective REER vintages, so the vintage REER rests on a single Wayback Machine snapshot. The WUI is available at quarterly frequency for the full sample, while the paper states a monthly series that cannot exist before 2008. The capital flow variables come from the Bank of Japan's BPM6 statistics rather than the paper's IMF IFS source, and the two are directly comparable under BPM6 conventions but differ in frequency and in the details of component classification. The Monte Carlo confidence bands differ between processor architectures at machine precision, with differences in the sixth decimal place that do not affect the match classifications but would prevent bit-for-bit reproduction across hardware. These limitations are addressed in the discussion alongside their consequences for specific results. Section 4 reports the results produced by this design, from the descriptive statistics and stylized facts through the impulse responses and the cross-validation against the published paper.
+The design carries limitations that bound the interpretation of the results. The paper does not report which quadratic-match variant EViews used, what lag maximum was searched, or how its confidence intervals were computed, so every independent replication of the paper carries irreducible uncertainty about whether differences originate in data, code, or configuration. The BIS does not publicly archive retrospective REER releases, so the as-of-2021 REER rests on a single Wayback Machine snapshot. The WUI is available at quarterly frequency for the full sample, while the paper states a monthly series that cannot exist before 2008. The capital flow variables come from the Bank of Japan's BPM6 statistics rather than the paper's IMF IFS source, and the two are directly comparable under BPM6 conventions but differ in frequency and in the details of component classification. The Monte Carlo confidence bands differ between processor architectures at machine precision, with differences in the sixth decimal place that do not affect the match classifications but would prevent bit-for-bit reproduction across hardware. These limitations are addressed in the discussion alongside their consequences for specific results. Section 4 reports the results produced by this design, from the descriptive statistics and stylized facts through the impulse responses and the cross-validation against the published paper.

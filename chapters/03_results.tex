@@ -14,6 +14,7 @@ A variance comparison confirms that these differences are statistically signific
 
 Cross-variable correlations in the full sample are consistent with the transmission channels estimated in the VAR. Table~\ref{tab:corr} presents the full-sample Pearson correlation matrix for the ten endogenous variables. The risk-off indicator is only weakly correlated with every other variable, with the absolute correlation never exceeding 0.14, which is expected for a rare-event indicator and is precisely why it can serve as the exogenous shock. The strongest relationships run through the exchange rate. The log REER and log real GDP correlate at --0.92, the log REER and the log Nikkei at --0.82, and the log Nikkei and log real GDP at 0.76, so real appreciation, lower equity prices, and lower output move together in the raw data, the configuration the competitiveness channel predicts. The spread correlates negatively with the stock index at --0.12 and with the REER at --0.21, and the portfolio flow categories are weakly correlated with one another, with the equity and debt flow series at 0.14, while the other investment category, the highest-variance flow, correlates negatively with the equity and debt flow series at --0.34 and --0.31. The WUI is weakly related to every other variable, with its largest absolute correlation 0.194 against the stock index and near-zero correlation with the risk-off indicator at 0.003. Direct investment carries the strongest pairwise links among the flow categories, correlating at 0.250 with the stock index and --0.223 with the REER, while remaining below 0.20 against the remaining variables. The pairwise correlations do not indicate a multicollinearity problem for the system: the only coefficients above 0.8 in absolute value run between the slowly moving level variables (real GDP, the REER, and the stock index), which enter the VAR as separate equations whose lagged levels are already highly persistent, and the exogenous risk-off indicator that identifies the shocks is nearly orthogonal to the block.
 
+\FloatBarrier
 \begin{table}[H]
   \centering
   \caption{Pearson Correlation Matrix of Endogenous Variables, Full Sample}
@@ -37,7 +38,9 @@ Cross-variable correlations in the full sample are consistent with the transmiss
   \end{tabular}
   \caption*{\textit{Note.} Pairwise Pearson correlations on all available full-sample observations. WUI is the log World Uncertainty Index, RGDP log real GDP, REER log real effective exchange rate, Nikkei the log Nikkei 225, and Debt, Equity, Other, and Direct the four capital flow categories as percentages of nominal GDP.}
 \end{table}
+\FloatBarrier
 
+\FloatBarrier
 \begin{longtable}{@{}l l r r r r@{}}
   \caption{Descriptive Statistics by Period} \label{tab:desc} \\
   \toprule
@@ -113,6 +116,7 @@ Direct & N & 5795 & 1369 & 7164 \\
 \addlinespace
   \bottomrule
 \end{longtable}
+\FloatBarrier
 
 \begin{center}
   \small\textit{Note.} Capital flow variables are percentages of nominal GDP. The spread is in percentage points. Other variables are natural logs.
@@ -130,70 +134,84 @@ The first group covers the price channels through which risk-off shocks transmit
 
 The VIX panel in Figure~\ref{fig:vix} defines the risk-off episodes across the full 1999 to 2026 sample, with prominent peaks near 80 during the 2008 global financial crisis and near 83 during the initial COVID-19 outbreak in early 2020, and a smaller spike near 52 during the April 2025 tariff shock.
 
+\FloatBarrier
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.92\textwidth]{data/processed/var_results/figures/stylized_vix_risk_off.png}
   \caption{VIX and Risk-off Episodes, 1999--2026 (paper's Figure 1)}
   \label{fig:vix}
 \end{figure}
+\FloatBarrier
 
 The bilateral USD/JPY exchange rate panel in Figure~\ref{fig:usdjpy} confirms the paper's account through 2020, with the yen strengthening from roughly 110 to 75 per dollar between 2008 and 2011. The series then illustrates the post-2021 regime shift, as the yen depreciated from 105 to 160 per dollar despite official intervention rounds in 2022 and 2024.
 
+\FloatBarrier
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.92\textwidth]{data/processed/var_results/figures/stylized_usdjpy_risk_off.png}
   \caption{USD/JPY Exchange Rate and Risk-off Episodes, 1999--2026 (paper's Figure 2)}
   \label{fig:usdjpy}
 \end{figure}
+\FloatBarrier
 
 The REER panel in Figure~\ref{fig:reer} matches the paper's observation that the yen was real-effective undervalued from October 2012 through the end of its sample. The undervaluation deepened significantly after 2021, moving from the low 70s down to roughly 50 by 2026, confirming that the competitiveness cushion identified by the paper widened further over the extended period. The panel shows the full available history of the series, beginning before the 1999 sample start, and the post-2021 decline carries the index to roughly 50 at the right edge.
 
+\FloatBarrier
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.92\textwidth]{data/processed/var_results/figures/stylized_reer_risk_off.png}
   \caption{Japan's Real Effective Exchange Rate and Risk-off Episodes, 1999--2026 (paper's Figure 3)}
   \label{fig:reer}
 \end{figure}
+\FloatBarrier
 
 \subsubsection{Sovereign Yield and Spread}
 
 The second group covers bond market dynamics. The paper shows JGB yields falling during risk-off episodes on flight-to-safety purchases, noting that 10-year JGB yields rose by at most 24 basis points during the 2020 pandemic episode \parencite{beirne_sugandi_2023}. Figure~\ref{fig:jgb} illustrates JGB yield compression from roughly 2 percent in 1999 down to near zero by 2010 and below zero during the pandemic, before policy rate normalization pushed yields above 2.5 percent after 2023. The panel extends back to 1985, where yields sit above 5 percent and peak near 8 percent in 1991, so the compression after 1999 is visible against the full history.
 
+\FloatBarrier
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.92\textwidth]{data/processed/var_results/figures/stylized_jgb10y_risk_off.png}
   \caption{10-Year JGB Yield and Risk-off Episodes, 1999--2026 (paper's Figure A1.1)}
   \label{fig:jgb}
 \end{figure}
+\FloatBarrier
 
 Figure~\ref{fig:us10y} extends the comparison to US Treasury yields, which declined during risk-off episodes from above 6 percent in 2000 down to near zero in 2020, before rising past 4 percent after 2021 as the Federal Reserve tightened monetary policy.
 
+\FloatBarrier
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.92\textwidth]{data/processed/var_results/figures/stylized_us10y_risk_off.png}
   \caption{US 10-Year Treasury Yield and Risk-off Episodes, 1999--2026}
   \label{fig:us10y}
 \end{figure}
+\FloatBarrier
 
 The yield spread in Figure~\ref{fig:spread} widens consistently during risk-off episodes through 2020. After 2021, the spread narrows not because safe-haven transmission failed, but because both sovereign yields rose simultaneously under aggressive monetary policy divergence.
 
+\FloatBarrier
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.92\textwidth]{data/processed/var_results/figures/stylized_spread_risk_off.png}
   \caption{Yield Spread, 10-Year JGB Minus 10-Year US Treasury, and Risk-off Episodes, 1999--2026 (paper's Figure A1.7)}
   \label{fig:spread}
 \end{figure}
+\FloatBarrier
 
 \subsubsection{Equity Market}
 
 The equity market panel tests the paper's finding that Japanese equities behave as risk assets rather than safe havens \parencite{beirne_sugandi_2023}. Figure~\ref{fig:nikkei} shows the Nikkei 225 index oscillating between 7,000 and 30,000 for two decades, experiencing sharp contractions during risk-off events, followed by an unprecedented post-2023 structural surge past 70,000.
 
+\FloatBarrier
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.92\textwidth]{data/processed/var_results/figures/stylized_nikkei225_risk_off.png}
   \caption{Nikkei 225 Index and Risk-off Episodes, 1999--2026 (paper's Figure A1.2)}
   \label{fig:nikkei}
 \end{figure}
+\FloatBarrier
 
 \subsubsection{Capital Flows}
 
@@ -201,44 +219,53 @@ The capital flow panels contrast theoretical expectations with balance of paymen
 
 Portfolio debt flows in Figure~\ref{fig:debtsec} display net portfolio investment inflows into Japanese debt securities as a percentage of nominal GDP. The series exhibits high volatility around a mean of 0.52 percent of GDP in the paper period and 0.60 percent in the extension, with a standard deviation rising from 1.72 to 2.66. The amplitude rises across the sample, with swings beyond plus or minus 5 percent of GDP after 2020, including readings above +7 in 2022 and below --5 in 2023 to 2024. Across both sample periods, the risk-off bands show no consistent directional trend, confirming that global risk-off shocks do not drive gross portfolio debt volume inflows.
 
+\FloatBarrier
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.92\textwidth]{data/processed/var_results/figures/stylized_debtsecpct_risk_off.png}
   \caption{Portfolio Debt Flows and Risk-off Episodes, 1999--2026 (paper's Figure A1.3)}
   \label{fig:debtsec}
 \end{figure}
+\FloatBarrier
 
 Portfolio equity flows in Figure~\ref{fig:equity} show net portfolio investment inflows into Japanese equities. The series fluctuates around a mean of 0.22 percent of GDP in the paper period and 0.32 percent in the extension, with symmetric dispersion between -3.75 and +4.72 percent of GDP. The post-2021 sample shows the highest amplitude of the series, with swings between roughly --3 and +4 percent of GDP, without a shift in the mean. Risk-off episodes do not coincide with persistent net equity inflows or outflows, supporting the offshore derivative rebalancing mechanism where price adjustments occur in currency markets without generating net balance of payments flows.
 
+\FloatBarrier
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.92\textwidth]{data/processed/var_results/figures/stylized_equitypct_risk_off.png}
   \caption{Portfolio Equity Flows and Risk-off Episodes, 1999--2026 (paper's Figure A1.4)}
   \label{fig:equity}
 \end{figure}
+\FloatBarrier
 
 Other investment flows in Figure~\ref{fig:other} capture net banking sector loans and deposit flows. This category is the most volatile series in the model, with a standard deviation of 3.16 in the paper period and 4.20 in the extension. The series reaches an extraordinary peak of 28.55 percent of GDP during the initial March 2020 pandemic outbreak, reflecting acute banking liquidity injections and cross-border deposit drawdowns that quickly normalized.
 
+\FloatBarrier
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.92\textwidth]{data/processed/var_results/figures/stylized_otherpct_risk_off.png}
   \caption{Other Investment Flows and Risk-off Episodes, 1999--2026 (paper's Figure A1.5)}
   \label{fig:other}
 \end{figure}
+\FloatBarrier
 
 Direct investment flows in Figure~\ref{fig:direct} record net foreign direct investment inflows as a percentage of nominal GDP. Unlike the high-variance portfolio categories, direct investment remains tightly bounded between -1.26 and +3.69 percent of GDP, with a mean of 0.11 percent in the paper period and 0.25 percent in the extension. The series displays subtle positive spikes following major global turbulence episodes, indicating that long-term corporate asset reallocation responds differently to global risk aversion than short-term portfolio capital.
 
+\FloatBarrier
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.92\textwidth]{data/processed/var_results/figures/stylized_directpct_risk_off.png}
   \caption{Direct Investment Flows and Risk-off Episodes, 1999--2026 (paper's Figure A1.6)}
   \label{fig:direct}
 \end{figure}
+\FloatBarrier
 
 \subsubsection{Risk-off Episodes}
 
 Table~\ref{tab:episodes} lists the 29 risk-off episodes identified by the VIX rule over the full sample, identifying twenty in-sample episode start dates and nine out-of-sample episodes over 2021 to 2026. The nine post-2021 episodes, including the August 2024 carry unwind and the April 2025 tariff shock, are the out-of-sample events on which the extension test rests.
 
+\FloatBarrier
 \begin{table}[H]
   \centering
   \caption{Risk-off Episodes Identified by the VIX Rule, 1999--2026}
@@ -280,6 +307,7 @@ Mar 27, 2026 -- Mar 30, 2026 & 2 & Iran conflict / Middle East escalation \\
     \bottomrule
   \end{tabular}
 \end{table}
+\FloatBarrier
 
 \begin{center}
   \small\textit{Note.} A risk-off event is a day on which the VIX exceeds its 60-day moving average by at least 10 points. Episodes merge events separated by no more than ten days.
@@ -291,6 +319,7 @@ Mar 27, 2026 -- Mar 30, 2026 & 2 & Iran conflict / Middle East escalation \\
 
 Table~\ref{tab:adf} reports Augmented Dickey-Fuller tests for both sample periods. The risk-off indicator, the uncertainty index, and the four capital flow variables reject a unit root at the 5 percent level ($p < .001$). The yield spread, real GDP, REER, and Nikkei 225 do not reject a unit root in levels, confirming trend-stationary behavior captured by the linear time trend in the VAR exogenous matrix.
 
+\FloatBarrier
 \begin{table}[H]
   \centering
   \caption{Augmented Dickey-Fuller Tests at the 5 Percent Level}
@@ -323,25 +352,31 @@ Direct & 1999-2026 & -11.4651 & 0.0000 & -2.8621 & Yes \\
     \bottomrule
   \end{tabular}
 \end{table}
+\FloatBarrier
 
 Figure~\ref{fig:adf_diag} illustrates the stationarity test statistics across variables and sample periods. The statistics separate cleanly into a stationary block, the shock indicator, the uncertainty index, and the four flow variables, and a non-stationary block, the spread, output, the REER, and the stock index, which the levels specification with a trend absorbs.
 
+\FloatBarrier
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.92\textwidth]{data/processed/var_results/figures/infographics_adf_stationarity.png}
   \caption{Stationarity Diagnostics. The dashed line marks the 5 percent critical value, with statistics to the left rejecting a unit root and statistics to the right failing to reject. Circles denote the 1999--2021 sample and squares the 1999--2026 sample.}
   \label{fig:adf_diag}
 \end{figure}
+\FloatBarrier
 
 Lag selection diagnostics reported in Table~\ref{tab:aic} and Figure~\ref{fig:lag_diag} explain the lag specification choice. The daily AIC reaches an interior minimum at eight lags for the paper period (AIC = -62.13) and nine lags for the extended sample (AIC = -61.91), so the daily specifications are estimated at eight and nine lags respectively. The figure makes the interior minima visible, with the criterion falling monotonically through lag eight before rising again, which is why a boundary lag would misdescribe the data. The monthly tier uses the BIC, which selects 2 lags for the paper period (BIC = -30.57) and 3 lags for the extended sample (BIC = -32.79).
 
+\FloatBarrier
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.92\textwidth]{data/processed/var_results/figures/infographics_lag_selection.png}
   \caption{Lag Selection Diagnostics}
   \label{fig:lag_diag}
 \end{figure}
+\FloatBarrier
 
+\FloatBarrier
 \begin{table}[H]
   \centering
   \caption{Daily AIC by Lag for Both Samples}
@@ -374,6 +409,7 @@ Lag selection diagnostics reported in Table~\ref{tab:aic} and Figure~\ref{fig:la
     \bottomrule
   \end{tabular}
 \end{table}
+\FloatBarrier
 
 \begin{center}
   \small\textit{Note.} The daily AIC reaches an interior minimum at eight lags for the paper period and nine lags for the extended sample. The monthly tier uses the BIC, which selects two lags for the paper period and three for the extended sample.
@@ -381,6 +417,7 @@ Lag selection diagnostics reported in Table~\ref{tab:aic} and Figure~\ref{fig:la
 
 Per-equation fit statistics complement the model selection evidence. Each reduced-form equation in the restricted system is estimated by ordinary least squares, and Table~\ref{tab:fit} reports the coefficient of determination, the adjusted $R^2$, and the joint $F$-statistic for the null that all slope coefficients in the equation are zero, together with its $p$-value. The joint $F$-tests reject the null in every equation at the 1 percent level, confirming that each dependent variable is explained by its lagged system. The near-unity $R^2$ values for the level variables reflect the persistence of the levels specification rather than overfitting, which is why model adequacy rests on the lag selection diagnostics in Table~\ref{tab:aic} and the residual-based checks reported in the discussion rather than on $R^2$ alone.
 
+\FloatBarrier
 \begin{table}[H]
   \centering
   \caption{Per-Equation Fit Statistics, Restricted VAR, Paper Period}
@@ -415,6 +452,7 @@ Per-equation fit statistics complement the model selection evidence. Each reduce
   \end{tabular}
   \caption*{\textit{Note.} $F$-statistic tests the null that all slope coefficients in the equation are zero; every $p$-value is below .001. N is the number of observations after lag construction.}
 \end{table}
+\FloatBarrier
 
 \FloatBarrier
 
@@ -422,12 +460,14 @@ Per-equation fit statistics complement the model selection evidence. Each reduce
 
 Figure~\ref{fig:irf_daily_paper} presents the daily restricted impulse responses for the paper period, followed by Figure~\ref{fig:irf_monthly_paper} presenting the monthly restricted responses.
 
+\FloatBarrier
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.92\textwidth]{data/processed/var_results/figures/irf_grid_daily_restricted_paper.png}
   \caption{Daily Restricted Impulse Responses, Paper Period (paper's Figure A2.1)}
   \label{fig:irf_daily_paper}
 \end{figure}
+\FloatBarrier
 
 The risk-off self-response starts at 0.098, matching the paper's 0.10, and decays toward zero over 125 trading days. The World Uncertainty Index daily response reaches a trough of -0.010 at day 40, the response evaluated by Hypothesis 5. The yield spread response is positive and persistent, peaking at +0.015 at day 50, the evidence for the Hypothesis 3 widening channel. The daily real GDP response reaches a trough of -0.000743 at day 50, with 95 percent Monte Carlo confidence bands strictly below zero, confirming the Hypothesis 2 output contraction over the paper period.
 
@@ -435,12 +475,14 @@ On the price side, the real effective exchange rate appreciates from near zero o
 
 The capital flow responses are larger but shorter-lived. Portfolio debt dips to --0.0585 percent of GDP at day 12 before settling near zero, and portfolio equity reaches --0.0524 at day 16 before recovering to --0.0017, both with wide confidence bands. Other investment spikes to +0.1626 at day 10, turns negative to --0.0182 at day 44, and ends near --0.0121. Direct investment stays small throughout, with a marginal dip at day 3, a peak of +0.0022 at day 13, and a terminal value near +0.0009.
 
+\FloatBarrier
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.92\textwidth]{data/processed/var_results/figures/irf_grid_monthly_restricted_paper.png}
   \caption{Monthly Restricted Impulse Responses, Paper Period (paper's Appendix 4)}
   \label{fig:irf_monthly_paper}
 \end{figure}
+\FloatBarrier
 
 The monthly restricted model in Figure~\ref{fig:irf_monthly_paper} reinforces the daily findings. Real GDP reaches a monthly trough of -0.003980 at month 3, remaining significant through month 6. REER appreciation peaks at +0.012 at month 3, the Hypothesis 1 exchange rate channel.
 
@@ -454,6 +496,7 @@ The monthly flow responses are the largest of the system. Portfolio debt starts 
 
 The paper-period results are checked against the unrestricted VAR specification. Figure~\ref{fig:irf_daily_unrestricted_paper} presents the daily unrestricted impulse response grid, matching the paper's Appendix 3.
 
+\FloatBarrier
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.92\textwidth]{data/processed/var_results/figures/irf_grid_daily_unrestricted_paper.png}
@@ -466,34 +509,40 @@ The unrestricted responses preserve the sign and persistence of the restricted e
 
 Figure~\ref{fig:irf_monthly_unrestricted_paper} presents the monthly unrestricted impulse response grid for the paper period.
 
+\FloatBarrier
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.92\textwidth]{data/processed/var_results/figures/irf_grid_monthly_unrestricted_paper.png}
   \caption{Monthly Unrestricted Impulse Responses, Paper Period}
   \label{fig:irf_monthly_unrestricted_paper}
 \end{figure}
+\FloatBarrier
 
 The monthly unrestricted grid reproduces the restricted troughs, with real GDP again contracting through month 6 and the REER appreciation peaking at the same horizon, so the robustness check confirms rather than qualifies the restricted findings.
 
 Moving to the extended sample from 1999 to 2026, Figure~\ref{fig:irf_daily_extended} presents the daily restricted grid, and Figure~\ref{fig:irf_monthly_extended} presents the monthly restricted grid.
 
+\FloatBarrier
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.92\textwidth]{data/processed/var_results/figures/irf_grid_daily_restricted_extended.png}
   \caption{Daily Restricted Impulse Responses, Extended Sample}
   \label{fig:irf_daily_extended}
 \end{figure}
+\FloatBarrier
 
 The daily extended real GDP response remains negative at -0.000630 at day 50, while the spread and REER responses remain positive in the extended sample, so the price channels survive even as the output channel weakens. The extended daily grid reproduces the paper-period shapes. The risk-off self-response starts at +0.104 and flattens by day 70. The WUI troughs at --0.0092 around day 41, the spread peaks at +0.0115 around day 57 and holds near +0.0102, and the stock index troughs at --0.0057 around day 58. Portfolio debt dips to --0.0528 at day 12, portfolio equity troughs at --0.0499 at day 15, other investment spikes to +0.1471 at day 12 before turning negative around day 96, and direct investment peaks at +0.0027 at day 13, with the flow responses settling near zero by the end of the horizon. However, the monthly extended grid in Figure~\ref{fig:irf_monthly_extended} demonstrates output channel attenuation, with the real GDP response at month 3 measuring -0.000162 and confidence bands spanning zero, the evidence that the Hypothesis 2 contraction does not generalize to the extended sample at the monthly frequency.
 
 The monthly extended grid diverges from the paper period in the price variables and the flows. The risk-off self-response starts at +0.1114 and flattens by month 8. The WUI troughs at --0.0322 at month 5 before a partial recovery to +0.0144 at month 10, with very wide bands throughout. The spread spikes to +0.0817 at month 2, holds a second high near +0.073 at months 6 to 7, and decays to +0.0214. The real GDP response reaches --0.0008 at month 7 with bands straddling zero at every horizon, the REER peaks at +0.0045 around month 7 and holds near +0.0020, and the stock index troughs at --0.0244 around month 7 and ends near --0.0124. The flow responses carry the widest bands of the system. Portfolio debt troughs at --0.2046 in month 2 before a spike to +0.3397 at month 3, other investment troughs at --0.2762 at month 3, portfolio equity recovers from --0.1235 on impact to +0.0015 by month 11, and direct investment dips to --0.0253 in month 1 and peaks at +0.0547 in month 2.
 
+\FloatBarrier
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.92\textwidth]{data/processed/var_results/figures/irf_grid_monthly_restricted_extended.png}
   \caption{Monthly Restricted Impulse Responses, Extended Sample}
   \label{fig:irf_monthly_extended}
 \end{figure}
+\FloatBarrier
 
 \FloatBarrier
 
@@ -501,6 +550,7 @@ The monthly extended grid diverges from the paper period in the price variables 
 
 Table~\ref{tab:crossval} consolidates the cross-validation of every variable and frequency against the paper's published figures. Out of seventeen comparisons, nine are matches, five are partial matches, and three are mismatches. The remaining rows split between price and flow variables. The daily REER plateau of +0.002 compares with the paper's +0.0008, and the stock index, which the paper shows blipping positive before turning negative, is negative from impact with a trough of --0.0066 at day 50. Portfolio debt dips to --0.058 at day 12 against the paper's --0.005, portfolio equity troughs at --0.052 at day 16 against the paper's --0.006 at day 40, direct investment settles near +0.0015 against the paper's --0.002 dip and +0.001 plateau, and other investment mismatches, spiking to +0.163 at day 10 where the paper peaks at +0.010 at day 50. At the monthly frequency, the WUI mismatches with a peak of +0.052 at month 5 where the paper dips to --0.003 at month 7, the spread matches with a +0.115 spike at month 3 against the paper's +0.075, the stock index matches with a --0.021 start recovering to zero against the paper's --0.017 to --0.004, debt is partial with a --0.10 start against the paper's +0.06 and a zero settle in both, and equity matches with a --0.055 trough at month 3 against the paper's --0.065 at month 4.
 
+\FloatBarrier
 \begin{table}[H]
   \centering
   \caption{Cross-validation of Impulse Responses, Replication Versus Published Paper}
@@ -530,9 +580,11 @@ Table~\ref{tab:crossval} consolidates the cross-validation of every variable and
     \bottomrule
   \end{tabularx}
 \end{table}
+\FloatBarrier
 
 Table~\ref{tab:flowsig} reports the complete significance record for capital flows. Out of forty flow-horizon entries, exactly two reach 95 percent significance, both being direct investment at the three-month horizon under the restricted (+0.0431, 95\% CI [+0.0143, +0.0673]) and unrestricted (+0.0362, 95\% CI [+0.0117, +0.0607]) specifications. Across the four flow categories the record is almost entirely null. Portfolio debt responses are insignificant at every horizon under both specifications, with the month-1 coefficient of --0.1502 carrying the widest band. Portfolio equity is insignificant throughout, and other investment shows the widest bands in the table, its month-3 response of --0.2186 spanning a band of roughly 0.49. Direct investment is the only category with a significant entry, the month-3 responses of +0.0431 and +0.0362 under the restricted and unrestricted specifications.
 
+\FloatBarrier
 \begin{longtable}{@{}l l r r r r l@{}}
   \caption{Capital Flow Response Significance by Specification and Horizon} \label{tab:flowsig} \\
   \toprule
@@ -588,6 +640,7 @@ Unrestricted & Direct & 12 & -0.0015 & -0.0064 & 0.0034 & No \\
 Unrestricted & Direct & 24 & -0.0002 & -0.0038 & 0.0034 & No \\
   \bottomrule
 \end{longtable}
+\FloatBarrier
 
 \begin{center}
   \small\textit{Note.} Monthly restricted and unrestricted specifications, paper period. Responses are percentage points of nominal GDP. A response is significant when the 95 percent Monte Carlo band excludes zero.
