@@ -8,7 +8,7 @@ sample through June 2026. Two-tier estimation with an as-of-date data policy.
 Group 4, FINARTS C01, De La Salle University, Academic Year 2025–2026 Term 3.
 Submitted August 7, 2026 to Dr. Ray Anthony Almonares.
 
-**[ Paper PDF](main.pdf)** | **[ Web Report (Netlify)](https://finalprojectfinartsg4.netlify.app)** | **[ Quarto Notebook](data_pipeline.qmd)** | **[ Python Replication Engine](scripts/replicate_svar.py)** | **[ GitHub Repository](https://github.com/sakudiff/FINARTS_FINAL-PAPER)**
+**[ Paper PDF](FINARTS_C01_Group4_TermPaper.pdf)** | **[ Web Report (Netlify)](https://finalprojectfinartsg4.netlify.app)** | **[ Quarto Notebook](data_pipeline.qmd)** | **[ Python Replication Engine](scripts/replicate_svar.py)** | **[ GitHub Repository](https://github.com/sakudiff/FINARTS_FINAL-PAPER)**
 
 ## Replication tutorial
 
@@ -87,7 +87,7 @@ flowchart TD
     end
 
     subgraph Deliverables ["Final Deliverables"]
-        PDF["main.pdf (92-Page LaTeX Paper)"]
+        PDF["FINARTS_C01_Group4_TermPaper.pdf (92-Page LaTeX Paper)"]
         HTML["index.html (Interactive Netlify Web Report)"]
     end
 
@@ -134,7 +134,7 @@ flowchart TD
 | **6. Descriptive Statistics** | Present descriptive statistics, observation counts, and data properties. | Computed summary tables, variance ratios, rolling volatility, density plots, and time-series figures across both the paper period (4,544 complete-case daily / 264 monthly obs) and the extension (903 daily / 63 monthly obs). Rendered in both PDF and HTML. | Fully Compliant |
 | **7. Econometric Tests** | Present econometric test results (t-tests, correlation, stationarity, regressions). | Executed Augmented Dickey-Fuller (ADF) unit root tests, Pearson correlation matrix, F-tests for variance equality across sample periods, lag selection criteria (AIC/BIC), equation-by-equation block-restricted OLS estimation, Cholesky orthogonalized IRFs, and Monte Carlo bootstrap confidence bands. | Fully Compliant |
 | **8. Discussion of Results** | Discuss whether empirical evidence supports or contradicts financial theory. | Detailed analysis showing how pre-2021 empirical evidence supports carry trade unwinding theory during risk-off shocks, while post-2021 structural shifts reflect monetary policy divergence between the US Federal Reserve and BOJ. | Fully Compliant |
-| **9. Final Deliverables** | Submission of written report. | Delivered two formats: complete paper PDF (`main.pdf`) and interactive web data pipeline (`index.html`, hosted on Netlify). | Fully Compliant |
+| **9. Final Deliverables** | Submission of written report. | Delivered two formats: complete paper PDF (`FINARTS_C01_Group4_TermPaper.pdf`) and interactive web data pipeline (`index.html`, hosted on Netlify). | Fully Compliant |
 
 ## Complete Decision, Operation, & Transformation Comparison Table
 
@@ -223,7 +223,7 @@ The paper's EViews interpolation settings are unreported. The BIS REER vintage r
 
 ```
 FINARTS_FINAL-PAPER (main)
-├── main.pdf # Compiled paper (92 pages)
+├── FINARTS_C01_Group4_TermPaper.pdf # Compiled paper (92 pages)
 ├── data_pipeline.qmd # Quarto document: data construction, narrative, and results
 ├── scripts/
 │   └── replicate_svar.py # Unified A-Z replication pipeline
