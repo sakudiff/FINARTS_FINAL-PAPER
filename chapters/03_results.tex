@@ -12,7 +12,7 @@ The time-series view documents the regime change directly. The yield spread beca
 
 A variance comparison confirms that these differences are statistically significant. An F-test for equality of variances across the two periods rejects equality at the 5 percent level for all five variables tested, the REER, the stock index, the spread, real GDP, and portfolio debt flows. Real GDP volatility in the paper period exceeds that of the extension by a factor of 27.8, reflecting the global financial crisis, the Tohoku earthquake, and the pandemic inside the original sample window, and the REER and the stock index show the same pattern, with paper-period variances 3.4 and 1.8 times larger. Portfolio debt flows are the exception, with the extended period variance 2.4 times larger (F = 0.41, p < .001), consistent with the rise in cross-border debt investment volatility after the monetary policy divergence between Japan and the United States opened up. The uncertainty index behaves differently from the financial series, with its mean moving only marginally from --1.80 to --1.91 while its standard deviation nearly doubles from 0.59 to 1.05 across the two periods.
 
-Cross-variable correlations in the full sample are consistent with the transmission channels estimated in the VAR. Table~\ref{tab:corr} presents the full-sample Pearson correlation matrix for the ten endogenous variables. The risk-off indicator is only weakly correlated with every other variable, with the absolute correlation never exceeding 0.14, which is expected for a rare-event indicator and is precisely why it can serve as the exogenous shock. The strongest relationships run through the exchange rate. The log REER and log real GDP correlate at --0.92, the log REER and the log Nikkei at --0.82, and the log Nikkei and log real GDP at 0.76, so real appreciation, lower equity prices, and lower output move together in the raw data, the configuration the competitiveness channel predicts. The spread correlates negatively with the stock index at --0.12 and with the REER at --0.21, and the portfolio flow categories are weakly correlated with one another, with the equity and debt flow series at 0.14, while the other investment category, the highest-variance flow, correlates negatively with the equity and debt flow series at --0.34 and --0.31. The WUI is weakly related to every other variable, with its largest absolute correlation 0.194 against the stock index and near-zero correlation with the risk-off indicator at 0.003. Direct investment carries the strongest pairwise links among the flow categories, correlating at 0.250 with the stock index and --0.223 with the REER, while remaining below 0.20 against the remaining variables. The pairwise correlations do not indicate a multicollinearity problem for the system: the only coefficients above 0.8 in absolute value run between the slowly moving level variables (real GDP, the REER, and the stock index), which enter the VAR as separate equations whose lagged levels are already highly persistent, and the exogenous risk-off indicator that identifies the shocks is nearly orthogonal to the block.
+Cross-variable correlations in the full sample are consistent with the transmission channels estimated in the VAR. Table~\ref{tab:corr} presents the full-sample Pearson correlation matrix for the ten endogenous variables. The risk-off indicator is only weakly correlated with every other variable, with the absolute correlation never exceeding 0.14, which is expected for a rare-event indicator and is precisely why it can serve as the exogenous shock. The strongest relationships run through the exchange rate. The log REER and log real GDP correlate at --0.92, the log REER and the log Nikkei at --0.82, and the log Nikkei and log real GDP at 0.76, so real appreciation, lower equity prices, and lower output move together in the raw data, the configuration the competitiveness channel predicts. The spread correlates negatively with the stock index at --0.12 and with the REER at --0.21, and the portfolio flow categories are weakly correlated with one another, with the equity and debt flow series at 0.14, while the other investment category, the highest-variance flow, correlates negatively with the equity and debt flow series at --0.34 and --0.31. The WUI is weakly related to every other variable, with its largest absolute correlation 0.194 against the stock index and near-zero correlation with the risk-off indicator at 0.003. Direct investment carries the strongest pairwise links among the flow categories, correlating at 0.250 with the stock index and --0.223 with the REER, while remaining below 0.20 against the remaining variables. The pairwise correlations do not indicate a multicollinearity problem for the system: the only coefficients above 0.8 in absolute value run between the slowly moving level variables (real GDP, the REER, and the stock index), which enter the VAR as separate equations whose lagged levels are already highly persistent, and the exogenous risk-off indicator that identifies the shocks is nearly orthogonal to the block. Figure~\ref{fig:corr_matrix} visualizes the same matrix, with cell shading scaling with the absolute correlation, so the near-orthogonality of the shock and the strong negative block among the level variables are visible at a glance.
 
 \FloatBarrier
 \begin{table}[H]
@@ -38,6 +38,13 @@ Cross-variable correlations in the full sample are consistent with the transmiss
   \end{tabular}
   \caption*{\textit{Note.} Pairwise Pearson correlations on all available full-sample observations. WUI is the log World Uncertainty Index, RGDP log real GDP, REER log real effective exchange rate, Nikkei the log Nikkei 225, and Debt, Equity, Other, and Direct the four capital flow categories as percentages of nominal GDP.}
 \end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.92\textwidth]{data/processed/var_results/figures/infographics_correlation_matrix.png}
+  \caption{Full-Sample Correlation Matrix of the Ten Endogenous Variables}
+  \label{fig:corr_matrix}
+\end{figure}
 \FloatBarrier
 
 \FloatBarrier
@@ -121,6 +128,22 @@ Direct & N & 5795 & 1369 & 7164 \\
 \begin{center}
   \small\textit{Note.} Capital flow variables are percentages of nominal GDP. The spread is in percentage points. Other variables are natural logs.
 \end{center}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.92\textwidth]{data/processed/var_results/figures/infographics_density_shift.png}
+  \caption{Distribution of Each Variable in the Paper Period and the Extension, 1999--2026}
+  \label{fig:density_shift}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.92\textwidth]{data/processed/var_results/figures/infographics_density_full_sample.png}
+  \caption{Full-Sample Distributions of the Ten Endogenous Variables, 1999--2026}
+  \label{fig:density_full}
+\end{figure}
+
+Figure~\ref{fig:density_shift} overlays the two period distributions for each variable, with the dashed line marking the full-sample mean, and Figure~\ref{fig:density_full} pools all observations into a single density per variable. Together they document the dispersion shift that the variance tests quantify, the wider spread of the uncertainty index, the deeper negative tail of the yield spread, and the higher-amplitude capital flow distributions in the extension.
 
 \FloatBarrier
 

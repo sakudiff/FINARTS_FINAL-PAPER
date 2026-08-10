@@ -67,3 +67,5 @@ docs/*.md
 docs/figures-audit.md
 docs/paper-figures-audit.md
 
+# LaTeX error-save artifacts
+*.SAVE-ERROR
