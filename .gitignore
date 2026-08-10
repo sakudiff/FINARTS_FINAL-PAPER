@@ -50,6 +50,9 @@ data_pipeline_cache/
 
 ***REMOVED***
 
+# Canvas course material downloads (not source)
+canvas_downloads/
+
 ***REMOVED***# Internal audit reports and working notes (not submission material)
 drafts/
 docs/*.md

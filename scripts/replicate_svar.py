@@ -614,6 +614,15 @@ def _estimate_monthly(data, exog, label, repl, var_order=VAR_ORDER,
     lag = _select_lag_bic(data, exog, maxlags)
     print(f"\n  {label} — BIC lag: {lag}, obs: {len(data)}")
 
+    # Persist the monthly BIC profile so quoted criterion values are artifact-backed.
+    from statsmodels.tsa.api import VAR as _VAR
+    _order = _VAR(endog=data, exog=exog).select_order(maxlags=maxlags, trend="n")
+    _bic = _order.ics["bic"]
+    _stem = re.sub(r"[^a-z0-9_]+", "_", label.lower()).strip("_")
+    pd.DataFrame({"lag": range(1, maxlags + 1),
+                  "bic": [_bic[k] for k in range(1, maxlags + 1)]}).to_csv(
+        OUT_DIR / f"lag_selection_bic_{_stem}.csv", index=False)
+
     print(f"  Estimating restricted VAR...")
     res_r, irf_r = _run_restricted_var(data, exog, lag, periods)
     print(f"  Computing restricted CIs (MC delta, B={repl})...")
@@ -767,9 +776,12 @@ def print_flow_verdict(flow_df):
 
 # Regenerate ADF test and lag selection CSVs for both periods.
 def _run_adf_and_lag(df_daily):
+    # Diagnostics must run on the same builds as estimation, not on the raw
+    # final_dataset complete-case path, so the ADF and lag tables describe
+    # the sample the VARs were actually estimated on.
     periods_info = [
-        ("1999_2021", df_daily[df_daily["date"] <= PAPER_END]),
-        ("1999_2026", df_daily),
+        ("1999_2021", _build_daily_paper(df_daily)),
+        ("1999_2026", _build_daily_extended(df_daily)),
     ]
     for period_label, period_df in periods_info:
         data = period_df[VAR_ORDER].copy().dropna()
@@ -1117,6 +1129,9 @@ def _plot_adf_results():
     ax.annotate("5% critical value", xy=(-2.8621, 0.5), fontsize=7, color="#595959")
     ax.set_xlabel("ADF statistic")
     ax.set_ylabel("")
+    ax.scatter([], [], color="#2E45B8", marker="o", s=40, label="1999--2021")
+    ax.scatter([], [], color="#2E45B8", marker="s", s=40, label="1999--2026")
+    ax.legend(loc="lower right", fontsize=8, frameon=False)
     fig.suptitle("ADF test statistic by variable, markers by period, color by stationarity", fontsize=9)
     fig.tight_layout()
     fig.savefig(FIG_DIR / "infographics_adf_stationarity.png", dpi=150, bbox_inches="tight")
