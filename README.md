@@ -26,7 +26,7 @@ uv sync
 quarto render data_pipeline.qmd
 ```
 
-3. Run the estimation pipeline. This executes the full two-tier SVAR, lag selection, ADF tests, impulse responses, Monte Carlo confidence bands, and the cross-validation tables, writing outputs to `data/processed/var_results/`.
+3. Run the estimation pipeline. This executes the full two-tier SVAR, lag selection, ADF tests, impulse responses, Monte Carlo confidence bands for the monthly tier, daily point estimates, and the cross-validation tables, writing outputs to `data/processed/var_results/`.
 
 ```bash
 uv run python scripts/replicate_svar.py
@@ -44,7 +44,7 @@ uv run python scripts/replicate_svar.py --verify
 uv run python scripts/replicate_svar.py --figures
 ```
 
-The daily restricted confidence bands require a heavier bootstrap run.
+The daily restricted confidence bands are computed separately because they are the heavy part of the pipeline. Each of the 1,000 bootstrap draws re-estimates the daily system and recomputes every impulse response across the 125-day horizon, so the default run skips them to stay fast. The paper's daily impulse response figures carry these 95 percent envelopes, and the significance statements in the text, such as the real GDP trough with confidence interval minus 0.000916 to minus 0.000418 at day 50, come from this run. Run it to reproduce the daily bands from scratch.
 
 ```bash
 uv run python scripts/replicate_svar.py --with-daily-ci --repl 1000
