@@ -6,7 +6,7 @@ structural vector autoregression for Japan, extended from the paper's 1999–202
 sample through June 2026. Two-tier estimation with an as-of-date data policy.
 
 Group 4, FINARTS C01, De La Salle University, Academic Year 2025–2026 Term 3.
-Submitted August 7, 2026 to Dr. Ray Anthony Almonares.
+Submitted August 12, 2026 to Dr. Ray Anthony Almonares.
 
 **[ Paper PDF](FINARTS_C01_Group4_TermPaper.pdf)** | **[ Web Report (Netlify)](https://finalprojectfinartsg4.netlify.app)** | **[ Quarto Notebook](data_pipeline.qmd)** | **[ Python Replication Engine](scripts/replicate_svar.py)** | **[ GitHub Repository](https://github.com/sakudiff/FINARTS_FINAL-PAPER)**
 
