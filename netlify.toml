@@ -1,4 +1,5 @@
 [build]
   publish = "."
-  # Production branch: main (set in Netlify dashboard at Site > Deploys > Continuous Deployment)
-  # Auto-deploys from main on every git push. index.html is the entry point.
+  # Production branch: dev (set in Netlify dashboard at Site > Deploys > Continuous Deployment)
+  # Auto-deploys from dev on every git push. index.html is the entry point.
+  # main is the clean submission branch and carries no rendered site.
