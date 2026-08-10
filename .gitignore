@@ -53,8 +53,17 @@ data_pipeline_cache/
 # Canvas course material downloads (not source)
 canvas_downloads/
 
+# Submission branch noise (spec, clean main)
+index.html
+Submission.zip
+guidelines/
+data/tmp_quadratic/
+articles/Beirne_Sugandi_2023.md
+articles/Japan brands yen falls*.pdf
+
 ***REMOVED***# Internal audit reports and working notes (not submission material)
 drafts/
 docs/*.md
 docs/figures-audit.md
 docs/paper-figures-audit.md
+
