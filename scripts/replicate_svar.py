@@ -981,7 +981,6 @@ def _verify():
     return all_ok
 
 
-# --- figure functions ---
 
 
 VAR_LABELS = {
