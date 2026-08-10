@@ -50,7 +50,7 @@ The daily restricted confidence bands require a heavier bootstrap run.
 uv run python scripts/replicate_svar.py --with-daily-ci --repl 1000
 ```
 
-The submission package, `Submission.zip`, is the Canvas artifact. It carries the same read-set as the repository, the raw data, the vintage snapshots, the seven native series, `final_dataset.csv`, the Quarto notebook, and the Python script, so the Python pipeline runs standalone from the unzip without R.
+The submission package, `FINARTS_C01_Group4_TermPaper.zip`, is the Canvas artifact. It carries the same read-set as the repository, the raw data, the vintage snapshots, the seven native series, `final_dataset.csv`, the Quarto notebook, and the Python script, so the Python pipeline runs standalone from the unzip without R.
 
 ## Group members
 
