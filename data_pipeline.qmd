@@ -951,7 +951,7 @@ ggplot(plot_data, aes(x = value, fill = period, color = period)) +
   scale_fill_manual(values = period_colors) +
   scale_color_manual(values = period_colors) +
   labs(x = "Value", y = "Density", fill = NULL, color = NULL,
-       title = "Japanese financial variables show wider dispersion after 2021",
+       title = "Distribution shifts between the paper period and the extension",
        caption = "Dashed line: full-sample mean. Variables defined in the reference table above.") +
   theme_quant()
 ```
